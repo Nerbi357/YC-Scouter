@@ -9,6 +9,7 @@ If the dataset doesn't exist yet, it tells you to run the notebook first.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -16,8 +17,9 @@ import streamlit as st
 
 from yc_radar import filters, user_data
 
-DATASET = Path("data/processed/yc_radar.parquet")
-USER_DATA = Path("data/user_data.csv")
+# Paths are overridable so the dashboard can read from Google Drive (Colab).
+DATASET = Path(os.environ.get("YC_RADAR_DATASET", "data/processed/yc_radar.parquet"))
+USER_DATA = Path(os.environ.get("YC_RADAR_USERDATA", "data/user_data.csv"))
 
 LINK_COLUMNS = [
     "website",
