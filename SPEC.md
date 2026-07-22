@@ -48,22 +48,25 @@ official YC directory. Fields per company:
 Fallback / cross-check: YC's own Algolia-backed company search endpoint.
 
 ### Tier B — Enrichment, best-effort (optional notebook cells)
-- **Patents count** — PatentsView / Google Patents by assignee name. Fuzzy name
-  matching → flagged as approximate, never authoritative.
-- **Deep-dive links** — generated URLs (no scraping): Crunchbase search, LinkedIn
-  company search, Google News, the startup's own site, YC profile.
+- **Deep-dive links (OPEN sources only)** — generated URLs (no scraping), pointing
+  only at freely accessible pages so the user can study each company at no cost:
+  the startup's own **website**, its **YC profile**, **Google Search/News**,
+  **Product Hunt**, **Hacker News (Algolia search)**, **GitHub**, and **Wikipedia**.
+  No Crunchbase / LinkedIn / paywalled or login-walled links.
 - **GitHub signal** — for devtools/OSS startups, star count if a public repo is
   found (optional).
 - **AI idea/uniqueness summary & risk notes** — optional, via the Claude API,
   summarizing `long_description` into "what they do / why unique / what to check".
-  Requires an API key; off by default.
+  Requires an API key; off by default. Cost estimate in §5a.
+- ~~Patents count~~ — **dropped for v1** (fuzzy matching, low signal/effort ratio).
 
 ### Tier C — NOT publicly available (explicitly out of scope)
 - ❌ **Cap table** for private startups — does not exist publicly. Only public
   (post-IPO) companies have a real capital structure, surfaced via `status=Public`.
-- ❌ **Exact funding amounts / valuations / round details** — not in YC data.
-  Crunchbase has some, but it is a paid/limited API → represented as **link-outs**,
-  not fabricated numbers.
+- ❌ **Exact funding amounts / valuations / round details** — not in YC data, and
+  the closest sources (Crunchbase/PitchBook) are paywalled/login-walled, which the
+  user has excluded. Represented only via **open** link-outs (Google News, HN),
+  never fabricated numbers.
 - ❌ Anything requiring scraping sources whose ToS forbid it (e.g. LinkedIn).
 
 > **Rule:** Never fabricate or estimate financial figures and present them as fact.
@@ -90,9 +93,9 @@ Fallback / cross-check: YC's own Algolia-backed company search endpoint.
 | `investability` | derived | Public=market-buyable; Acquired=no; Active=accredited/SPV only |
 | `score` | derived | weighted, configurable ranking |
 | `yc_url`, `website` | A | |
-| `crunchbase_url`, `linkedin_url`, `news_url` | B | generated deep-dive links |
+| `news_url`, `producthunt_url`, `hn_url`, `github_url`, `wikipedia_url` | B | OPEN-source deep-dive links only |
 
-**Optional (Tier B):** `patents_count`, `github_stars`, `ai_risk_notes`.
+**Optional (Tier B):** `github_stars`, `ai_summary`, `ai_risk_notes` (patents dropped for v1).
 
 **User-owned (persisted across refreshes):** `my_rating` (0–5), `watchlist` (bool),
 `my_notes` (free text).
@@ -127,10 +130,47 @@ useful for reviewing:
   dataset (interactive filters/sort/search). Recommended as the browsing layer.
 - **Optional AI enrichment:** Claude API (`anthropic`), off by default.
 
-### Recommended presentation (pick during Plan phase)
-- **(A)** Notebook + styled Excel export — simplest, fully offline review. ✅ default
-- **(B)** Notebook + Streamlit dashboard — best interactive browsing/filtering.
-- **(C)** Both (A produces the data, B browses it).
+### Presentation: **BOTH (C)** — how the two layers work together
+
+The notebook and the dashboard are **two views of one dataset**, not two separate
+apps:
+
+1. **`notebooks/yc_radar.ipynb` = the pipeline + producer.** It fetches YC data,
+   normalizes/filters to 2024–2026, enriches (open links, optional AI), scores, and
+   **writes the single source of truth** to `data/processed/yc_radar.parquet` (+ a
+   styled `.xlsx` and a `.csv`). It also holds the analytics/charts. Run it whenever
+   you want fresh data. → produces **Excel**, a portable offline snapshot you can
+   sort/filter/annotate anywhere.
+2. **`app.py` (Streamlit) = the consumer / browser.** It **reads that same exported
+   file** and gives an interactive UI: sidebar filters (industry, batch, status,
+   team size, score slider), full-text search, sortable table, and a per-company
+   card with all the open-source links. It never re-fetches — it just browses what
+   the notebook produced.
+3. **Personal notes survive refreshes.** Your `my_rating` / `watchlist` / `my_notes`
+   live in a separate `data/user_data.csv` keyed by company `slug`. Both the
+   notebook export and the Streamlit app read/merge it, so re-running the pipeline
+   with fresh YC data never wipes your annotations.
+
+Flow: `run notebook → yc_radar.parquet/.xlsx → streamlit run app.py`. Excel = the
+snapshot you keep; Streamlit = live exploration of that snapshot.
+
+### 5a. AI Summary cost estimate (optional feature, OFF by default)
+
+Assumptions: **~1,200–1,600 companies** in batches 2024–2026 (use 1,500 for the
+math); per company ≈ **700 input tokens** (long description + one-liner + prompt) +
+**250 output tokens**.
+
+| Model | $/1M in · out | Per company | **~1,500 companies** | With Batch API (−50%) |
+|---|---|---|---|---|
+| **Haiku 4.5** (recommended) | $1.00 · $5.00 | ~$0.0020 | **≈ $2.9** | **≈ $1.5** |
+| Sonnet 5 | $3.00 · $15.00 | ~$0.0059 | ≈ $8.8 | ≈ $4.4 |
+| Opus 4.8 (overkill) | $5.00 · $25.00 | ~$0.0098 | ≈ $14.6 | ≈ $7.3 |
+
+**Bottom line:** enabling AI summaries for the whole YC 2024–2026 set costs roughly
+**$1.5–3 with Haiku 4.5** (one-time per full refresh; prompt-caching the shared
+instruction prefix trims it further). Cheap enough to enable — but it stays **off by
+default** and behind your own `ANTHROPIC_API_KEY` so nothing runs without your
+explicit opt-in.
 
 ---
 
@@ -175,12 +215,13 @@ src/yc_radar/
   export.py                 → styled Excel + CSV export
 data/
   raw/                      → cached API responses (gitignored)
-  processed/                → exported xlsx/csv (gitignored)
-app.py                      → optional Streamlit dashboard (option B)
+  processed/                → exported yc_radar.parquet / .xlsx / .csv (gitignored)
+  user_data.csv             → personal ratings/watchlist/notes (persisted, gitignored)
+app.py                      → Streamlit dashboard (reads data/processed/)
 tests/
   test_normalize.py         → batch filtering, typing, dedup
   test_score.py             → scoring math
-  test_enrich.py            → link generation, patent-match fallbacks
+  test_enrich.py            → open-source link generation, graceful missing-field handling
 ```
 
 ---
@@ -229,6 +270,8 @@ def filter_batches(df: pd.DataFrame, years: tuple[int, ...] = (2024, 2025, 2026)
 **Never:**
 - Commit API keys or a real `.env`.
 - Scrape sources that forbid it (e.g. LinkedIn).
+- **Add links to closed / paywalled / login-walled resources** (Crunchbase,
+  LinkedIn, PitchBook) — open sources only, per user decision.
 - Fabricate or estimate cap-table / funding / valuation numbers and present them as
   fact.
 - Remove failing tests without approval.
@@ -237,25 +280,27 @@ def filter_batches(df: pd.DataFrame, years: tuple[int, ...] = (2024, 2025, 2026)
 
 ## 11. Success Criteria
 
-- [ ] Notebook runs end-to-end and outputs `data/processed/yc_radar.xlsx` + `.csv`.
+- [ ] Notebook runs end-to-end and outputs `data/processed/yc_radar.parquet`,
+      `.xlsx`, and `.csv`.
 - [ ] Contains all YC companies from batches 2024, 2025, 2026 (deduplicated).
 - [ ] Each row has: industry, idea summary, status, investability, team_size,
-      score, and deep-dive links.
-- [ ] Output is filterable/sortable by industry, batch, status, team size, score.
+      score, and OPEN-source deep-dive links.
+- [ ] Streamlit `app.py` reads the exported dataset and filters/sorts/searches it.
+- [ ] Personal `my_rating` / `watchlist` / `my_notes` persist across data refreshes.
 - [ ] Analytics section: distributions by industry, batch, status, geography.
 - [ ] `src/yc_radar/` logic covered by tests ≥ 80%; `ruff`/`black` clean.
-- [ ] Honest handling of unavailable data (no fabricated financials).
+- [ ] Honest handling of unavailable data (no fabricated financials, open links only).
 
 ---
 
-## 12. Open Questions (for user)
+## 12. Resolved Decisions (from user, 2026-07-22)
 
-1. **Presentation:** option A (Excel only), B (Streamlit dashboard), or C (both)?
-2. **AI summaries:** enable optional Claude-API "idea/uniqueness/risk" summaries
-   (needs API key, small cost) or keep raw descriptions only?
-3. **Patents enrichment:** include best-effort patents count (fuzzy, slower), or
-   skip for v1?
-4. **Batch scope:** all batches tagged 2024–2026 as they appear in the source — OK?
-5. **Crunchbase:** link-outs only (free) is the plan — confirm you don't have a
-   Crunchbase API key you want to use for real funding numbers.
+1. **Presentation:** **C — both** Excel + Streamlit (see §5, how they work together).
+2. **Deep-dive links:** **OPEN sources only** (website, YC, Google News, Product Hunt,
+   Hacker News, GitHub, Wikipedia). No Crunchbase / LinkedIn / paywalled links.
+3. **AI summaries:** optional, **OFF by default**, behind user's own API key.
+   Full-set cost ≈ **$1.5–3 with Haiku 4.5** (see §5a) — user to opt in later.
+4. **Patents:** **dropped for v1.**
+5. **Batch scope:** all batches tagged **2024–2026** as they appear in the source. ✅
+6. **No Crunchbase API key** — funding stays as open link-outs, never numbers.
 ```
