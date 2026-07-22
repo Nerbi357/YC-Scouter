@@ -6,7 +6,7 @@ Task detail + acceptance criteria live in `tasks/plan.md`. Check off as complete
 - [x] Task 1 (S): Project scaffold — deps, ruff/black/pytest config, package, data dirs, `.env.example`
 - [x] Task 2 (S): `fetch.py` — download + cache `yc-oss/api` JSON
 - [x] Task 3 (M): `normalize.py` — typed DataFrame, batch-year parse, filter 2024–2026, dedup
-- [ ] Task 4 (S): `export.py` (minimal) — Parquet/CSV/styled XLSX
+- [x] Task 4 (S): `export.py` (minimal) — Parquet/CSV/styled XLSX
 - [ ] Task 5 (S): Notebook skeleton — fetch → normalize → export end-to-end
 
 ### ✅ Checkpoint: Foundation
