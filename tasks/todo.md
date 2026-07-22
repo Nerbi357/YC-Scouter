@@ -7,7 +7,7 @@ Task detail + acceptance criteria live in `tasks/plan.md`. Check off as complete
 - [x] Task 2 (S): `fetch.py` — download + cache `yc-oss/api` JSON
 - [x] Task 3 (M): `normalize.py` — typed DataFrame, batch-year parse, filter 2024–2026, dedup
 - [x] Task 4 (S): `export.py` (minimal) — Parquet/CSV/styled XLSX
-- [ ] Task 5 (S): Notebook skeleton — fetch → normalize → export end-to-end
+- [x] Task 5 (S): Notebook skeleton — fetch → normalize → export end-to-end
 
 ### ✅ Checkpoint: Foundation
 - [ ] `pytest` green; `ruff`/`black` clean
