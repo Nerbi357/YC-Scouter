@@ -55,9 +55,11 @@ Fallback / cross-check: YC's own Algolia-backed company search endpoint.
   No Crunchbase / LinkedIn / paywalled or login-walled links.
 - **GitHub signal** — for devtools/OSS startups, star count if a public repo is
   found (optional).
-- **AI idea/uniqueness summary & risk notes** — optional, via the Claude API,
-  summarizing `long_description` into "what they do / why unique / what to check".
-  Requires an API key; off by default. Cost estimate in §5a.
+- **AI idea/uniqueness summary & risk notes — ENABLED (Haiku 4.5).** Via the Claude
+  API, summarizing `long_description` into "what they do / why unique / what to
+  check", run over the whole 2024–2026 set. Requires `ANTHROPIC_API_KEY`; uses the
+  **Batch API** to halve cost and **prompt-caches** the shared instruction prefix.
+  Results cached to disk so a re-run only summarizes *new* companies. Cost ≈ §5a.
 - ~~Patents count~~ — **dropped for v1** (fuzzy matching, low signal/effort ratio).
 
 ### Tier C — NOT publicly available (explicitly out of scope)
@@ -128,7 +130,8 @@ useful for reviewing:
   testable, notebook stays thin)
 - **Optional review UI:** `app.py` — a **Streamlit** dashboard reading the exported
   dataset (interactive filters/sort/search). Recommended as the browsing layer.
-- **Optional AI enrichment:** Claude API (`anthropic`), off by default.
+- **AI enrichment (enabled):** Claude API (`anthropic`), model `claude-haiku-4-5`,
+  via the Batch API with prompt caching + on-disk result cache.
 
 ### Presentation: **BOTH (C)** — how the two layers work together
 
@@ -166,11 +169,11 @@ math); per company ≈ **700 input tokens** (long description + one-liner + prom
 | Sonnet 5 | $3.00 · $15.00 | ~$0.0059 | ≈ $8.8 | ≈ $4.4 |
 | Opus 4.8 (overkill) | $5.00 · $25.00 | ~$0.0098 | ≈ $14.6 | ≈ $7.3 |
 
-**Bottom line:** enabling AI summaries for the whole YC 2024–2026 set costs roughly
-**$1.5–3 with Haiku 4.5** (one-time per full refresh; prompt-caching the shared
-instruction prefix trims it further). Cheap enough to enable — but it stays **off by
-default** and behind your own `ANTHROPIC_API_KEY` so nothing runs without your
-explicit opt-in.
+**Decision: ENABLED with Haiku 4.5.** Full YC 2024–2026 set ≈ **$1.5–3** one-time per
+full refresh (Batch API −50% + prompt caching applied). Runs behind your own
+`ANTHROPIC_API_KEY`; per-company results are cached to `data/processed/ai_cache.json`
+so subsequent refreshes only pay for **new** companies. Model is configurable, but
+Haiku 4.5 is the default.
 
 ---
 
@@ -263,7 +266,9 @@ def filter_batches(df: pd.DataFrame, years: tuple[int, ...] = (2024, 2025, 2026)
 - Write tests for parsing/normalization/scoring logic.
 
 **Ask first:**
-- Adding paid/keyed APIs (Crunchbase, patents key) or the AI-enrichment step (cost).
+- Changing the AI model away from Haiku 4.5, or running AI on every refresh without
+  the disk cache (cost).
+- Adding paid/keyed APIs (Crunchbase, etc.).
 - Scraping any HTML source (ToS review first).
 - Adding heavy dependencies or changing the output schema.
 
@@ -298,8 +303,8 @@ def filter_batches(df: pd.DataFrame, years: tuple[int, ...] = (2024, 2025, 2026)
 1. **Presentation:** **C — both** Excel + Streamlit (see §5, how they work together).
 2. **Deep-dive links:** **OPEN sources only** (website, YC, Google News, Product Hunt,
    Hacker News, GitHub, Wikipedia). No Crunchbase / LinkedIn / paywalled links.
-3. **AI summaries:** optional, **OFF by default**, behind user's own API key.
-   Full-set cost ≈ **$1.5–3 with Haiku 4.5** (see §5a) — user to opt in later.
+3. **AI summaries:** **ENABLED with Haiku 4.5** over the whole set (Batch API +
+   prompt cache + disk cache). Cost ≈ **$1.5–3** one-time (§5a). Needs user's key.
 4. **Patents:** **dropped for v1.**
 5. **Batch scope:** all batches tagged **2024–2026** as they appear in the source. ✅
 6. **No Crunchbase API key** — funding stays as open link-outs, never numbers.
