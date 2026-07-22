@@ -14,9 +14,10 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from yc_radar import filters
+from yc_radar import filters, user_data
 
 DATASET = Path("data/processed/yc_radar.parquet")
+USER_DATA = Path("data/user_data.csv")
 
 LINK_COLUMNS = [
     "website",
@@ -46,6 +47,7 @@ def main() -> None:
         st.stop()
 
     df = load_data(str(DATASET))
+    df = user_data.merge_user_data(df, path=USER_DATA)
 
     # --- Sidebar filters ---
     st.sidebar.header("Filters")
@@ -118,6 +120,37 @@ def main() -> None:
             ]
             if links:
                 st.markdown("**Open-source links:** " + " · ".join(links))
+
+    # --- Personal annotations (persist across refreshes) ---
+    st.subheader("My shortlist & notes")
+    st.caption(
+        "Edit rating (0–5), watchlist, and notes below, then Save. Stored in "
+        "`data/user_data.csv` keyed by slug — survives data refreshes."
+    )
+    editor_cols = ["slug", "name", "my_rating", "watchlist", "my_notes"]
+    editor_df = filtered[[c for c in editor_cols if c in filtered.columns]].copy()
+    edited = st.data_editor(
+        editor_df,
+        use_container_width=True,
+        hide_index=True,
+        disabled=["slug", "name"],
+        column_config={
+            "my_rating": st.column_config.NumberColumn("Rating", min_value=0, max_value=5),
+            "watchlist": st.column_config.CheckboxColumn("Watchlist"),
+            "my_notes": st.column_config.TextColumn("Notes"),
+        },
+        key="annotations_editor",
+    )
+    if st.button("💾 Save annotations"):
+        existing = user_data.load_user_data(USER_DATA).set_index("slug")
+        for _, r in edited.iterrows():
+            existing.loc[r["slug"]] = {
+                "my_rating": r.get("my_rating"),
+                "watchlist": bool(r.get("watchlist")),
+                "my_notes": r.get("my_notes", ""),
+            }
+        user_data.save_user_data(existing.reset_index(), path=USER_DATA)
+        st.success(f"Saved annotations for {len(edited)} companies.")
 
 
 if __name__ == "__main__":
