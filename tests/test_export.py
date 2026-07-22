@@ -47,6 +47,26 @@ def test_xlsx_is_styled_and_has_hyperlinks(tmp_path, sample_records):
     assert any(link is not None for link in linked)
 
 
+def test_illegal_control_chars_are_stripped(tmp_path):
+    import pandas as pd
+
+    df = pd.DataFrame(
+        {
+            "slug": ["x"],
+            "name": ["Bad\x07Co"],  # bell control char
+            "long_description": ["line1\x0bline2\x00end"],
+            "tags": [["a", "b"]],
+        }
+    )
+    # must not raise IllegalCharacterError
+    paths = export.export(df, out_dir=tmp_path)
+    wb = load_workbook(paths["xlsx"])
+    ws = wb.active
+    header = [c.value for c in ws[1]]
+    name_val = ws.cell(row=2, column=header.index("name") + 1).value
+    assert name_val == "BadCo"  # control char removed
+
+
 def test_list_columns_are_stringified_in_sheet(tmp_path, sample_records):
     df = _df(sample_records)
     paths = export.export(df, out_dir=tmp_path)

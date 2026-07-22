@@ -5,8 +5,7 @@ is what the Streamlit app reads). CSV and XLSX are human-facing; list columns ar
 flattened to comma-joined strings and URL columns become clickable hyperlinks.
 """
 
-from __future__ import annotations
-
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -15,9 +14,19 @@ from openpyxl.utils import get_column_letter
 DEFAULT_OUT_DIR = Path("data/processed")
 BASENAME = "yc_radar"
 
+# Control chars Excel/openpyxl rejects (matches openpyxl's ILLEGAL_CHARACTERS_RE).
+_ILLEGAL_XLSX_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def _clean_cell(value: object) -> object:
+    """Strip Excel-illegal control characters from string cells; pass others through."""
+    if isinstance(value, str):
+        return _ILLEGAL_XLSX_RE.sub("", value)
+    return value
+
 
 def _flatten_for_sheet(df: pd.DataFrame) -> pd.DataFrame:
-    """Join list-valued columns into comma-separated strings for CSV/XLSX."""
+    """Flatten list columns to strings and strip Excel-illegal chars for CSV/XLSX."""
     out = df.copy()
     for col in out.columns:
         if out[col].apply(lambda v: isinstance(v, list)).any():
@@ -26,6 +35,9 @@ def _flatten_for_sheet(df: pd.DataFrame) -> pd.DataFrame:
                     ", ".join(map(str, v)) if isinstance(v, list) else ("" if pd.isna(v) else v)
                 )
             )
+    for col in out.columns:
+        if out[col].dtype == object or pd.api.types.is_string_dtype(out[col]):
+            out[col] = out[col].map(_clean_cell, na_action="ignore")
     return out
 
 

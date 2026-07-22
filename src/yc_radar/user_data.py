@@ -47,7 +47,7 @@ def merge_user_data(df: pd.DataFrame, path: Path = DEFAULT_PATH) -> pd.DataFrame
     """Left-join annotations onto ``df`` by slug, filling sensible defaults."""
     user = load_user_data(path)
     out = df.merge(user, on="slug", how="left")
-    out["watchlist"] = out["watchlist"].fillna(False).astype(bool)
+    out["watchlist"] = out["watchlist"].astype("boolean").fillna(False).astype(bool)
     out["my_notes"] = out["my_notes"].fillna("").astype(str)
     # my_rating stays nullable numeric
     out["my_rating"] = pd.to_numeric(out["my_rating"], errors="coerce").astype("Int64")

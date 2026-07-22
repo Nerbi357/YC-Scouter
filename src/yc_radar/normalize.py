@@ -74,7 +74,7 @@ def normalize(
     df = pd.DataFrame(records)
 
     df["batch_year"] = df.get("batch").map(parse_batch_year).astype("Int64")
-    df["is_hiring"] = df.get("isHiring", False).fillna(False).astype(bool)
+    df["is_hiring"] = df.get("isHiring", False).astype("boolean").fillna(False).astype(bool)
     df["yc_url"] = df.get("url", "")
     df["location"] = df.get("all_locations", "").fillna("")
     df["region"] = df.get("regions").map(_first_region)
@@ -97,7 +97,7 @@ def normalize(
     if "tags" not in df.columns:
         df["tags"] = [[] for _ in range(len(df))]
     for flag in ("top_company", "nonprofit"):
-        df[flag] = df.get(flag, False).fillna(False).astype(bool)
+        df[flag] = df.get(flag, False).astype("boolean").fillna(False).astype(bool)
     if "launched_at" not in df.columns:
         df["launched_at"] = pd.NA
 
