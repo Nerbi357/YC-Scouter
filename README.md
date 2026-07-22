@@ -18,9 +18,9 @@ It is self-contained (no repo clone, no local setup) and:
 
 1. installs dependencies and writes its own pipeline module + dashboard app,
 2. fetches live YC data → builds **`yc_radar.xlsx`** and pops a download,
-3. (optional) fills AI idea/risk summaries **for free** if you add a `GROQ_API_KEY`
-   in Colab **Secrets** (🔑) — Groq free tier, no card; skip it and the AI columns
-   show a placeholder,
+3. (optional) fills AI idea/risk summaries if you add an `ANTHROPIC_API_KEY` in
+   Colab **Secrets** (🔑) — Claude Haiku 4.5, ≈ 3–4 USD for the full set; skip it and
+   the AI columns show a placeholder with no charge,
 4. launches the **Streamlit dashboard** behind a temporary public
    `trycloudflare.com` link (the last cell prints the URL; stop that cell to shut
    the dashboard down).
@@ -86,11 +86,11 @@ your rating / watchlist / notes (Save writes to `data/user_data.csv`).
 AI idea/uniqueness/risk summaries are pluggable engines in `ai.py`:
 
 - **Claude Haiku 4.5 (paid, cheap — recommended)** — `make_claude_summarizer(...)`,
-  synchronous with a resumable cache and progress output. Cost-optimized by default:
-  cheapest capable model, short output (`max_tokens=300`), truncated input
-  (`MAX_DESC_CHARS=600`) → ≈ **1–2 USD** for the full 2024–2026 set. For the absolute
-  lowest price, use the Batch API (−50%): `add_ai_summaries(df, api_key=...)` with no
-  summarizer.
+  synchronous with a resumable cache and progress output. Tuned for review quality
+  within budget: cheapest capable model, `max_tokens=500` (richer 2–3 sentence
+  summary + concrete risks), truncated input (`MAX_DESC_CHARS=1500`) → ≈ **3–4 USD**
+  for the full 2024–2026 set. For the absolute lowest price, use the Batch API (−50%):
+  `add_ai_summaries(df, api_key=...)` with no summarizer.
 - **Groq (free)** — `make_groq_summarizer(...)`, free tier at console.groq.com.
   Note: the free daily token cap can't cover the whole set in one run.
 

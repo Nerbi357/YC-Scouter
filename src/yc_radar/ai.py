@@ -26,14 +26,17 @@ DEFAULT_CACHE_PATH = Path("data/processed/ai_cache.json")
 AI_DISABLED = "AI summary disabled (set ANTHROPIC_API_KEY to enable)"
 
 # Cost control: cap the description we send (input tokens are the bulk of cost).
-MAX_DESC_CHARS = 600
+MAX_DESC_CHARS = 1500
 
+# Output matters most for review quality, so we give it room (see max_tokens).
 _INSTRUCTION = (
     "You are a venture analyst. Given a startup's name and description, write a "
-    "very concise summary for an investor scanning many companies. Return JSON with "
-    "two fields: 'summary' (what they do + what makes them unique, ONE sentence) and "
-    "'risks' (the top thing to check before investing, one short phrase). Do not "
-    "invent facts or financials; base it only on the provided text."
+    "clear, information-dense brief for an investor scanning many companies. Return "
+    "JSON with two fields: 'summary' (2-3 sentences: what the company does, who it "
+    "is for, and what makes it distinctive or notable) and 'risks' (1-2 concrete "
+    "things to check before investing — e.g. market size, competition, moat, "
+    "regulatory, or execution risk). Be specific; base it only on the provided "
+    "text and do not invent facts, numbers, or financials."
 )
 
 _SCHEMA = {
@@ -93,7 +96,7 @@ def _batch_summarize(records: list[dict], model: str, api_key: str) -> dict[str,
             custom_id=rec["slug"],
             params=MessageCreateParamsNonStreaming(
                 model=model,
-                max_tokens=300,
+                max_tokens=500,
                 system=system,
                 messages=[{"role": "user", "content": _user_prompt(rec)}],
                 output_config={"format": {"type": "json_schema", "schema": _SCHEMA}},
@@ -134,7 +137,7 @@ def _groq_one(client: object, model: str, rec: dict, *, max_retries: int = 5) ->
                     {"role": "user", "content": _user_prompt(rec)},
                 ],
                 response_format={"type": "json_object"},
-                max_tokens=400,
+                max_tokens=500,
                 temperature=0.3,
             )
             data = json.loads(resp.choices[0].message.content)
@@ -217,7 +220,7 @@ def make_claude_summarizer(
     *,
     model: str = DEFAULT_MODEL,
     cache_path: Path | None = None,
-    max_tokens: int = 300,
+    max_tokens: int = 500,
     sleep: float = 0.0,
     max_retries: int = 5,
     progress_every: int = 50,
