@@ -17,7 +17,7 @@ Task detail + acceptance criteria live in `tasks/plan.md`. Check off as complete
 ## Phase 2 — Enrichment slices
 - [x] Task 6 (S): Investability heuristic + status/stage
 - [x] Task 7 (M): Open-source deep-dive links (website, YC, News, Product Hunt, HN, GitHub, Wikipedia)
-- [ ] Task 8 (M): `score.py` — configurable interestingness score
+- [x] Task 8 (M): `score.py` — configurable interestingness score
 - [ ] Task 9 (M): `ai.py` — Haiku 4.5 Batch summaries + disk cache
 
 ### ✅ Checkpoint: Enrichment
