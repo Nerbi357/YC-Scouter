@@ -17,8 +17,9 @@ plotly>=5.22
 # --- Dashboard ---
 streamlit>=1.36
 
-# --- AI enrichment (Haiku 4.5 via Batch API) ---
-anthropic>=0.40
+# --- AI enrichment ---
+anthropic>=0.40          # Claude (paid) — optional
+groq>=0.11              # Groq free-tier LLM — optional, no card
 
 # --- Dev / tooling ---
 pytest>=8.2

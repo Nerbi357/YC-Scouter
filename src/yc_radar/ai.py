@@ -119,6 +119,72 @@ def _batch_summarize(records: list[dict], model: str, api_key: str) -> dict[str,
     return out
 
 
+GROQ_DEFAULT_MODEL = "llama-3.1-8b-instant"
+
+
+def _groq_one(client: object, model: str, rec: dict, *, max_retries: int = 5) -> dict[str, str]:
+    """Summarize one company via a Groq (OpenAI-compatible) chat completion."""
+    last_err: Exception | None = None
+    for attempt in range(max_retries):
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": _INSTRUCTION},
+                    {"role": "user", "content": _user_prompt(rec)},
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=400,
+                temperature=0.3,
+            )
+            data = json.loads(resp.choices[0].message.content)
+            return {
+                "ai_summary": str(data.get("summary", "")).strip(),
+                "ai_risk_notes": str(data.get("risks", "")).strip(),
+            }
+        except Exception as exc:  # rate limits, transient errors, bad JSON -> retry
+            last_err = exc
+            time.sleep(min(2**attempt, 30))
+    return {"ai_summary": f"(Groq summary failed: {last_err})", "ai_risk_notes": ""}
+
+
+def make_groq_summarizer(
+    api_key: str | None = None,
+    *,
+    model: str = GROQ_DEFAULT_MODEL,
+    cache_path: Path | None = None,
+    sleep: float = 1.0,
+    max_retries: int = 5,
+    client: object | None = None,
+) -> Summarizer:
+    """Build a free-tier **Groq** summarizer to inject into :func:`add_ai_summaries`.
+
+    No Claude key needed — get a free key at console.groq.com. Summarizes
+    sequentially (Groq has no batch API), paces requests by ``sleep`` seconds,
+    retries with backoff on rate limits, and — if ``cache_path`` is given —
+    persists each result immediately so a long run is resumable.
+    """
+    if client is None:
+        from groq import Groq  # lazy import so the dep is optional
+
+        client = Groq(api_key=api_key or os.environ.get("GROQ_API_KEY"))
+
+    def summarizer(records: list[dict], _model: str = "") -> dict[str, dict[str, str]]:
+        persisted = _load_cache(cache_path) if cache_path else {}
+        out: dict[str, dict[str, str]] = {}
+        for rec in records:
+            res = _groq_one(client, model, rec, max_retries=max_retries)
+            out[rec["slug"]] = res
+            if cache_path:
+                persisted[rec["slug"]] = res
+                _save_cache(cache_path, persisted)
+            if sleep:
+                time.sleep(sleep)
+        return out
+
+    return summarizer
+
+
 def add_ai_summaries(
     df: pd.DataFrame,
     *,

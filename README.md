@@ -18,9 +18,9 @@ It is self-contained (no repo clone, no local setup) and:
 
 1. installs dependencies and writes its own pipeline module + dashboard app,
 2. fetches live YC data → builds **`yc_radar.xlsx`** and pops a download,
-3. (optional) fills AI idea/risk summaries if you add `ANTHROPIC_API_KEY` in Colab
-   **Secrets** (🔑) — Haiku 4.5, ≈ $1.5–3 one-time; skip it and the AI columns show
-   a placeholder with no charge,
+3. (optional) fills AI idea/risk summaries **for free** if you add a `GROQ_API_KEY`
+   in Colab **Secrets** (🔑) — Groq free tier, no card; skip it and the AI columns
+   show a placeholder,
 4. launches the **Streamlit dashboard** behind a temporary public
    `trycloudflare.com` link (the last cell prints the URL; stop that cell to shut
    the dashboard down).
@@ -81,17 +81,20 @@ The dashboard reads the exported Parquet — run the notebook first. Filter by
 industry/status/batch/team-size/score, search, open per-company cards, and edit
 your rating / watchlist / notes (Save writes to `data/user_data.csv`).
 
-## AI summaries & cost
+## AI summaries
 
-AI idea/uniqueness/risk summaries use **Claude Haiku 4.5** via the Batch API.
+AI idea/uniqueness/risk summaries are pluggable. Two engines ship in `ai.py`:
 
-- They run **only** when `ANTHROPIC_API_KEY` is set (in `.env`). Without it, the
-  columns show a placeholder and **no API call — and no charge — is made**.
-- Billing follows your key: the summaries are charged to *your* Anthropic account
-  when *you* run the notebook. Full YC 2024–2026 set ≈ **$1.5–3 one-time** (Batch
-  API −50% + prompt caching).
-- Results cache to `data/processed/ai_cache.json`, so re-runs only pay for **new**
-  companies.
+- **Groq (free, recommended)** — `make_groq_summarizer(...)`, default model
+  `llama-3.1-8b-instant`. Get a free key at console.groq.com (no card), set
+  `GROQ_API_KEY`. Sequential + rate-limit backoff + resumable cache.
+- **Claude Haiku 4.5 (paid)** — Batch API via `ANTHROPIC_API_KEY`, ≈ $1.5–3 one-time
+  for the full set.
+
+Either way: no key → the columns show a placeholder and **no API call is made**.
+Results cache to `data/processed/ai_cache.json`, so re-runs only summarize **new**
+companies. The engine is injected via the `summarizer=` argument of
+`add_ai_summaries`, so swapping it never touches the rest of the pipeline.
 
 ## Project layout
 
