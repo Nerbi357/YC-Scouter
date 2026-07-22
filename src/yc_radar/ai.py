@@ -25,12 +25,15 @@ DEFAULT_MODEL = "claude-haiku-4-5"
 DEFAULT_CACHE_PATH = Path("data/processed/ai_cache.json")
 AI_DISABLED = "AI summary disabled (set ANTHROPIC_API_KEY to enable)"
 
+# Cost control: cap the description we send (input tokens are the bulk of cost).
+MAX_DESC_CHARS = 600
+
 _INSTRUCTION = (
     "You are a venture analyst. Given a startup's name and description, write a "
-    "concise summary for an investor scanning many companies. Return JSON with two "
-    "fields: 'summary' (what they do + what makes them unique, 1-2 sentences) and "
-    "'risks' (the top 1-2 things to check before investing, terse). Do not invent "
-    "facts or financials; base it only on the provided text."
+    "very concise summary for an investor scanning many companies. Return JSON with "
+    "two fields: 'summary' (what they do + what makes them unique, ONE sentence) and "
+    "'risks' (the top thing to check before investing, one short phrase). Do not "
+    "invent facts or financials; base it only on the provided text."
 )
 
 _SCHEMA = {
@@ -73,11 +76,8 @@ def _records_for(df: pd.DataFrame, slugs: list[str]) -> list[dict]:
 
 
 def _user_prompt(rec: dict) -> str:
-    return (
-        f"Company: {rec['name']}\n"
-        f"One-liner: {rec['one_liner']}\n"
-        f"Description: {rec['long_description']}"
-    )
+    desc = str(rec.get("long_description", ""))[:MAX_DESC_CHARS]
+    return f"Company: {rec['name']}\n" f"One-liner: {rec['one_liner']}\n" f"Description: {desc}"
 
 
 def _batch_summarize(records: list[dict], model: str, api_key: str) -> dict[str, dict[str, str]]:
@@ -93,7 +93,7 @@ def _batch_summarize(records: list[dict], model: str, api_key: str) -> dict[str,
             custom_id=rec["slug"],
             params=MessageCreateParamsNonStreaming(
                 model=model,
-                max_tokens=400,
+                max_tokens=300,
                 system=system,
                 messages=[{"role": "user", "content": _user_prompt(rec)}],
                 output_config={"format": {"type": "json_schema", "schema": _SCHEMA}},
@@ -178,6 +178,76 @@ def make_groq_summarizer(
             if cache_path:
                 persisted[rec["slug"]] = res
                 _save_cache(cache_path, persisted)
+            if sleep:
+                time.sleep(sleep)
+        return out
+
+    return summarizer
+
+
+def _claude_one(
+    client: object, model: str, rec: dict, *, max_tokens: int, max_retries: int
+) -> dict[str, str]:
+    """Summarize one company with a synchronous Claude Messages call."""
+    system = [{"type": "text", "text": _INSTRUCTION, "cache_control": {"type": "ephemeral"}}]
+    last_err: Exception | None = None
+    for attempt in range(max_retries):
+        try:
+            resp = client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                system=system,
+                messages=[{"role": "user", "content": _user_prompt(rec)}],
+                output_config={"format": {"type": "json_schema", "schema": _SCHEMA}},
+            )
+            text = next((b.text for b in resp.content if b.type == "text"), "{}")
+            data = json.loads(text)
+            return {
+                "ai_summary": str(data.get("summary", "")).strip(),
+                "ai_risk_notes": str(data.get("risks", "")).strip(),
+            }
+        except Exception as exc:  # rate limit / overload / transient -> retry
+            last_err = exc
+            time.sleep(min(2**attempt, 30))
+    return {"ai_summary": f"(Claude summary failed: {last_err})", "ai_risk_notes": ""}
+
+
+def make_claude_summarizer(
+    api_key: str | None = None,
+    *,
+    model: str = DEFAULT_MODEL,
+    cache_path: Path | None = None,
+    max_tokens: int = 300,
+    sleep: float = 0.0,
+    max_retries: int = 5,
+    progress_every: int = 50,
+    client: object | None = None,
+) -> Summarizer:
+    """Build a **synchronous Claude** summarizer (paid but cheap; Haiku 4.5).
+
+    Cheap-by-default: short output, truncated input (:data:`MAX_DESC_CHARS`), and a
+    resumable on-disk cache so re-runs never re-pay for done companies. Prints
+    progress every ``progress_every`` companies. For the absolute lowest price use
+    the Batch API instead (``add_ai_summaries(df, api_key=...)`` with no summarizer).
+    """
+    if client is None:
+        import anthropic  # lazy import so the dep is optional
+
+        client = anthropic.Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
+
+    def summarizer(records: list[dict], _model: str = "") -> dict[str, dict[str, str]]:
+        persisted = _load_cache(cache_path) if cache_path else {}
+        out: dict[str, dict[str, str]] = {}
+        total = len(records)
+        for i, rec in enumerate(records, 1):
+            out[rec["slug"]] = _claude_one(
+                client, model, rec, max_tokens=max_tokens, max_retries=max_retries
+            )
+            if cache_path:
+                persisted[rec["slug"]] = out[rec["slug"]]
+                _save_cache(cache_path, persisted)
+            if progress_every and (i % progress_every == 0 or i == total):
+                print(f"  AI summaries: {i}/{total} companies…", flush=True)
             if sleep:
                 time.sleep(sleep)
         return out

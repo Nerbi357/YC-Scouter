@@ -83,13 +83,16 @@ your rating / watchlist / notes (Save writes to `data/user_data.csv`).
 
 ## AI summaries
 
-AI idea/uniqueness/risk summaries are pluggable. Two engines ship in `ai.py`:
+AI idea/uniqueness/risk summaries are pluggable engines in `ai.py`:
 
-- **Groq (free, recommended)** — `make_groq_summarizer(...)`, default model
-  `llama-3.1-8b-instant`. Get a free key at console.groq.com (no card), set
-  `GROQ_API_KEY`. Sequential + rate-limit backoff + resumable cache.
-- **Claude Haiku 4.5 (paid)** — Batch API via `ANTHROPIC_API_KEY`, ≈ $1.5–3 one-time
-  for the full set.
+- **Claude Haiku 4.5 (paid, cheap — recommended)** — `make_claude_summarizer(...)`,
+  synchronous with a resumable cache and progress output. Cost-optimized by default:
+  cheapest capable model, short output (`max_tokens=300`), truncated input
+  (`MAX_DESC_CHARS=600`) → ≈ **1–2 USD** for the full 2024–2026 set. For the absolute
+  lowest price, use the Batch API (−50%): `add_ai_summaries(df, api_key=...)` with no
+  summarizer.
+- **Groq (free)** — `make_groq_summarizer(...)`, free tier at console.groq.com.
+  Note: the free daily token cap can't cover the whole set in one run.
 
 Either way: no key → the columns show a placeholder and **no API call is made**.
 Results cache to `data/processed/ai_cache.json`, so re-runs only summarize **new**
