@@ -63,6 +63,45 @@ def test_groq_summarizer_parses_and_caches(tmp_path):
     assert json.loads(cache.read_text())["a"]["ai_summary"] == "does X, unique Y"
 
 
+def test_claude_summarizer_parses_and_caches(tmp_path):
+    from types import SimpleNamespace
+
+    def fake_create(**kw):
+        payload = json.dumps({"summary": "does X", "risks": "check Y"})
+        block = SimpleNamespace(type="text", text=payload)
+        return SimpleNamespace(content=[block])
+
+    fake_client = SimpleNamespace(messages=SimpleNamespace(create=fake_create))
+    cache = tmp_path / "ai_cache.json"
+    summ = ai.make_claude_summarizer(client=fake_client, cache_path=cache, progress_every=0)
+
+    out = summ([{"slug": "a", "name": "A", "one_liner": "o", "long_description": "d"}])
+
+    assert out["a"]["ai_summary"] == "does X"
+    assert out["a"]["ai_risk_notes"] == "check Y"
+    assert json.loads(cache.read_text())["a"]["ai_summary"] == "does X"
+
+
+def test_claude_summarizer_truncates_long_description():
+    from types import SimpleNamespace
+
+    seen = {}
+
+    def fake_create(**kw):
+        seen["desc"] = kw["messages"][0]["content"]
+        return SimpleNamespace(
+            content=[SimpleNamespace(type="text", text=json.dumps({"summary": "s", "risks": "r"}))]
+        )
+
+    fake_client = SimpleNamespace(messages=SimpleNamespace(create=fake_create))
+    summ = ai.make_claude_summarizer(client=fake_client, progress_every=0)
+    long_desc = "x" * 5000
+    summ([{"slug": "a", "name": "A", "one_liner": "o", "long_description": long_desc}])
+    # description was truncated to MAX_DESC_CHARS
+    assert ("x" * ai.MAX_DESC_CHARS) in seen["desc"]
+    assert ("x" * (ai.MAX_DESC_CHARS + 1)) not in seen["desc"]
+
+
 def test_groq_summarizer_retries_then_gives_up(tmp_path):
     from types import SimpleNamespace
 

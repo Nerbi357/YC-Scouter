@@ -27,14 +27,17 @@ def main() -> int:
     df = enrich.add_links(df)
     df = score.score(df)
 
-    key = os.environ.get("GROQ_API_KEY", "").strip()
-    if key:
-        print("AI summaries: Groq enabled (llama-3.1-8b-instant)", flush=True)
-        summarizer = ai.make_groq_summarizer(
-            key, cache_path="data/processed/ai_cache.json", sleep=1.0
-        )
+    claude_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    groq_key = os.environ.get("GROQ_API_KEY", "").strip()
+    cache = "data/processed/ai_cache.json"
+    if claude_key:
+        print("AI summaries: Claude Haiku 4.5 (paid, cheap)", flush=True)
+        summarizer = ai.make_claude_summarizer(claude_key, cache_path=cache)
+    elif groq_key:
+        print("AI summaries: Groq (free) llama-3.1-8b-instant", flush=True)
+        summarizer = ai.make_groq_summarizer(groq_key, cache_path=cache, sleep=1.0)
     else:
-        print("AI summaries: disabled (no GROQ_API_KEY) — placeholder text", flush=True)
+        print("AI summaries: disabled (no API key) — placeholder text", flush=True)
         summarizer = None
 
     df = ai.add_ai_summaries(df, summarizer=summarizer)
