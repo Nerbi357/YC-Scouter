@@ -29,7 +29,7 @@ Task detail + acceptance criteria live in `tasks/plan.md`. Check off as complete
 - [x] Task 10 (M): Streamlit `app.py` — filters, search, sortable table, company cards
 - [x] Task 11 (S): Personal `user_data.csv` persistence (rating/watchlist/notes)
 - [x] Task 12 (S): Analytics charts in the notebook
-- [ ] Task 13 (S): Docs + SessionStart hook + green lint/test gate
+- [x] Task 13 (S): Docs + SessionStart hook + green lint/test gate
 
 ### ✅ Checkpoint: Complete
 - [ ] All SPEC.md §11 success criteria met
