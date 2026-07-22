@@ -10,6 +10,33 @@ summaries, then gives you two ways to review:
 - an interactive **Streamlit** dashboard for filtering, searching, and shortlisting.
 
 Personal ratings/notes persist across data refreshes. Full requirements: `SPEC.md`.
+
+## ▶️ Easiest: run on Google Colab (all-in-one)
+
+Open **`notebooks/yc_radar_colab.ipynb`** in Google Colab and `Runtime → Run all`.
+It is self-contained (no repo clone, no local setup) and:
+
+1. installs dependencies and writes its own pipeline module + dashboard app,
+2. fetches live YC data → builds **`yc_radar.xlsx`** and pops a download,
+3. (optional) fills AI idea/risk summaries if you add `ANTHROPIC_API_KEY` in Colab
+   **Secrets** (🔑) — Haiku 4.5, ≈ $1.5–3 one-time; skip it and the AI columns show
+   a placeholder with no charge,
+4. launches the **Streamlit dashboard** behind a temporary public
+   `trycloudflare.com` link (the last cell prints the URL; stop that cell to shut
+   the dashboard down).
+
+To upload it to Colab: `File → Upload notebook` and pick
+`notebooks/yc_radar_colab.ipynb`, or push this repo to GitHub and open the notebook
+via Colab's GitHub tab.
+
+> Colab note: Streamlit can't be reached directly from Colab, so the notebook
+> tunnels it via cloudflared — that's why you get a public link instead of
+> `localhost`. The Excel file is the primary deliverable; the dashboard is for
+> interactive browsing of that same data.
+
+---
+
+The sections below describe running the project **locally** (outside Colab).
 Implementation plan: `tasks/plan.md`.
 
 ## Data sources & honesty
