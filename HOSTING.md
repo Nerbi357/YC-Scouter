@@ -66,6 +66,37 @@ Sheet to view/edit them by hand.
 > Testing locally with Sheets? Put the same content in `.streamlit/secrets.toml`
 > (gitignored) and run `streamlit run app.py`.
 
+## Step 4 — Share the link so visitors can't change your notes
+
+You want to send the URL to other people, let them explore, but keep **your**
+notes private and untouched — their edits should be temporary. That's built in:
+
+1. In your secrets, add an owner lock (already in the example):
+   ```toml
+   [app]
+   owner_key = "some-long-random-passphrase"
+   ```
+2. Save. Now:
+   - **You** open the app, expand **🔒 Режим владельца** in the sidebar, enter the
+     key once → the **💾 Save** button appears and writes to Google Sheets.
+   - **Visitors** (no key) get a **👀 view mode**: they can filter, chart, compare,
+     and even edit the notes table *for themselves*, but there's **no Save** — their
+     changes live only in their browser session and vanish on refresh. Your Sheet is
+     never modified. They can download their temporary edits as CSV if they want.
+3. Make the app public: Streamlit Cloud → app **Settings → Sharing** → set it so
+   "anyone with the link can view". Send them the URL.
+
+> Without `[app] owner_key`, the app is single-user: anyone who opens it can save.
+> Fine for just you; add the key before sharing.
+
+### Other sharing models (if you need more)
+
+- **Hide your notes from visitors** too (they see blank annotation columns instead
+  of your notes) — a small tweak; ask and I'll add a `hide_owner_notes` flag.
+- **Per-visitor persistent notes** (each person logs in and keeps their *own* saved
+  notes) — needs real login (Streamlit `st.login` / Google OIDC) and a per-user tab
+  in the Sheet. More setup; doable if you want a true multi-user tool.
+
 ---
 
 ## Alternatives (if you outgrow the free tier)

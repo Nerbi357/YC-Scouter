@@ -91,6 +91,40 @@ def use_gsheets() -> bool:
     return gsheets is not None and gsheets.is_configured(_secrets())
 
 
+def _owner_key():
+    """The owner password from secrets (``[app] owner_key``), or None."""
+    s = _secrets()
+    try:
+        app = s.get("app") if hasattr(s, "get") else None
+        return app.get("owner_key") if app else None
+    except Exception:
+        return None
+
+
+def is_owner() -> bool:
+    """True for the owner. With no owner_key configured (local/Colab), always
+    True — single-user mode. On a shared deployment, only unlocked sessions."""
+    if not _owner_key():
+        return True
+    return bool(st.session_state.get("is_owner", False))
+
+
+def owner_gate() -> None:
+    """Sidebar unlock: turns a visitor session into the owner when an
+    ``owner_key`` is configured and entered correctly."""
+    key = _owner_key()
+    if not key or st.session_state.get("is_owner"):
+        return
+    with st.sidebar.expander("🔒 Режим владельца"):
+        entered = st.text_input("Ключ владельца", type="password", key="owner_key_input")
+        if st.button("Разблокировать сохранение"):
+            if entered == key:
+                st.session_state["is_owner"] = True
+                st.rerun()
+            else:
+                st.error("Неверный ключ.")
+
+
 def load_annotations() -> pd.DataFrame:
     if use_gsheets():
         return gsheets.load(_secrets())
@@ -386,16 +420,27 @@ def tab_compare(filtered: pd.DataFrame) -> None:
 
 
 def tab_notes(filtered: pd.DataFrame) -> None:
-    st.subheader("📝 Мои заметки, теги и воронка")
-    where = (
-        "Google Sheets ✅"
-        if use_gsheets()
-        else "локальный CSV ⚠️ (правки не переживут перезапуск на хостинге)"
-    )
-    st.caption(
-        f"Правь rating (0–5), избранное, стадию, теги и заметки — потом «Сохранить». "
-        f"Хранилище: **{where}**. Ключ — slug."
-    )
+    st.subheader("📝 Заметки, теги и воронка")
+    owner = is_owner()
+
+    if owner:
+        where = (
+            "Google Sheets ✅"
+            if use_gsheets()
+            else "локальный CSV ⚠️ (не переживёт перезапуск на хостинге)"
+        )
+        st.caption(
+            f"Правь rating (0–5), избранное, стадию, теги и заметки — потом «Сохранить». "
+            f"Хранилище: **{where}**. Ключ — slug."
+        )
+    else:
+        st.info(
+            "👀 **Режим просмотра.** Можешь править таблицу для себя, но изменения "
+            "**временные**: они не влияют на заметки владельца и исчезнут после "
+            "обновления страницы. Сохранять может только владелец.",
+            icon="👀",
+        )
+
     editor_cols = [
         c
         for c in ["slug", "name", "my_rating", "watchlist", "my_stage", "my_tags", "my_notes"]
@@ -415,6 +460,17 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         },
         key="annotations_editor",
     )
+
+    if not owner:
+        # Visitors get a live, in-session copy they can download — never persisted.
+        st.download_button(
+            "⬇️ Скачать мои правки (CSV, только у меня)",
+            _to_csv_bytes(edited),
+            "my_temp_notes.csv",
+            "text/csv",
+        )
+        return
+
     if st.button("💾 Сохранить заметки", type="primary"):
         store = user_data._ensure_columns(load_annotations()).set_index("slug")
         for _, r in edited.iterrows():
@@ -443,12 +499,16 @@ def main() -> None:
         )
         st.stop()
 
-    if not use_gsheets():
+    owner_gate()
+
+    if is_owner() and not use_gsheets():
         st.info(
             "ℹ️ Заметки сейчас пишутся в локальный файл. На Streamlit Cloud подключи "
             "Google Sheets (см. HOSTING.md), иначе правки не переживут перезапуск.",
             icon="💾",
         )
+    if _owner_key() and is_owner():
+        st.sidebar.success("🔓 Режим владельца — можно сохранять.")
 
     df = load_data(str(DATASET), DATASET.stat().st_mtime)
     df = user_data.merge_annotations(df, load_annotations())
