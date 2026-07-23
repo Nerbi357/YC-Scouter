@@ -44,9 +44,15 @@ def save_user_data(rows: list[dict] | pd.DataFrame, path: Path = DEFAULT_PATH) -
 
 
 def merge_user_data(df: pd.DataFrame, path: Path = DEFAULT_PATH) -> pd.DataFrame:
-    """Left-join annotations onto ``df`` by slug, filling sensible defaults."""
+    """Left-join annotations onto ``df`` by slug, filling sensible defaults.
+
+    Idempotent: if ``df`` already carries the annotation columns (e.g. it was
+    exported after a previous merge), they are dropped first so re-merging never
+    produces suffixed ``_x`` / ``_y`` columns.
+    """
     user = load_user_data(path)
-    out = df.merge(user, on="slug", how="left")
+    dupes = [c for c in USER_COLUMNS if c != "slug" and c in df.columns]
+    out = df.drop(columns=dupes).merge(user, on="slug", how="left")
     out["watchlist"] = out["watchlist"].astype("boolean").fillna(False).astype(bool)
     out["my_notes"] = out["my_notes"].fillna("").astype(str)
     # my_rating stays nullable numeric
