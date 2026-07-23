@@ -77,9 +77,29 @@ Outputs land in `data/processed/`: `yc_radar.parquet` (canonical), `yc_radar.xls
 streamlit run app.py
 ```
 
-The dashboard reads the exported Parquet — run the notebook first. Filter by
-industry/status/batch/team-size/score, search, open per-company cards, and edit
-your rating / watchlist / notes (Save writes to `data/user_data.csv`).
+The dashboard reads the exported Parquet — run the notebook first. It has four tabs:
+
+- **📊 Обзор** — KPI cards + interactive Plotly charts (by industry / subindustry /
+  batch year, score distribution, status & funnel-stage breakdown) and a top-N
+  leaderboard.
+- **🔎 Компании** — filterable table + per-company cards, with **download the
+  filtered view** as CSV or Excel.
+- **⚖️ Сравнение** — compare up to 5 companies side by side.
+- **📝 Заметки** — edit rating, ⭐ favorite, funnel **stage**, free **tags**, and
+  notes.
+
+Filters: industry, subindustry, status, investability, funnel stage, your tags,
+favorites-only, batch year, and score/team-size ranges, plus full-text search.
+
+Annotations persist across data refreshes. Storage is chosen automatically:
+a local `data/user_data.csv` locally/Colab, or **Google Sheets** when hosted (see
+below).
+
+## Host it online (permanent link, no Colab)
+
+Deploy on **Streamlit Community Cloud** so the dashboard lives at a fixed URL,
+independent of any Colab session. Because that host's disk is ephemeral, notes are
+persisted to **Google Sheets**. Full step-by-step: **`HOSTING.md`**.
 
 ## AI summaries
 
