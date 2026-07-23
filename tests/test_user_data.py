@@ -62,3 +62,25 @@ def test_load_missing_returns_empty_schema(tmp_path):
     assert list(ud.columns) == list(user_data.USER_COLUMNS)
     assert len(ud) == 0
     assert isinstance(ud, pd.DataFrame)
+
+
+def test_stage_defaults_and_tags_roundtrip(tmp_path, sample_records):
+    path = tmp_path / "user_data.csv"
+    user_data.save_user_data(
+        [{"slug": "acme-ai", "my_stage": "Contacted", "my_tags": "favorite, ai"}],
+        path=path,
+    )
+    df = normalize.normalize(sample_records)
+    out = user_data.merge_user_data(df, path=path).set_index("slug")
+    assert out.loc["acme-ai", "my_stage"] == "Contacted"
+    assert out.loc["acme-ai", "my_tags"] == "favorite, ai"
+    # companies with no saved stage fall back to the default
+    others = out.drop(index="acme-ai")
+    assert (others["my_stage"] == user_data.DEFAULT_STAGE).all()
+
+
+def test_new_columns_present(tmp_path, sample_records):
+    df = normalize.normalize(sample_records)
+    out = user_data.merge_user_data(df, path=tmp_path / "user_data.csv")
+    for col in ("my_tags", "my_stage"):
+        assert col in out.columns

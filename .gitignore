@@ -18,6 +18,11 @@ data/processed/*
 data/user_data.csv
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+# ...except the dataset you deliberately commit to host the dashboard:
+!data/processed/yc_radar.parquet
+
+# Streamlit secrets (service-account keys, sheet ids) — never commit
+.streamlit/secrets.toml
 
 # Jupyter
 .ipynb_checkpoints/
