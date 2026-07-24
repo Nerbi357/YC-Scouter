@@ -106,12 +106,20 @@ def _user_prompt(rec: dict) -> str:
     return PROMPT_TEMPLATE.format(**_fields(rec))
 
 
+def _as_text(value: object) -> str:
+    """Render a field to clean text. The model sometimes returns ``risks`` as a
+    JSON list — join it into a readable string instead of a Python repr."""
+    if isinstance(value, list):
+        return " ".join(str(x).strip() for x in value if str(x).strip())
+    return str(value).strip()
+
+
 def _parse(text: str) -> dict[str, str]:
     m = _JSON_RE.search(text or "")
     data = json.loads(m.group(0)) if m else {}
     return {
-        "ai_description": str(data.get("description", "")).strip(),
-        "ai_risks": str(data.get("risks", "")).strip(),
+        "ai_description": _as_text(data.get("description", "")),
+        "ai_risks": _as_text(data.get("risks", "")),
     }
 
 

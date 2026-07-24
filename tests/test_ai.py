@@ -185,6 +185,21 @@ def test_groq_summarizer_parses(tmp_path):
     assert (out["ai_description"] == "G desc").all()
 
 
+def test_risks_returned_as_list_are_joined_cleanly():
+    def fake_create(**kw):
+        payload = json.dumps({"description": "d", "risks": ["Risk one.", "Risk two."]})
+        return SimpleNamespace(
+            content=[SimpleNamespace(type="text", text=payload)],
+            usage=SimpleNamespace(input_tokens=1, output_tokens=1),
+        )
+
+    client = SimpleNamespace(messages=SimpleNamespace(create=fake_create))
+    summ = ai.make_claude_summarizer(client=client, progress_every=0)
+    ((_, res),) = list(summ([{"id": 1, "name": "A", "one_liner": "o", "long_description": "d"}]))
+    assert res["ai_risks"] == "Risk one. Risk two."  # no brackets/quotes
+    assert "[" not in res["ai_risks"] and "'" not in res["ai_risks"]
+
+
 def test_provider_failure_yields_message():
     def boom(**kw):
         raise RuntimeError("rate limited")
