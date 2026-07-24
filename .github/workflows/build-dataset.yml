@@ -34,7 +34,7 @@ jobs:
 
       - name: Run File 1 (papermill)
         run: |
-          papermill notebooks/01_dataset_base.ipynb /tmp/out_base.ipynb \
+          papermill --log-output --no-progress-bar notebooks/01_dataset_base.ipynb /tmp/out_base.ipynb \
             -p output commit -p out_dir data
 
       - name: Commit dated Base files
