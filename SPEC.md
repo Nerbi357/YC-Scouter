@@ -40,7 +40,7 @@ browses the latest dataset, and docs that make the project self-maintainable.
    into dated `.parquet` + `.xlsx`.
 2. Notebook **File 2** adds LLM `ai_description` + `ai_risks` into a dated
    "YC Dataset AI Summary" `.parquet` + `.xlsx`, paying only for **new/changed**
-   companies and never exceeding a hard **$9** budget per run.
+   companies, at an **estimated ≈ $8.5** for a full run (target ≤ $9).
 3. A **hosted Streamlit dashboard** (independent of the maintainer's machine) reads
    the latest dataset, offers rich filters/charts/comparison, and keeps personal
    notes across refreshes.
@@ -139,17 +139,17 @@ No speculative fields (moat/competitors/traction/funding) — factual only.
   (kept as an option). Provider + model live in **one config constant / env var**.
 - **Default: Claude `claude-haiku-4-5`** ($1 / $5 per 1M input/output).
 
-### 5.3 Token budget & hard cost guard
+### 5.3 Token budget (cost estimate, no hard runtime cap)
 
 - `MAX_DESC_CHARS = 2200` (input ≈ 780 tokens/company).
 - `max_tokens = 430` (output ≈ 260 tokens/company).
-- Expected full run over ~4,000 companies ≈ **$8.3–8.6**.
-- **Hard budget guard `budget_usd = 9.00`:** the summarizer accumulates **actual**
-  token usage returned by each API response; before each call it checks
-  `spent + worst_case_next ≤ budget_usd`, otherwise it **stops gracefully** and
-  leaves the remainder for the next run (resumable via cache). This makes "never
-  exceed $9" a guarantee, not an estimate. Expected spend leaves margin to finish
-  all companies in one run.
+- **Estimated** full run over ~4,000 companies ≈ **$8.3–8.6** (target ≤ $9). This is
+  a planning estimate, **not** an enforced runtime limit — the notebook does not
+  stop itself at a dollar threshold.
+- For visibility, the summarizer **prints a running cost estimate** (from the actual
+  token usage returned by each API response) so the maintainer can watch spend, but
+  it never auto-halts. The resumable cache still means an interrupted run continues
+  where it left off without re-paying.
 
 ### 5.4 Cache & reproducibility of AI
 
@@ -324,7 +324,7 @@ buttons), `.streamlit/` (dashboard config), `data/cache/` (cheap incremental AI)
 **Always:**
 - Use the public yc-oss JSON; OPEN-source deep-dive links only.
 - Keep secrets in `.env`/GitHub Secrets/Streamlit Secrets (never committed).
-- Enforce the `$9` AI budget guard; key notes + AI cache on immutable `id`.
+- Track/print the AI cost estimate (target ≤ $9); key notes + AI cache on `id`.
 - Write tests for parsing/scoring/cache/budget logic; keep notebooks thin.
 
 **Ask first:**
@@ -337,7 +337,7 @@ buttons), `.streamlit/` (dashboard config), `data/cache/` (cheap incremental AI)
 - Fabricate founders, cap tables, funding, or valuations.
 - Add closed/paywalled links (Crunchbase, LinkedIn, PitchBook).
 - Store personal notes inside a regenerated dataset file.
-- Exceed the AI budget guard, or remove failing tests without approval.
+- Remove failing tests without approval.
 
 ---
 
@@ -365,8 +365,9 @@ The project is **not** fully hands-off — expect ~15 min every few months:
 3. Batch range: **2020 → current year**; File 1 full re-scrape each run.
 4. Data reproducibility: **logic only**, no snapshots (per user).
 5. AI: **Claude `claude-haiku-4-5`**, **two outputs** (`ai_description` richer ~120–140
-   words, `ai_risks` 1–2 short), `MAX_DESC_CHARS=2200`, `max_tokens=430`, hard
-   `budget_usd=9.00`, cache key `(id, model_id, prompt_version)`. Existing summaries
+   words, `ai_risks` 1–2 short), `MAX_DESC_CHARS=2200`, `max_tokens=430`, estimated
+   full-run cost ≈ **$8.5** (target ≤ $9, **no** hard runtime cap; prints a running
+   cost estimate), cache key `(id, model_id, prompt_version)`. Existing summaries
    re-computed once under the new prompt.
 6. Provider switch Claude/Groq; one-liner from YC (not AI).
 7. Updates: **two manual buttons** (File 1, File 2); no cron; no Google Drive in CI.
