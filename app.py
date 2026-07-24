@@ -242,7 +242,7 @@ def _bar_count(
     )
     fig.update_layout(yaxis={"categoryorder": "total ascending"}, height=380)
     fig.update_traces(marker_color="#4C9BE8")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def _pie(df: pd.DataFrame, col: str, title: str) -> None:
@@ -250,7 +250,7 @@ def _pie(df: pd.DataFrame, col: str, title: str) -> None:
     if counts.empty:
         return
     fig = px.pie(names=counts.index.astype(str), values=counts.values, title=title, hole=0.45)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def tab_overview(filtered: pd.DataFrame, total: int) -> None:
@@ -289,11 +289,11 @@ def tab_overview(filtered: pd.DataFrame, total: int) -> None:
                     title="Компании по годам батча",
                 )
                 fig.update_traces(marker_color="#4C9BE8")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
         with r2c2:
             fig = px.histogram(filtered, x="score", nbins=20, title="Распределение score")
             fig.update_traces(marker_color="#7C5CFC")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
@@ -312,7 +312,7 @@ def tab_overview(filtered: pd.DataFrame, total: int) -> None:
     ]
     st.dataframe(
         filtered.sort_values("score", ascending=False).head(n)[lead_cols],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -326,14 +326,14 @@ def tab_companies(filtered: pd.DataFrame) -> None:
         _to_csv_bytes(ranked),
         "yc_scouter_filtered.csv",
         "text/csv",
-        use_container_width=True,
+        width="stretch",
     )
     d2.download_button(
         "⬇️ Excel",
         _to_excel_bytes(ranked),
         "yc_scouter_filtered.xlsx",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
+        width="stretch",
     )
 
     table_cols = [
@@ -357,9 +357,7 @@ def tab_companies(filtered: pd.DataFrame) -> None:
     col_config = {
         c: st.column_config.LinkColumn(c) for c in ("website", "yc_url") if c in ranked.columns
     }
-    st.dataframe(
-        ranked[table_cols], use_container_width=True, hide_index=True, column_config=col_config
-    )
+    st.dataframe(ranked[table_cols], width="stretch", hide_index=True, column_config=col_config)
 
     st.subheader("Карточки компаний")
     for _, row in ranked.head(50).iterrows():
@@ -421,7 +419,7 @@ def tab_compare(filtered: pd.DataFrame) -> None:
     ]
     comp = rows.set_index("name")[fields].T
     comp = comp.map(_clean_cell)
-    st.dataframe(comp, use_container_width=True)
+    st.dataframe(comp, width="stretch")
 
 
 def tab_notes(filtered: pd.DataFrame) -> None:
@@ -453,7 +451,7 @@ def tab_notes(filtered: pd.DataFrame) -> None:
     ]
     edited = st.data_editor(
         filtered[editor_cols].copy(),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         disabled=["id", "name"],
         column_config={
