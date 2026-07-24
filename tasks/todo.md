@@ -12,14 +12,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
     pyproject name → `yc-scouter`; package docstring/version bumped (0.2.0).
   - [V] no `yc_radar` in *.py/*.toml; `pytest -q` green (53); ruff/black clean.
 
-- [ ] **T0.2 Add `src/yc_scouter/config.py` (single source of truth)**
-  - Constants: `PROVIDER_DEFAULT="claude"`, `CLAUDE_MODEL="claude-haiku-4-5"`,
-    `GROQ_MODEL` (a GA model), `MAX_DESC_CHARS=2200`, `MAX_TOKENS=430`,
-    `AI_BUDGET_TARGET_USD=9.0` (estimate only), price table, `DATA_DIR`,
-    `dated_path(stage, date, ext)`, and `prompt_version()` = sha256(SYSTEM+TEMPLATE)[:12].
-  - Accept: importable constants; `dated_path("base", d, "parquet")` →
-    `data/yc_dataset_base_YYYY-MM-DD.parquet`.
-  - [V] unit test for `dated_path` + `prompt_version` stability.
+- [x] **T0.2 Add `src/yc_scouter/config.py` (single source of truth)** ✅
+  - Constants + helpers: providers/models, `MAX_DESC_CHARS=2200`, `MAX_TOKENS=430`,
+    `AI_BUDGET_TARGET_USD=9.0` (estimate only), `PRICES`, `estimate_cost`, `DATA_DIR`/
+    `CACHE_DIR`, `dated_path`, `latest_dated`, `today_iso`, `target_years(2020..now)`,
+    `prompt_version` = sha256(SYSTEM+TEMPLATE)[:12].
+  - [V] `tests/test_config.py` (7 tests) green.
 
 - [ ] **T0.3 Pin environment: `requirements.in` + hashed `requirements.lock` + `.python-version` + `pyproject`**
   - Generate lockfile with hashes; pin Python 3.11.x; update `pyproject` name/pkg.
