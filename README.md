@@ -37,7 +37,7 @@ the AI columns show a placeholder and nothing is charged.
 
 ## Docs
 
-- [`SPEC.md`](SPEC.md) — the specification (source of truth).
+- [`SPEC.md`](Archive/SPEC.md) — the specification (source of truth).
 - [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) — architecture & implementation.
 - [`docs/AI_METHODOLOGY.md`](docs/AI_METHODOLOGY.md) — the prompts + how it was built.
 - [`docs/HOW_TO_UPDATE.md`](docs/HOW_TO_UPDATE.md) — maintenance checklist.

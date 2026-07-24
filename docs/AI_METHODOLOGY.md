@@ -50,10 +50,10 @@ The project was built with **Claude Code** using the vendored `agent-skills`
    discovery pass researched the open questions (data source, model/token/cost,
    hosting, update strategy, reproducibility, repo structure, longevity risks) and
    surfaced trade-offs to decide.
-2. **`/spec`** (spec-driven-development) — wrote `SPEC.md`: objective, phases,
+2. **`/spec`** (spec-driven-development) — wrote `Archive/SPEC.md`: objective, phases,
    data model, File 1/File 2, budget, hosting, structure, boundaries. Approved
    before any code.
-3. **`/plan`** (planning-and-task-breakdown) — `tasks/plan.md` + `tasks/todo.md`:
+3. **`/plan`** (planning-and-task-breakdown) — `Archive/tasks/plan.md` + `Archive/tasks/todo.md`:
    vertical tasks with acceptance criteria, a dependency graph, and human
    checkpoints between phases.
 4. **`/build auto`** (incremental-implementation + test-driven-development) — each
@@ -65,7 +65,7 @@ The project was built with **Claude Code** using the vendored `agent-skills`
 **To get the same help again:** open the repo in Claude Code, then drive it with
 those slash commands. A good opening prompt:
 
-> "Read `SPEC.md`, `docs/HOW_IT_WORKS.md`, and `docs/HOW_TO_UPDATE.md`. We work in
+> "Read `Archive/SPEC.md`, `docs/HOW_IT_WORKS.md`, and `docs/HOW_TO_UPDATE.md`. We work in
 > the working/final-phase model. Continue with `/plan` then `/build auto`, TDD,
 > atomic commits, and stop at each phase checkpoint for my review."
 
