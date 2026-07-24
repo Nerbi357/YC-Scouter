@@ -82,14 +82,18 @@ def _ckey(company_id: int, model: str, prompt_version: str) -> str:
 # --------------------------------------------------------------------- prompting
 def _fields(rec: dict) -> dict:
     tags = rec.get("tags")
-    if isinstance(tags, list):
+    if hasattr(tags, "tolist"):  # numpy array (from parquet)
+        tags = tags.tolist()
+    if isinstance(tags, (list, tuple)):
         tags = ", ".join(map(str, tags))
+    elif tags is None or (isinstance(tags, float) and pd.isna(tags)):
+        tags = ""
     return {
         "name": rec.get("name", ""),
         "one_liner": rec.get("one_liner", ""),
         "industry": rec.get("industry", ""),
         "subindustry": rec.get("subindustry", ""),
-        "tags": tags or "",
+        "tags": tags,
         "status": rec.get("status", ""),
         "team_size": rec.get("team_size", ""),
         "batch": rec.get("batch", ""),
@@ -127,6 +131,25 @@ def _records_for(df: pd.DataFrame, ids: list[int]) -> list[dict]:
     ]
     sub = df[df["id"].isin(ids)]
     return sub[[c for c in cols if c in sub.columns]].to_dict("records")
+
+
+# ----------------------------------------------------------------------- mock
+def mock_summarizer(records: list[dict]):
+    """Offline, deterministic summarizer — NO API call, NO spend.
+
+    Produces readable placeholder text derived from the input fields, useful for
+    demos, the notebook smoke test, and previewing layout without a key.
+    """
+    for rec in records:
+        f = _fields(rec)
+        desc = (
+            f"{f['name']} operates in {f['industry']} ({f['subindustry']}). "
+            f"Core idea: {f['one_liner']}. {str(f['description'])[:180]} "
+            f"Team of {f['team_size']}, batch {f['batch']}, status {f['status']}. "
+            "[MOCK — generated offline, no API call]."
+        )
+        risks = f"Competition within {f['industry']}; execution and go-to-market risk. [MOCK]"
+        yield int(rec["id"]), {"ai_description": desc, "ai_risks": risks}
 
 
 # ------------------------------------------------------------------- providers

@@ -82,12 +82,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
     prompt-version-change re-summarize + old preserved, Claude parse+cost print,
     truncation, Groq parse, failure message — all mocked, no spend.
 
-- [ ] **T2.2 `notebooks/02_ai_summary.ipynb` (thin)**
-  - Provider switch + Drive/download/commit switch; load newest Base + repo AI cache;
-    summarize only changed keys; export dated AI files; Russian markdown.
-  - Accept: papermill run on fixture with a mock provider produces dated AI files and
-    the printed cost estimate.
-  - [V] papermill smoke run (mock provider) green.
+- [x] **T2.2 `notebooks/02_ai_summary.ipynb` (thin)** ✅
+  - Added `pipeline.build_ai()` (loads newest Base + cache, summarizes only new keys,
+    dated AI export) and `ai.mock_summarizer` (offline, no spend). Notebook: params
+    (provider `claude`/`groq`/`mock`, output switch) → bootstrap → `build_ai` → deliver.
+  - [V] `test_pipeline.py` build_ai (mock / disk-load / no-key placeholder) +
+    `test_notebook_smoke.py` File 2 papermill smoke (mock). Demoed 3 companies, 0 spend.
 
 - [ ] **T2.3 `.github/workflows/build-ai-summary.yml` (Button 2)**
   - `workflow_dispatch`; `ANTHROPIC_API_KEY`/`GROQ_API_KEY` from Secrets; run File 2;
