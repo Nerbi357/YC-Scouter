@@ -1,4 +1,4 @@
-"""Personal annotations (rating / favorite / tags / funnel stage / notes).
+"""Personal annotations (favorite / tags / funnel stage / notes).
 
 Keyed by the **immutable company ``id``** so notes survive data refreshes *and*
 company renames (``slug`` can change; ``id`` cannot). Two storage backends share
@@ -21,7 +21,8 @@ import pandas as pd
 DEFAULT_PATH = Path("data/user_data.csv")
 
 #: ``id`` is the immutable join key; the rest are user-owned.
-USER_COLUMNS = ("id", "my_rating", "watchlist", "my_tags", "my_stage", "my_notes")
+#: (a 0-5 rating existed once — dropped in favour of the favorite flag + stage.)
+USER_COLUMNS = ("id", "watchlist", "my_tags", "my_stage", "my_notes")
 
 #: Personal deal-flow (funnel) stages, in order. ``watchlist`` is the quick
 #: "favorite" flag; ``my_stage`` is where the company sits in your own pipeline.
@@ -53,7 +54,6 @@ def coerce_types(out: pd.DataFrame) -> pd.DataFrame:
     out["my_tags"] = out["my_tags"].fillna("").astype(str)
     stage = out["my_stage"].fillna("").astype(str).str.strip()
     out["my_stage"] = stage.where(stage != "", DEFAULT_STAGE)
-    out["my_rating"] = pd.to_numeric(out["my_rating"], errors="coerce").astype("Int64")
     return out
 
 
