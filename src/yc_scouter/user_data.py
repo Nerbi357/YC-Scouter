@@ -89,6 +89,12 @@ def _ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
     df = df[df["id"].notna()]
     if df["id"].duplicated().any():
         df = df.drop_duplicates(subset="id", keep="last")
+    # A column that is empty in the store (nobody set a stage yet) would otherwise be
+    # inferred as float64, and pandas 3 refuses to write text into it — which used to
+    # crash the very first save. Object dtype accepts every value we ever assign.
+    for col in USER_COLUMNS:
+        if col != "id":
+            df[col] = df[col].astype(object)
     return df.reset_index(drop=True)
 
 

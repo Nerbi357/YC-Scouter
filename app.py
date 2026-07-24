@@ -102,6 +102,10 @@ CSS = """
 
   /* Small italic min/max hints under the "От"/"До" inputs. */
   .range-hint {font-size: 0.76rem; font-style: italic; color: #6b7280; margin-top: -0.55rem;}
+
+  /* Export control sits on the tab bar's line, flush right, above the divider. */
+  .st-key-export_row {margin-bottom: -3.35rem; position: relative; z-index: 10;}
+  .st-key-export_row div[data-testid="stPopover"] {display: flex; justify-content: flex-end;}
 </style>
 """
 
@@ -196,12 +200,20 @@ def storage_banner() -> None:
         )
 
 
-def load_annotations() -> pd.DataFrame:
-    """Load notes from the configured backend, degrading gracefully on failure.
+#: Where a visitor's own notes live for the duration of their browser session.
+VISITOR_STORE = "visitor_notes"
 
-    A Sheets problem (not shared with the service account, revoked key, API quota)
-    must never take the whole dashboard down — we warn and fall back to empty.
+
+def load_annotations() -> pd.DataFrame:
+    """Notes for the current viewer.
+
+    Visitors get their **own** session-local set — they neither see the owner's
+    notes nor write into them. The owner gets the shared store (Google Sheets or
+    local CSV), degrading gracefully if Sheets is unreachable so a credentials
+    problem can never take the dashboard down.
     """
+    if not is_owner():
+        return st.session_state.get(VISITOR_STORE, user_data.empty_user_frame())
     if use_gsheets():
         try:
             return gsheets.load(_secrets())
@@ -235,6 +247,10 @@ def gsheets_error_banner() -> None:
 
 
 def save_annotations(df: pd.DataFrame) -> None:
+    """Persist notes for the current viewer (session-only for visitors)."""
+    if not is_owner():
+        st.session_state[VISITOR_STORE] = user_data._ensure_columns(df)
+        return
     if use_gsheets():
         gsheets.save(_secrets(), df)
     else:
@@ -492,8 +508,9 @@ def note_section(row: pd.Series, place: str) -> None:
     with st.expander("📝 Заметки о компании"):
         if not is_owner():
             st.caption(
-                "👀 Режим просмотра: правки останутся только у вас и пропадут при "
-                "обновлении страницы. Введите ключ доступа слева, чтобы сохранять."
+                "👀 Ваши личные заметки: работают полностью, но живут только в этой "
+                "вкладке браузера — они не видны владельцу и пропадут при обновлении "
+                "страницы."
             )
         c1, c2 = st.columns([1, 2])
         fav = c1.checkbox(
@@ -513,8 +530,6 @@ def note_section(row: pd.Series, place: str) -> None:
         notes = st.text_area(
             "Заметка", value=str(row.get("my_notes", "")), key=f"notes_{place}_{cid}", height=110
         )
-        if not is_owner():
-            return
         if st.button("💾 Сохранить", type="primary", key=f"save_{place}_{cid}"):
             try:
                 save_one(
@@ -526,8 +541,7 @@ def note_section(row: pd.Series, place: str) -> None:
                         "my_notes": notes,
                     },
                 )
-                st.cache_data.clear()
-                st.success("Сохранено.")
+                st.rerun(scope="app")  # refresh stars, counters and the table
             except Exception as exc:
                 st.error(f"Не удалось сохранить: {exc}")
 
@@ -631,7 +645,7 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
         return
 
     fav_total = int(all_df.get("watchlist", pd.Series(dtype=bool)).sum())
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("Компаний", len(filtered))
     c2.metric(
         "⭐ В избранном",
@@ -640,8 +654,6 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
     )
     c3.metric("Средний score", f"{filtered['score'].mean():.0f}" if len(filtered) else "—")
     c4.metric("Индустрий", filtered["industry"].nunique())
-    invested = int((filtered.get("my_stage", pd.Series(dtype=str)) == "Invested").sum())
-    c5.metric("Проинвестировано", invested)
 
     st.divider()
 
@@ -717,10 +729,7 @@ def tab_companies(filtered: pd.DataFrame) -> None:
     if filtered.empty:
         st.info("Под текущие фильтры не попала ни одна компания — ослабьте условия слева.")
         return
-    head, exp = st.columns([5, 1])
-    head.markdown("👁 **Показать карточку** — отметьте компанию в первом столбце")
-    with exp:
-        export_panel(filtered, key="companies")
+    st.markdown("👁 **Показать карточку** — отметьте компанию в первом столбце")
 
     selectable_table(
         filtered.reset_index(drop=True),
@@ -817,8 +826,9 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         )
     else:
         st.info(
-            "👀 **Режим просмотра.** Правки в этой таблице видны только вам и "
-            "исчезнут при обновлении страницы — общее хранилище они не меняют.",
+            "👀 **Ваши личные заметки.** Редактируйте и сохраняйте как угодно — они "
+            "живут в этой вкладке браузера, не видны владельцу и пропадут при "
+            "обновлении страницы.",
             icon="👀",
         )
 
@@ -841,15 +851,14 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         key="annotations_editor",
     )
 
-    if not owner:
-        export_panel(edited, key="visitor_notes")
-        return
-
     if st.button("💾 Сохранить заметки", type="primary"):
         store = user_data._ensure_columns(load_annotations()).set_index("id")
         for _, r in edited.iterrows():
-            store.loc[int(r["id"])] = {
-                "watchlist": bool(r.get("watchlist")),
+            rid = _row_id(r)
+            if rid is None:
+                continue
+            store.loc[rid] = {
+                "watchlist": user_data.to_bool(r.get("watchlist")),
                 "my_stage": r.get("my_stage", user_data.DEFAULT_STAGE),
                 "my_tags": r.get("my_tags", ""),
                 "my_notes": r.get("my_notes", ""),
@@ -857,7 +866,7 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         try:
             save_annotations(store.reset_index())
             st.success(f"Сохранено для {len(edited)} компаний.")
-            st.cache_data.clear()
+            st.rerun()
         except Exception as exc:
             st.error(f"Не удалось сохранить: {exc}")
 
@@ -888,6 +897,12 @@ def _render() -> None:
         st.sidebar.success("🔓 Полный доступ — заметки сохраняются.")
 
     filtered = sidebar_filters(df)
+
+    # Sits on the tab bar's line (flush right) via the .st-key-export_row CSS.
+    with st.container(key="export_row"):
+        _, right = st.columns([5, 1])
+        with right:
+            export_panel(filtered, key="global")
 
     overview, companies, compare, notes = st.tabs(
         ["📊 Обзор", "🔎 Компании", "⚖️ Сравнение", "📝 Заметки"]
