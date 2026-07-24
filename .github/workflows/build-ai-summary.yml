@@ -50,7 +50,7 @@ jobs:
         run: |
           EXTRA=""
           if [ -n "${{ inputs.limit }}" ]; then EXTRA="-p limit ${{ inputs.limit }}"; fi
-          papermill notebooks/02_ai_summary.ipynb /tmp/out_ai.ipynb \
+          papermill --log-output --no-progress-bar notebooks/02_ai_summary.ipynb /tmp/out_ai.ipynb \
             -p provider "${{ inputs.provider }}" -p output commit -p out_dir data $EXTRA
 
       - name: Commit dated AI files + cache
