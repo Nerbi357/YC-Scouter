@@ -12,6 +12,10 @@ on:
         type: choice
         options: [claude, groq]
         default: claude
+      limit:
+        description: "Max companies to summarize this run (blank = all; e.g. 5 for a cheap test)"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -44,8 +48,10 @@ jobs:
 
       - name: Run File 2 (papermill)
         run: |
+          EXTRA=""
+          if [ -n "${{ inputs.limit }}" ]; then EXTRA="-p limit ${{ inputs.limit }}"; fi
           papermill notebooks/02_ai_summary.ipynb /tmp/out_ai.ipynb \
-            -p provider "${{ inputs.provider }}" -p output commit -p out_dir data
+            -p provider "${{ inputs.provider }}" -p output commit -p out_dir data $EXTRA
 
       - name: Commit dated AI files + cache
         run: |
