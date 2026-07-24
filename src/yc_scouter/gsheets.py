@@ -78,12 +78,15 @@ def load(secrets: Any) -> pd.DataFrame:
 
 
 def save(secrets: Any, df: pd.DataFrame) -> None:
-    """Overwrite the sheet with ``df`` (header + rows), keyed by slug."""
+    """Overwrite the sheet with ``df`` (header + rows), keyed by company id.
+
+    Cells are written as plain text, so the boolean flag is normalised to
+    ``TRUE``/``FALSE`` — readable in the spreadsheet and parsed back by
+    :func:`yc_scouter.user_data.to_bool` (which also tolerates older spellings).
+    """
     ws = _open_worksheet(secrets)
-    out = df.copy()
-    for col in user_data.USER_COLUMNS:
-        if col not in out.columns:
-            out[col] = pd.NA
-    out = out[list(user_data.USER_COLUMNS)].fillna("").astype(str)
+    out = user_data._ensure_columns(df)
+    out["watchlist"] = out["watchlist"].map(lambda v: "TRUE" if user_data.to_bool(v) else "FALSE")
+    out = out.fillna("").astype(str)
     ws.clear()
     ws.update([list(user_data.USER_COLUMNS)] + out.values.tolist())

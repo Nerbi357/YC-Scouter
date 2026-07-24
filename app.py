@@ -22,6 +22,7 @@ import io
 import os
 import re
 import sys
+import traceback
 from pathlib import Path
 
 import pandas as pd
@@ -429,6 +430,15 @@ def select_company(row_id: int | None) -> None:
         pass
 
 
+def _row_id(row: pd.Series) -> int | None:
+    """A company's id as a plain int, or None when it is unusable."""
+    try:
+        value = row["id"]
+        return None if pd.isna(value) else int(value)
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def selectable_table(df: pd.DataFrame, cols: list[str], key: str) -> None:
     """Table whose first column (checkbox) opens the company's detail card."""
     cols = [c for c in cols if c in df.columns]
@@ -446,8 +456,8 @@ def selectable_table(df: pd.DataFrame, cols: list[str], key: str) -> None:
     if rows:
         pos = rows[0]
         if 0 <= pos < len(df):
-            new_id = int(df.iloc[pos]["id"])
-            if new_id != selected_id():
+            new_id = _row_id(df.iloc[pos])
+            if new_id is not None and new_id != selected_id():
                 select_company(new_id)
                 st.rerun()
 
@@ -476,7 +486,9 @@ def card_text(row: pd.Series) -> str:
 @st.fragment
 def note_section(row: pd.Series, place: str) -> None:
     """Collapsed per-company notes. A fragment, so saving doesn't rerun the page."""
-    cid = int(row["id"])
+    cid = _row_id(row)
+    if cid is None:
+        return
     with st.expander("📝 Заметки о компании"):
         if not is_owner():
             st.caption(
@@ -614,6 +626,9 @@ def _pie(df: pd.DataFrame, col: str, title: str) -> None:
 
 def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> None:
     st.caption(f"Показано **{len(filtered)}** из {total} компаний")
+    if filtered.empty:
+        st.info("Под текущие фильтры не попала ни одна компания — ослабьте условия слева.")
+        return
 
     fav_total = int(all_df.get("watchlist", pd.Series(dtype=bool)).sum())
     c1, c2, c3, c4, c5 = st.columns(5)
@@ -699,6 +714,9 @@ def _page_number(pages: int) -> int:
 
 
 def tab_companies(filtered: pd.DataFrame) -> None:
+    if filtered.empty:
+        st.info("Под текущие фильтры не попала ни одна компания — ослабьте условия слева.")
+        return
     head, exp = st.columns([5, 1])
     head.markdown("👁 **Показать карточку** — отметьте компанию в первом столбце")
     with exp:
@@ -782,6 +800,9 @@ def tab_compare(filtered: pd.DataFrame) -> None:
 
 def tab_notes(filtered: pd.DataFrame) -> None:
     st.subheader("📝 Заметки, теги и воронка")
+    if filtered.empty:
+        st.info("Под текущие фильтры не попала ни одна компания.")
+        return
     owner = is_owner()
 
     if owner:
@@ -842,8 +863,8 @@ def tab_notes(filtered: pd.DataFrame) -> None:
 
 
 # --------------------------------------------------------------------------- main
-def main() -> None:
-    st.set_page_config(page_title="YC Scouter", page_icon="🛰️", layout="wide")
+def _render() -> None:
+    """The dashboard body. Wrapped by :func:`main` so nothing shows a blank crash."""
     st.markdown(CSS, unsafe_allow_html=True)
     st.title("🛰️ YC Scouter — 2020–настоящее")
 
@@ -879,6 +900,36 @@ def main() -> None:
         tab_compare(filtered)
     with notes:
         tab_notes(filtered)
+
+
+def main() -> None:
+    """Entry point with a safety net.
+
+    Streamlit Cloud redacts exception text, so an unexpected error would show an
+    unhelpful blank crash page. We catch it, keep the app usable, and surface the
+    real reason (plus a reset button, since bad session state is a common cause).
+    """
+    st.set_page_config(page_title="YC Scouter", page_icon="🛰️", layout="wide")
+    try:
+        _render()
+    except Exception as exc:  # noqa: BLE001 - last-resort UI guard
+        # Streamlit's own control-flow signals must pass through untouched.
+        if type(exc).__name__ in {"RerunException", "StopException", "RerunData"}:
+            raise
+        st.error(f"⚠️ Что-то пошло не так: {type(exc).__name__}: {exc}")
+        st.caption(
+            "Дашборд не сломан — попробуйте сбросить фильтры и выбор компании. "
+            "Если ошибка повторяется, отправьте текст ниже разработчику."
+        )
+        if st.button("♻️ Сбросить состояние и перезагрузить"):
+            st.session_state.clear()
+            try:
+                st.query_params.clear()
+            except Exception:
+                pass
+            st.rerun()
+        with st.expander("Технические подробности"):
+            st.code("".join(traceback.format_exception(exc)), language="text")
 
 
 if __name__ == "__main__":
