@@ -30,29 +30,79 @@ STAGES = ("New", "To review", "Contacted", "Passed", "Invested")
 DEFAULT_STAGE = "New"
 
 
+#: Spellings of "true" that any backend might hand back (Sheets stores text).
+_TRUE_WORDS = {"true", "1", "yes", "y", "да", "истина", "on", "checked", "x", "✓"}
+#: Values that mean "nothing here" once a store has stringified them.
+_BLANK_WORDS = {"", "nan", "none", "null", "na", "<na>"}
+
+
 def empty_user_frame() -> pd.DataFrame:
     """An empty annotations table with the canonical schema."""
     return pd.DataFrame(columns=list(USER_COLUMNS))
 
 
+def to_bool(value: object) -> bool:
+    """Best-effort truthiness for values that made a round-trip through storage.
+
+    Google Sheets returns every cell as text, so a saved ``True`` comes back as
+    ``"True"`` — and ``Series.astype("boolean")`` rejects strings outright. Anything
+    unrecognised is treated as False rather than raising.
+    """
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        try:
+            return False if pd.isna(value) else bool(value)
+        except (TypeError, ValueError):
+            return False
+    return str(value).strip().lower() in _TRUE_WORDS
+
+
+def _clean_text(value: object) -> str:
+    """Text cell, with stringified nulls ("nan", "None", …) collapsed to ""."""
+    if value is None:
+        return ""
+    try:
+        if not isinstance(value, str) and pd.isna(value):
+            return ""
+    except (TypeError, ValueError):
+        pass
+    text = str(value).strip()
+    return "" if text.lower() in _BLANK_WORDS else text
+
+
 def _ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Return ``df`` with every USER_COLUMN present and ``id`` as nullable int."""
+    """Return ``df`` with every USER_COLUMN present and a usable ``id``.
+
+    Rows whose ``id`` can't be parsed are dropped (they would otherwise join onto
+    nothing), and duplicate ids are collapsed keeping the newest entry — a store
+    edited by hand can easily contain both.
+    """
     df = df.copy()
     for col in USER_COLUMNS:
         if col not in df.columns:
             df[col] = pd.NA
     df = df[list(USER_COLUMNS)]
     df["id"] = pd.to_numeric(df["id"], errors="coerce").astype("Int64")
-    return df
+    df = df[df["id"].notna()]
+    if df["id"].duplicated().any():
+        df = df.drop_duplicates(subset="id", keep="last")
+    return df.reset_index(drop=True)
 
 
 def coerce_types(out: pd.DataFrame) -> pd.DataFrame:
-    """Apply sensible defaults/dtypes to the annotation columns of ``out``."""
+    """Apply sensible defaults/dtypes to the annotation columns of ``out``.
+
+    Deliberately tolerant: values may arrive as booleans (parquet/CSV) or as text
+    (Google Sheets), and the dashboard must render either way.
+    """
     out = out.copy()
-    out["watchlist"] = out["watchlist"].astype("boolean").fillna(False).astype(bool)
-    out["my_notes"] = out["my_notes"].fillna("").astype(str)
-    out["my_tags"] = out["my_tags"].fillna("").astype(str)
-    stage = out["my_stage"].fillna("").astype(str).str.strip()
+    out["watchlist"] = out["watchlist"].map(to_bool).astype(bool)
+    out["my_notes"] = out["my_notes"].map(_clean_text)
+    out["my_tags"] = out["my_tags"].map(_clean_text)
+    stage = out["my_stage"].map(_clean_text)
     out["my_stage"] = stage.where(stage != "", DEFAULT_STAGE)
     return out
 
