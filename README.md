@@ -6,8 +6,8 @@ deep-dive links, an interestingness score), adds concise **AI descriptions + ris
 per company, and serves it in an interactive dashboard for filtering, charting,
 comparing, and keeping a personal shortlist.
 
-> 🔗 **Live dashboard:** _add your Streamlit URL here after deploying_ (see
-> [`docs/DEPLOY.md`](docs/DEPLOY.md)).
+> 🔗 **Live dashboard:** **https://nerbi357-yc-scouter.streamlit.app/**
+> (hosting details in [`docs/DEPLOY.md`](docs/DEPLOY.md)).
 
 > Built with **[Claude Code](https://claude.com/claude-code)** using spec-driven,
 > test-driven agent skills — see [`docs/AI_METHODOLOGY.md`](docs/AI_METHODOLOGY.md).
