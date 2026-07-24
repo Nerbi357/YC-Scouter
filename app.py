@@ -1,6 +1,6 @@
-"""YC Startup Radar — interactive Streamlit dashboard.
+"""YC Scouter — interactive Streamlit dashboard (Russian UI).
 
-Reads the Parquet snapshot produced by the pipeline (it never re-fetches) and
+Reads the newest dated Parquet produced by the pipeline (it never re-fetches) and
 lets you filter, chart, compare, and annotate companies.
 
 Storage for your personal notes/tags/stage is chosen automatically:
@@ -23,23 +23,16 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-# Make ``src/yc_scouter`` importable on Streamlit Cloud (repo layout); in Colab the
-# flat ``yc_scouter_pipeline`` module is used instead.
+# Make ``src/yc_scouter`` importable on Streamlit Cloud (repo layout).
 _SRC = Path(__file__).parent / "src"
 if _SRC.is_dir():
     sys.path.insert(0, str(_SRC))
 
+from yc_scouter import config, filters, user_data  # noqa: E402
+
 try:
-    from yc_scouter import filters, user_data
-
-    try:
-        from yc_scouter import gsheets
-    except Exception:  # pragma: no cover - optional deps
-        gsheets = None
-except ModuleNotFoundError:  # Colab: everything lives in one flat module
-    import yc_scouter_pipeline as _m
-
-    filters = user_data = _m
+    from yc_scouter import gsheets  # noqa: E402
+except Exception:  # pragma: no cover - optional deps
     gsheets = None
 
 try:
@@ -47,8 +40,20 @@ try:
 except Exception:  # pragma: no cover - optional
     px = None
 
-DATASET = Path(os.environ.get("YC_RADAR_DATASET", "data/processed/yc_scouter.parquet"))
-USER_DATA_CSV = Path(os.environ.get("YC_RADAR_USERDATA", "data/user_data.csv"))
+USER_DATA_CSV = Path(os.environ.get("YC_SCOUTER_USERDATA", "data/user_data.csv"))
+
+
+def dataset_path() -> Path | None:
+    """Newest dated dataset the dashboard should read (AI preferred, else Base)."""
+    env = os.environ.get("YC_SCOUTER_DATASET")
+    if env:
+        return Path(env)
+    for stage in ("ai", "base"):
+        p = config.latest_dated(stage, "parquet")
+        if p is not None:
+            return p
+    return None
+
 
 LINK_COLUMNS = [
     "website",
@@ -151,7 +156,7 @@ def _to_excel_bytes(df: pd.DataFrame) -> bytes:
     safe = df.map(_clean_cell)
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as xw:
-        safe.to_excel(xw, index=False, sheet_name="YC Radar")
+        safe.to_excel(xw, index=False, sheet_name="YC Scouter")
     return buf.getvalue()
 
 
@@ -372,10 +377,10 @@ def tab_companies(filtered: pd.DataFrame) -> None:
             )
             if str(row.get("my_tags", "")).strip():
                 st.markdown(f"**Мои теги:** {row['my_tags']}")
-            if str(row.get("ai_summary", "")).strip():
-                st.markdown(f"**AI summary:** {row['ai_summary']}")
-            if str(row.get("ai_risk_notes", "")).strip():
-                st.markdown(f"**Риски к проверке:** {row['ai_risk_notes']}")
+            if str(row.get("ai_description", "")).strip():
+                st.markdown(f"**AI-описание:** {row['ai_description']}")
+            if str(row.get("ai_risks", "")).strip():
+                st.markdown(f"**Риски к проверке:** {row['ai_risks']}")
             links = [
                 f"[{c.replace('_url', '').replace('_', ' ').title() or 'Website'}]({row[c]})"
                 for c in LINK_COLUMNS
@@ -409,8 +414,8 @@ def tab_compare(filtered: pd.DataFrame) -> None:
             "score",
             "website",
             "yc_url",
-            "ai_summary",
-            "ai_risk_notes",
+            "ai_description",
+            "ai_risks",
         ]
         if c in rows.columns
     ]
@@ -431,7 +436,7 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         )
         st.caption(
             f"Правь rating (0–5), избранное, стадию, теги и заметки — потом «Сохранить». "
-            f"Хранилище: **{where}**. Ключ — slug."
+            f"Хранилище: **{where}**. Ключ — id (переживает переименования)."
         )
     else:
         st.info(
@@ -443,14 +448,14 @@ def tab_notes(filtered: pd.DataFrame) -> None:
 
     editor_cols = [
         c
-        for c in ["slug", "name", "my_rating", "watchlist", "my_stage", "my_tags", "my_notes"]
+        for c in ["id", "name", "my_rating", "watchlist", "my_stage", "my_tags", "my_notes"]
         if c in filtered.columns
     ]
     edited = st.data_editor(
         filtered[editor_cols].copy(),
         use_container_width=True,
         hide_index=True,
-        disabled=["slug", "name"],
+        disabled=["id", "name"],
         column_config={
             "my_rating": st.column_config.NumberColumn("Рейтинг", min_value=0, max_value=5),
             "watchlist": st.column_config.CheckboxColumn("⭐ Избранное"),
@@ -472,9 +477,9 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         return
 
     if st.button("💾 Сохранить заметки", type="primary"):
-        store = user_data._ensure_columns(load_annotations()).set_index("slug")
+        store = user_data._ensure_columns(load_annotations()).set_index("id")
         for _, r in edited.iterrows():
-            store.loc[r["slug"]] = {
+            store.loc[int(r["id"])] = {
                 "my_rating": r.get("my_rating"),
                 "watchlist": bool(r.get("watchlist")),
                 "my_stage": r.get("my_stage", user_data.DEFAULT_STAGE),
@@ -488,16 +493,18 @@ def tab_notes(filtered: pd.DataFrame) -> None:
 
 # --------------------------------------------------------------------------- main
 def main() -> None:
-    st.set_page_config(page_title="YC Startup Radar", page_icon="🛰️", layout="wide")
+    st.set_page_config(page_title="YC Scouter", page_icon="🛰️", layout="wide")
     st.markdown(CSS, unsafe_allow_html=True)
-    st.title("🛰️ YC Startup Radar — 2024–2026")
+    st.title("🛰️ YC Scouter — 2020–настоящее")
 
-    if not DATASET.exists():
+    path = dataset_path()
+    if path is None or not path.exists():
         st.warning(
-            f"Датасет не найден: `{DATASET}`. Собери его пайплайном (тетрадь/Actions) "
-            "или закоммить `yc_scouter.parquet` в репозиторий для хостинга."
+            "Датасет не найден. Собери его: сначала File 1 (Base), затем File 2 (AI) — "
+            "они кладут `data/yc_dataset_*.parquet`. На хостинге закоммить файлы в репозиторий."
         )
         st.stop()
+    st.caption(f"Источник: `{path.name}`")
 
     owner_gate()
 
@@ -510,7 +517,7 @@ def main() -> None:
     if _owner_key() and is_owner():
         st.sidebar.success("🔓 Режим владельца — можно сохранять.")
 
-    df = load_data(str(DATASET), DATASET.stat().st_mtime)
+    df = load_data(str(path), path.stat().st_mtime)
     df = user_data.merge_annotations(df, load_annotations())
 
     filtered = sidebar_filters(df)

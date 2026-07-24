@@ -108,11 +108,13 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
   - [V] `tests/test_user_data.py` (6) rewritten to id-keyed roundtrip/refresh/idempotency
     + `tests/test_gsheets.py` green.
 
-- [ ] **T3.2 `app.py`: Russian UI + newest-dated loader**
-  - Load newest `yc_dataset_ai_*.parquet` via glob; keep tabs/filters/charts/compare/
-    export; translate all UI strings to Russian; merge notes by id; owner/viewer.
-  - Accept: `streamlit run app.py` renders on a fixture dated file; UI in Russian.
-  - [V] import/render smoke; `test_app_helpers` (filters) green.
+- [x] **T3.2 `app.py`: Russian UI + newest-dated loader** ✅
+  - `dataset_path()` picks the newest `yc_dataset_ai_*` (else `_base_`) via
+    `config.latest_dated` (env `YC_SCOUTER_DATASET` overrides); AI columns renamed to
+    `ai_description`/`ai_risks`; notes editor keyed on `id`; title → "YC Scouter"; kept
+    tabs/filters/charts/compare/export + owner/viewer. Russian UI retained.
+  - [V] `tests/test_app.py` (3): env override, newest-AI selection, merged frame has
+    ai_* + notes cols; `import app` clean; pytest pythonpath adds repo root.
 
 - [ ] **T3.3 Notes migration slug→id**
   - One-off helper: map existing slug-keyed notes to `id` via a fresh dataset;
