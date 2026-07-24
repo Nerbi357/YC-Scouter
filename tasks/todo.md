@@ -52,12 +52,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
     (dev/offline only). Clear RuntimeError on network failure.
   - [V] tests: downloads+writes, default-ignores-stale-cache, use_cache reuse, error.
 
-- [ ] **T1.4 `notebooks/01_dataset_base.ipynb` (thin)**
-  - Top switch (env var) `output=drive|download|commit`; fetch→normalize→enrich→
-    score→export dated Base; Russian markdown/comments.
-  - Accept: `papermill 01_dataset_base.ipynb ... -p output download` runs against a
-    fixture and produces the two dated Base files.
-  - [V] papermill smoke run on fixture data (no network) green.
+- [x] **T1.4 `notebooks/01_dataset_base.ipynb` (thin)** ✅
+  - Added `pipeline.build_base()` in `src/` so the notebook is 5 cells: params
+    (papermill) → bootstrap import → `build_base` → output switch
+    (`download`/`drive`/`commit`). English notebook (per language policy).
+  - [V] `tests/test_pipeline.py` (3) + `tests/test_notebook_smoke.py` (papermill
+    execute on the fixture, `importorskip`) produce the two dated Base files. Suite 66.
 
 - [ ] **T1.5 `.github/workflows/build-dataset.yml` (Button 1)**
   - `workflow_dispatch` only; install lockfile; run File 1 via papermill; commit the
