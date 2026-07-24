@@ -19,7 +19,7 @@ between them.
 | `app.py` | **Change**: Russian UI, load newest dated file via glob, notes by `id`. |
 | `notebooks/*` | **Replace** with `01_dataset_base.ipynb` + `02_ai_summary.ipynb` (thin). |
 | package name | **Rename** `yc_radar` → `yc_scouter`. |
-| `requirements.txt` | **Replace** with `requirements.in` + hashed `requirements.lock`. |
+| `requirements.txt` | **Replace** with `requirements.in` (source) → compiled to a pinned + hashed `requirements.txt`. |
 | `.github/workflows/` | **Replace** with `build-dataset.yml` + `build-ai-summary.yml` (manual). |
 | `scripts/run_pipeline.py` | **Remove** (papermill runs the real notebook instead). |
 | docs | **Add** `docs/HOW_IT_WORKS.md`, `AI_METHODOLOGY.md`, `HOW_TO_UPDATE.md`, `DEPLOY.md`. |

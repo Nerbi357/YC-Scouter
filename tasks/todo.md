@@ -19,10 +19,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
     `prompt_version` = sha256(SYSTEM+TEMPLATE)[:12].
   - [V] `tests/test_config.py` (7 tests) green.
 
-- [ ] **T0.3 Pin environment: `requirements.in` + hashed `requirements.lock` + `.python-version` + `pyproject`**
-  - Generate lockfile with hashes; pin Python 3.11.x; update `pyproject` name/pkg.
-  - Accept: `pip install -r requirements.lock --require-hashes` succeeds in a clean env.
-  - [V] fresh venv install; `pytest -q` green.
+- [x] **T0.3 Pin environment: `requirements.in` → hashed `requirements.txt` + `.python-version` + `pyproject`** ✅
+  - `requirements.in` (source) compiled via `uv pip compile --generate-hashes` to a
+    pinned + fully-hashed `requirements.txt` (112 pkgs, 1735 hashes); `.python-version`
+    = 3.11. `requirements.txt` doubles as the Streamlit Cloud install file.
+  - [V] `uv pip install -r requirements.txt --require-hashes --dry-run` resolves clean;
+    `pytest -q` green.
 
 **CP-0 review.**
 

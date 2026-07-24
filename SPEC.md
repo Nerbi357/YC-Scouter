@@ -231,7 +231,7 @@ and dataset are reused unchanged.
 - Core libs: `httpx`, `pandas`, `pyarrow` (parquet), `openpyxl` (xlsx), `plotly`
   (charts), `streamlit` (dashboard), `anthropic` (Claude), `groq` (optional),
   `gspread`/`google-auth` (notes, later), `papermill` (headless notebook runs in CI).
-- Dependencies pinned via a **hashed lockfile** (`requirements.lock`, generated from
+- Dependencies pinned via a **hashed lockfile** (`requirements.txt`, generated from
   `requirements.in`), installed with `--require-hashes` in Colab + Actions.
 
 ---
@@ -240,7 +240,7 @@ and dataset are reused unchanged.
 
 ```bash
 # Setup (reproducible)
-pip install -r requirements.lock --require-hashes    # or: pip install -e .
+pip install -r requirements.txt --require-hashes    # or: pip install -e .
 
 # File 1 headless (as CI runs it)
 papermill notebooks/01_dataset_base.ipynb /tmp/out1.ipynb -p mode ci
@@ -265,7 +265,7 @@ pytest -q
 README.md                         short overview, "built with Claude Code", live dashboard link
 LICENSE
 requirements.in                   top-level deps (human-edited)
-requirements.lock                 pinned + hashed deps (generated; the reproducibility anchor)
+requirements.txt                 pinned + hashed deps (generated; the reproducibility anchor)
 pyproject.toml                    makes `pip install -e .` work so notebooks/app import one package
 .python-version                   pins Python 3.11.x everywhere
 .gitignore                        excludes .env, *.json creds, caches
@@ -291,7 +291,7 @@ tests/                            determinism + schema-guard + logic unit tests
 ```
 
 Auxiliary files the maintainer might not have anticipated but that are **required**
-and were explicitly agreed: `requirements.lock` + `.python-version` (reproducibility),
+and were explicitly agreed: `requirements.txt` + `.python-version` (reproducibility),
 `src/` package (no duplicated notebook logic), `.github/workflows/` (the two
 buttons), `.streamlit/` (dashboard config), `data/cache/` (cheap incremental AI),
 `tests/`. Deployment is **config + docs**, not a "File 5 notebook".
@@ -350,7 +350,7 @@ The project is **not** fully hands-off — expect ~15 min every few months:
 | Anthropic credits/billing | before a full run | keep balance funded; File 2 is resumable + guarded |
 | Model retirement (~6–12 mo) | model ID 404s | change one config constant |
 | Groq free-tier / key (if used) | on 401 / limit change | rotate key, keep model in config |
-| Locked dependencies | 6–12 mo or on breakage | regenerate `requirements.lock`, re-test |
+| Locked dependencies | 6–12 mo or on breakage | regenerate `requirements.txt`, re-test |
 | GitHub Actions | on use | button-only; each run commits (no 60-day auto-disable concern) |
 | yc-oss schema drift | on fetch error | schema-guard fails loudly; keep last-good data |
 | Streamlit sleep (12h idle) | on visit | click to wake; normal for a personal tool |
