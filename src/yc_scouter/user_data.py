@@ -1,14 +1,15 @@
 """Personal annotations (rating / favorite / tags / funnel stage / notes).
 
-Keyed by company ``slug`` so they survive data refreshes. Two storage backends
-share the same schema:
+Keyed by the **immutable company ``id``** so notes survive data refreshes *and*
+company renames (``slug`` can change; ``id`` cannot). Two storage backends share
+the same schema:
 
 * a local CSV (``data/user_data.csv``) — used in Colab / locally, and
 * Google Sheets (see :mod:`yc_scouter.gsheets`) — used when the dashboard is
   hosted on Streamlit Community Cloud, whose container disk is ephemeral.
 
-The merge/coerce helpers here are backend-agnostic: give them an annotations
-frame from *either* source and they attach it to the company table.
+The merge/coerce helpers are backend-agnostic: give them an annotations frame
+from *either* source and they attach it to the company table by ``id``.
 """
 
 from __future__ import annotations
@@ -19,8 +20,8 @@ import pandas as pd
 
 DEFAULT_PATH = Path("data/user_data.csv")
 
-#: slug is the join key; the rest are user-owned.
-USER_COLUMNS = ("slug", "my_rating", "watchlist", "my_tags", "my_stage", "my_notes")
+#: ``id`` is the immutable join key; the rest are user-owned.
+USER_COLUMNS = ("id", "my_rating", "watchlist", "my_tags", "my_stage", "my_notes")
 
 #: Personal deal-flow (funnel) stages, in order. ``watchlist`` is the quick
 #: "favorite" flag; ``my_stage`` is where the company sits in your own pipeline.
@@ -34,12 +35,14 @@ def empty_user_frame() -> pd.DataFrame:
 
 
 def _ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Return ``df`` with every USER_COLUMN present (missing ones as NA)."""
+    """Return ``df`` with every USER_COLUMN present and ``id`` as nullable int."""
     df = df.copy()
     for col in USER_COLUMNS:
         if col not in df.columns:
             df[col] = pd.NA
-    return df[list(USER_COLUMNS)]
+    df = df[list(USER_COLUMNS)]
+    df["id"] = pd.to_numeric(df["id"], errors="coerce").astype("Int64")
+    return df
 
 
 def coerce_types(out: pd.DataFrame) -> pd.DataFrame:
@@ -74,15 +77,15 @@ def save_user_data(rows: list[dict] | pd.DataFrame, path: Path = DEFAULT_PATH) -
 
 
 def merge_annotations(df: pd.DataFrame, user: pd.DataFrame) -> pd.DataFrame:
-    """Left-join an already-loaded annotations frame onto ``df`` by slug.
+    """Left-join an already-loaded annotations frame onto ``df`` by ``id``.
 
     Idempotent: if ``df`` already carries the annotation columns (e.g. it was
     exported after a previous merge), they are dropped first so re-merging never
     produces suffixed ``_x`` / ``_y`` columns.
     """
     user = _ensure_columns(user)
-    dupes = [c for c in USER_COLUMNS if c != "slug" and c in df.columns]
-    out = df.drop(columns=dupes).merge(user, on="slug", how="left")
+    dupes = [c for c in USER_COLUMNS if c != "id" and c in df.columns]
+    out = df.drop(columns=dupes).merge(user, on="id", how="left")
     return coerce_types(out)
 
 

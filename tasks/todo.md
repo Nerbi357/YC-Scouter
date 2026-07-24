@@ -101,10 +101,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
 
 ## Phase 3 — Dashboard  → CP-3
 
-- [ ] **T3.1 `user_data.py` + `gsheets.py`: key on `id`**
-  - Replace `slug` join key with `id`; keep USER_COLUMNS + stages/tags; idempotent merge.
-  - Accept: merge by id; existing tests updated; idempotent (no `_x/_y`).
-  - [V] tests: merge-by-id, idempotency, defaults.
+- [x] **T3.1 `user_data.py` + `gsheets.py`: key on `id`** ✅
+  - `USER_COLUMNS` now starts with `id` (immutable key, survives slug renames);
+    `_ensure_columns` coerces `id`→Int64; merge/idempotency join on `id`; gsheets picks
+    up the new schema generically.
+  - [V] `tests/test_user_data.py` (6) rewritten to id-keyed roundtrip/refresh/idempotency
+    + `tests/test_gsheets.py` green.
 
 - [ ] **T3.2 `app.py`: Russian UI + newest-dated loader**
   - Load newest `yc_dataset_ai_*.parquet` via glob; keep tabs/filters/charts/compare/
