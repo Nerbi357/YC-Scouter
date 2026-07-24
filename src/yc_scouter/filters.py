@@ -23,6 +23,24 @@ def _row_text(row: pd.Series) -> str:
     return " ".join(parts).lower()
 
 
+def _search_mask(df: pd.DataFrame, needle: str) -> pd.Series:
+    """Vectorized case-insensitive search across the searchable columns.
+
+    Row-wise ``apply`` is O(rows) Python calls and takes ~1s on 4k companies —
+    noticeable on every keystroke in the dashboard. Concatenating the columns with
+    pandas string ops does the same work an order of magnitude faster.
+    """
+    text = pd.Series("", index=df.index, dtype="object")
+    for field in _SEARCH_FIELDS:
+        if field not in df.columns:
+            continue
+        col = df[field]
+        if col.map(lambda v: isinstance(v, (list, tuple))).any():
+            col = col.map(lambda v: " ".join(map(str, v)) if isinstance(v, (list, tuple)) else v)
+        text = text + " " + col.fillna("").astype(str)
+    return text.str.lower().str.contains(needle, regex=False, na=False)
+
+
 def split_tags(value: object) -> list[str]:
     """Parse a personal-tags cell (``"ai, fintech"`` or a list) into a clean list."""
     if isinstance(value, list):
@@ -90,7 +108,5 @@ def apply_filters(
     if max_score is not None:
         out = out[out["score"] <= max_score]
     if query and query.strip():
-        needle = query.strip().lower()
-        mask = out.apply(lambda r: needle in _row_text(r), axis=1)
-        out = out[mask]
+        out = out[_search_mask(out, query.strip().lower())]
     return out.reset_index(drop=True)
