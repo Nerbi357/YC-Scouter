@@ -58,6 +58,13 @@ SORT_OPTIONS = {
     "Название (Я→А)": ("name", False),
 }
 
+#: label -> (file extension, MIME type)
+EXPORT_FORMATS = {
+    "CSV": ("csv", "text/csv"),
+    "Excel": ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+    "Parquet": ("parquet", "application/octet-stream"),
+}
+
 LINK_COLUMNS = [
     "website",
     "yc_url",
@@ -78,6 +85,22 @@ CSS = """
       border-radius: 12px; padding: 12px 16px;
   }
   div[data-testid="stMetricValue"] {font-size: 1.7rem;}
+
+  /* Sidebar inputs kept readable on hover (default theme washed the text out). */
+  section[data-testid="stSidebar"] input,
+  section[data-testid="stSidebar"] input:hover,
+  section[data-testid="stSidebar"] input:focus,
+  section[data-testid="stSidebar"] [data-baseweb="select"] div {
+      color: #16181d !important;
+      -webkit-text-fill-color: #16181d !important;
+      caret-color: #16181d !important;
+  }
+  section[data-testid="stSidebar"] input::placeholder {
+      color: #6b7280 !important; -webkit-text-fill-color: #6b7280 !important;
+  }
+
+  /* Small italic min/max hints under the "От"/"До" inputs. */
+  .range-hint {font-size: 0.76rem; font-style: italic; color: #6b7280; margin-top: -0.55rem;}
 </style>
 """
 
@@ -135,14 +158,41 @@ def owner_gate() -> None:
     key = _owner_key()
     if not key or st.session_state.get("is_owner"):
         return
-    with st.sidebar.expander("🔒 Режим владельца"):
-        entered = st.text_input("Ключ владельца", type="password", key="owner_key_input")
-        if st.button("Разблокировать сохранение"):
+    with st.sidebar.expander("🔒 Ключ доступа"):
+        entered = st.text_input("Ключ доступа", type="password", key="owner_key_input")
+        if st.button("Войти"):
             if entered == key:
                 st.session_state["is_owner"] = True
                 st.rerun()
             else:
                 st.error("Неверный ключ.")
+
+
+def storage_banner() -> None:
+    """Explain, in plain words, what happens to the notes this visitor makes."""
+    if is_owner():
+        if use_gsheets() and not st.session_state.get("gsheets_error"):
+            st.success(
+                "🔓 **Полный доступ.** Ваши заметки сохраняются в постоянное хранилище "
+                "(Google Таблица) — они останутся на месте после обновления страницы, "
+                "перезапуска приложения и обновления данных.",
+                icon="✅",
+            )
+        elif not use_gsheets():
+            st.info(
+                "🔓 **Полный доступ.** Заметки сохраняются в локальный файл. "
+                "На хостинге подключите Google Таблицу (docs/DEPLOY.md), иначе они "
+                "пропадут при перезапуске приложения.",
+                icon="💾",
+            )
+    else:
+        st.info(
+            "👀 **Режим просмотра.** Смотрите и фильтруйте всё без ограничений. "
+            "Заметки, которые вы здесь оставите, видны **только вам** и **исчезнут при "
+            "обновлении страницы** — они не попадают в общее хранилище. Чтобы заметки "
+            "сохранялись навсегда, введите ключ доступа в панели слева.",
+            icon="👀",
+        )
 
 
 def load_annotations() -> pd.DataFrame:
@@ -158,6 +208,29 @@ def load_annotations() -> pd.DataFrame:
             st.session_state["gsheets_error"] = str(exc)
             return user_data.empty_user_frame()
     return user_data.load_user_data(USER_DATA_CSV)
+
+
+def gsheets_error_banner() -> None:
+    """Actionable message when the Sheets credentials are rejected."""
+    err = st.session_state.get("gsheets_error")
+    if not err:
+        return
+    if "invalid_grant" in err or "account not found" in err:
+        st.warning(
+            "⚠️ **Google Таблица не подключена** — заметки сейчас сохраняются только "
+            "на время сессии.\n\n"
+            "Google отклонил ключ сервисного аккаунта: такого аккаунта больше нет либо "
+            "ключ устарел. Как починить:\n"
+            "1. Google Cloud Console → **IAM & Admin → Service Accounts** — проверьте, "
+            "что аккаунт из `client_email` существует (если нет — создайте заново).\n"
+            "2. У этого аккаунта → **Keys → Add key → JSON** — скачайте **новый** ключ.\n"
+            "3. Streamlit → **Settings → Secrets** — замените `private_key`, "
+            "`private_key_id`, `client_email` значениями из нового файла "
+            "(`private_key` копируйте целиком, вместе с символами `\\n`).\n"
+            "4. Не забудьте открыть доступ к таблице для `client_email` (роль «Редактор»)."
+        )
+    else:
+        st.warning(f"⚠️ Google Таблица недоступна — заметки не сохраняются. Причина: {err}")
 
 
 def save_annotations(df: pd.DataFrame) -> None:
@@ -195,54 +268,90 @@ def _to_csv_bytes(df: pd.DataFrame) -> bytes:
     return df.map(_clean_cell).to_csv(index=False).encode("utf-8")
 
 
-def export_controls(df: pd.DataFrame, key: str) -> None:
-    """On-demand export. Building a 4k-row workbook on every rerun exhausts the
-    free-tier limits, so the files are produced only when explicitly requested."""
-    state_key = f"export_{key}"
-    if st.button("⬇️ Подготовить файлы для скачивания", key=f"btn_{state_key}"):
-        with st.spinner("Готовлю CSV и Excel…"):
-            st.session_state[state_key] = {
-                "n": len(df),
-                "csv": _to_csv_bytes(df),
-                "xlsx": _to_excel_bytes(df),
-            }
-    ready = st.session_state.get(state_key)
-    if ready:
-        c1, c2 = st.columns(2)
-        c1.download_button(
-            f"⬇️ CSV ({ready['n']} компаний)",
-            ready["csv"],
-            "yc_scouter.csv",
-            "text/csv",
-            width="stretch",
-            key=f"dl_csv_{key}",
-        )
-        c2.download_button(
-            f"⬇️ Excel ({ready['n']} компаний)",
-            ready["xlsx"],
-            "yc_scouter.xlsx",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            width="stretch",
-            key=f"dl_xlsx_{key}",
-        )
-        if ready["n"] != len(df):
-            st.caption("⚠️ Фильтры изменились — нажми «Подготовить» снова для актуальных данных.")
+def _to_parquet_bytes(df: pd.DataFrame) -> bytes:
+    buf = io.BytesIO()
+    df.to_parquet(buf, index=False)
+    return buf.getvalue()
+
+
+def export_bytes(df: pd.DataFrame, fmt: str) -> bytes:
+    """Serialize the filtered view to one of :data:`EXPORT_FORMATS`."""
+    if fmt == "CSV":
+        return _to_csv_bytes(df)
+    if fmt == "Excel":
+        return _to_excel_bytes(df)
+    if fmt == "Parquet":
+        return _to_parquet_bytes(df)
+    raise ValueError(f"unknown export format: {fmt}")
+
+
+def export_panel(df: pd.DataFrame, key: str) -> None:
+    """Compact export control (top-right). Files are built only on request —
+    doing it on every rerun costs seconds of CPU and hundreds of MB on 4k rows."""
+    with st.popover("⬇️ Экспорт", width="stretch"):
+        st.caption(f"Отфильтровано: **{len(df)}** компаний")
+        fmt = st.radio("Формат", list(EXPORT_FORMATS), horizontal=True, key=f"fmt_{key}")
+        state_key = f"export_{key}"
+        if st.button("Подготовить файл", key=f"prep_{key}", width="stretch"):
+            with st.spinner(f"Готовлю {fmt}…"):
+                st.session_state[state_key] = {
+                    "fmt": fmt,
+                    "n": len(df),
+                    "data": export_bytes(df, fmt),
+                }
+        ready = st.session_state.get(state_key)
+        if ready:
+            ext, mime = EXPORT_FORMATS[ready["fmt"]]
+            st.download_button(
+                f"⬇️ Скачать {ready['fmt']} ({ready['n']} компаний)",
+                ready["data"],
+                f"yc_scouter.{ext}",
+                mime,
+                width="stretch",
+                key=f"dl_{key}",
+            )
+            if ready["n"] != len(df) or ready["fmt"] != fmt:
+                st.caption("⚠️ Выбор изменился — нажмите «Подготовить файл» ещё раз.")
 
 
 # ------------------------------------------------------------------------ sidebar
-def _int_range(label: str, key: str, *, help_to: str) -> tuple[int | None, int | None]:
-    """Two integer inputs (from / to). Empty means "no bound"."""
+def _int_range(label: str, key: str, series: pd.Series) -> tuple[int | None, int | None]:
+    """Two integer inputs (От / До) with the data's own min/max as hints.
+
+    Leaving a field empty removes that bound entirely.
+    """
     st.sidebar.markdown(f"**{label}**")
     c1, c2 = st.sidebar.columns(2)
-    lo = c1.number_input("от", min_value=0, value=None, step=1, format="%d", key=f"{key}_lo")
-    hi = c2.number_input(
-        "до", min_value=0, value=None, step=1, format="%d", key=f"{key}_hi", help=help_to
+    values = pd.to_numeric(series, errors="coerce").dropna()
+    lo_hint = int(values.min()) if len(values) else 0
+    hi_hint = int(values.max()) if len(values) else 0
+
+    lo = c1.number_input(
+        "От",
+        min_value=0,
+        value=None,
+        step=1,
+        format="%d",
+        key=f"{key}_lo",
+        help="Пусто — без нижней границы",
     )
+    c1.markdown(f"<div class='range-hint'>мин. {lo_hint}</div>", unsafe_allow_html=True)
+    hi = c2.number_input(
+        "До",
+        min_value=0,
+        value=None,
+        step=1,
+        format="%d",
+        key=f"{key}_hi",
+        help="Пусто — без верхней границы",
+    )
+    c2.markdown(f"<div class='range-hint'>макс. {hi_hint}</div>", unsafe_allow_html=True)
     return (int(lo) if lo is not None else None, int(hi) if hi is not None else None)
 
 
 def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     st.sidebar.header("🔍 Фильтры")
+    st.sidebar.caption("Пустое поле «От» или «До» = без ограничения с этой стороны.")
     query = st.sidebar.text_input("Поиск (имя / идея / теги / заметки)")
 
     industries = st.sidebar.multiselect("Индустрия", sorted(df["industry"].dropna().unique()))
@@ -272,8 +381,8 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     years = sorted(int(y) for y in df["batch_year"].dropna().unique())
     year_sel = st.sidebar.multiselect("Год батча", years)
 
-    score_lo, score_hi = _int_range("Score (0–100)", "score", help_to="Пусто = без верхней границы")
-    team_lo, team_hi = _int_range("Размер команды", "team", help_to="Пусто = без верхней границы")
+    score_lo, score_hi = _int_range("Score (0–100)", "score", df["score"])
+    team_lo, team_hi = _int_range("Размер команды", "team", df["team_size"])
 
     return filters.apply_filters(
         df,
@@ -321,7 +430,7 @@ def select_company(row_id: int | None) -> None:
 
 
 def selectable_table(df: pd.DataFrame, cols: list[str], key: str) -> None:
-    """Render a table whose row click opens the company's detail card."""
+    """Table whose first column (checkbox) opens the company's detail card."""
     cols = [c for c in cols if c in df.columns]
     col_config = {c: st.column_config.LinkColumn(c) for c in ("website", "yc_url") if c in cols}
     event = st.dataframe(
@@ -364,8 +473,80 @@ def card_text(row: pd.Series) -> str:
     return "\n".join(parts)
 
 
+@st.fragment
+def note_section(row: pd.Series, place: str) -> None:
+    """Collapsed per-company notes. A fragment, so saving doesn't rerun the page."""
+    cid = int(row["id"])
+    with st.expander("📝 Заметки о компании"):
+        if not is_owner():
+            st.caption(
+                "👀 Режим просмотра: правки останутся только у вас и пропадут при "
+                "обновлении страницы. Введите ключ доступа слева, чтобы сохранять."
+            )
+        c1, c2 = st.columns([1, 2])
+        fav = c1.checkbox(
+            "⭐ Избранное", value=bool(row.get("watchlist")), key=f"fav_{place}_{cid}"
+        )
+        stages = list(user_data.STAGES)
+        cur_stage = row.get("my_stage", user_data.DEFAULT_STAGE)
+        stage = c2.selectbox(
+            "Стадия воронки",
+            stages,
+            index=stages.index(cur_stage) if cur_stage in stages else 0,
+            key=f"stage_{place}_{cid}",
+        )
+        tags = st.text_input(
+            "Теги (через запятую)", value=str(row.get("my_tags", "")), key=f"tags_{place}_{cid}"
+        )
+        notes = st.text_area(
+            "Заметка", value=str(row.get("my_notes", "")), key=f"notes_{place}_{cid}", height=110
+        )
+        if not is_owner():
+            return
+        if st.button("💾 Сохранить", type="primary", key=f"save_{place}_{cid}"):
+            try:
+                save_one(
+                    cid,
+                    {
+                        "watchlist": bool(fav),
+                        "my_stage": stage,
+                        "my_tags": tags,
+                        "my_notes": notes,
+                    },
+                )
+                st.cache_data.clear()
+                st.success("Сохранено.")
+            except Exception as exc:
+                st.error(f"Не удалось сохранить: {exc}")
+
+
+def company_body(row: pd.Series) -> None:
+    """Shared company details (used by the detail card and the card list)."""
+    sub = f" / {row['subindustry']}" if str(row.get("subindustry", "")).strip() else ""
+    st.markdown(
+        f"**Индустрия:** {row.get('industry', '')}{sub}  \n"
+        f"**Батч:** {row.get('batch', '')}  \n"
+        f"**Статус:** {row.get('status', '')} — {row.get('investability', '')}  \n"
+        f"**Стадия воронки:** {row.get('my_stage', '')}  \n"
+        f"**Команда:** {row.get('team_size', '')}"
+    )
+    if str(row.get("my_tags", "")).strip():
+        st.markdown(f"**Мои теги:** {row['my_tags']}")
+    if str(row.get("ai_description", "")).strip():
+        st.markdown(f"**AI-описание:** {row['ai_description']}")
+    if str(row.get("ai_risks", "")).strip():
+        st.markdown(f"**Риски к проверке:** {row['ai_risks']}")
+    links = [
+        f"[{c.replace('_url', '').replace('_', ' ').title() or 'Website'}]({row[c]})"
+        for c in LINK_COLUMNS
+        if c in row and str(row.get(c, "")).startswith("http")
+    ]
+    if links:
+        st.markdown("**Ссылки:** " + " · ".join(links))
+
+
 def detail_card(df: pd.DataFrame, place: str) -> None:
-    """Full card for the selected company, with inline note editing (owner only)."""
+    """Full card for the company selected in the table."""
     cid = selected_id()
     if cid is None:
         return
@@ -379,10 +560,13 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
     row = match.iloc[0]
 
     with st.container(border=True):
-        head, close = st.columns([6, 1])
+        head, copy_col, close = st.columns([6, 1.4, 0.6])
         star = "⭐ " if bool(row.get("watchlist")) else ""
         head.markdown(f"### {star}{row['name']}")
         head.caption(row.get("one_liner", ""))
+        with copy_col.popover("📋 Скопировать", width="stretch"):
+            st.caption("Скопировать карточку")
+            st.code(card_text(row), language=None)
         if close.button("✕", key=f"close_{place}", help="Закрыть карточку"):
             select_company(None)
             st.rerun()
@@ -393,80 +577,8 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
         m3.metric("Батч", f"{row.get('batch', '')}")
         m4.metric("Статус", f"{row.get('status', '')}")
 
-        sub = f" / {row['subindustry']}" if str(row.get("subindustry", "")).strip() else ""
-        st.markdown(
-            f"**Индустрия:** {row.get('industry', '')}{sub}  \n"
-            f"**Investability:** {row.get('investability', '')}"
-        )
-        if str(row.get("ai_description", "")).strip():
-            st.markdown(f"**AI-описание:** {row['ai_description']}")
-        if str(row.get("ai_risks", "")).strip():
-            st.markdown(f"**Риски к проверке:** {row['ai_risks']}")
-        links = [
-            f"[{c.replace('_url', '').replace('_', ' ').title() or 'Website'}]({row[c]})"
-            for c in LINK_COLUMNS
-            if c in row and str(row.get(c, "")).startswith("http")
-        ]
-        if links:
-            st.markdown("**Ссылки:** " + " · ".join(links))
-
-        with st.expander("📋 Скопировать карточку"):
-            st.code(card_text(row), language=None)
-
-        _note_editor(row, place)
-
-
-@st.fragment
-def _note_editor(row: pd.Series, place: str) -> None:
-    """Notes for one company, inside a fragment so saving doesn't rerun the page."""
-    cid = int(row["id"])
-    st.markdown("**📝 Мои заметки**")
-    if not is_owner():
-        st.caption("👀 Режим просмотра — сохранять может только владелец.")
-        return
-
-    c1, c2, c3 = st.columns([1, 1, 2])
-    fav = c1.checkbox("⭐ Избранное", value=bool(row.get("watchlist")), key=f"fav_{place}_{cid}")
-    rating = c2.number_input(
-        "Рейтинг 0–5",
-        min_value=0,
-        max_value=5,
-        step=1,
-        format="%d",
-        value=int(row["my_rating"]) if pd.notna(row.get("my_rating")) else None,
-        key=f"rate_{place}_{cid}",
-    )
-    stages = list(user_data.STAGES)
-    cur_stage = row.get("my_stage", user_data.DEFAULT_STAGE)
-    stage = c3.selectbox(
-        "Стадия воронки",
-        stages,
-        index=stages.index(cur_stage) if cur_stage in stages else 0,
-        key=f"stage_{place}_{cid}",
-    )
-    tags = st.text_input(
-        "Теги (через запятую)", value=str(row.get("my_tags", "")), key=f"tags_{place}_{cid}"
-    )
-    notes = st.text_area(
-        "Заметка", value=str(row.get("my_notes", "")), key=f"notes_{place}_{cid}", height=110
-    )
-
-    if st.button("💾 Сохранить", type="primary", key=f"save_{place}_{cid}"):
-        try:
-            save_one(
-                cid,
-                {
-                    "my_rating": rating,
-                    "watchlist": bool(fav),
-                    "my_stage": stage,
-                    "my_tags": tags,
-                    "my_notes": notes,
-                },
-            )
-            st.cache_data.clear()
-            st.success("Сохранено.")
-        except Exception as exc:
-            st.error(f"Не удалось сохранить: {exc}")
+        company_body(row)
+        note_section(row, place=f"{place}_detail")
 
 
 # --------------------------------------------------------------------------- tabs
@@ -509,7 +621,7 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
     c2.metric(
         "⭐ В избранном",
         int(filtered.get("watchlist", pd.Series(dtype=bool)).sum()),
-        help=f"Всего в избранном (без фильтров): {fav_total}",
+        help=f"Всего в избранном (без учёта фильтров): {fav_total}",
     )
     c3.metric("Средний score", f"{filtered['score'].mean():.0f}" if len(filtered) else "—")
     c4.metric("Индустрий", filtered["industry"].nunique())
@@ -556,9 +668,9 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
 
     st.divider()
     st.subheader("🏆 Топ по score")
-    st.caption("Кликни по строке — откроется карточка компании.")
     n = st.slider("Сколько показать", 5, 50, 10, key="topn")
     top_df = filtered.sort_values("score", ascending=False).head(n).reset_index(drop=True)
+    st.markdown("👁 **Показать карточку** — отметьте компанию в первом столбце")
     selectable_table(
         top_df,
         ["name", "industry", "subindustry", "status", "score", "team_size", "one_liner"],
@@ -567,21 +679,30 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
     detail_card(filtered, place="overview")
 
 
-def tab_companies(filtered: pd.DataFrame) -> None:
-    st.caption("Кликни по строке таблицы — откроется карточка компании.")
-
-    names = filtered["name"].tolist()
-    picked = st.selectbox(
-        "🔎 Открыть компанию по названию",
-        ["—"] + names,
-        index=0,
-        key="company_picker",
+def _page_number(pages: int) -> int:
+    """← / → pager stored in session state (nicer than a +/- number input)."""
+    page = int(st.session_state.get("card_page", 1))
+    page = min(max(page, 1), pages)
+    prev_col, label_col, next_col = st.columns([1, 3, 1])
+    if prev_col.button("← Назад", width="stretch", disabled=page <= 1, key="page_prev"):
+        page -= 1
+    if next_col.button("Вперёд →", width="stretch", disabled=page >= pages, key="page_next"):
+        page += 1
+    page = min(max(page, 1), pages)
+    st.session_state["card_page"] = page
+    label_col.markdown(
+        f"<div style='text-align:center;padding-top:0.45rem'>Страница <b>{page}</b> из {pages}"
+        "</div>",
+        unsafe_allow_html=True,
     )
-    if picked and picked != "—":
-        row = filtered[filtered["name"] == picked]
-        if not row.empty and int(row.iloc[0]["id"]) != selected_id():
-            select_company(int(row.iloc[0]["id"]))
-            st.rerun()
+    return page
+
+
+def tab_companies(filtered: pd.DataFrame) -> None:
+    head, exp = st.columns([5, 1])
+    head.markdown("👁 **Показать карточку** — отметьте компанию в первом столбце")
+    with exp:
+        export_panel(filtered, key="companies")
 
     selectable_table(
         filtered.reset_index(drop=True),
@@ -603,54 +724,26 @@ def tab_companies(filtered: pd.DataFrame) -> None:
     )
     detail_card(filtered, place="companies")
 
-    with st.expander("⬇️ Экспорт отфильтрованного"):
-        export_controls(filtered, key="companies")
-
     st.divider()
     st.subheader("Карточки компаний")
 
-    c1, c2 = st.columns([2, 1])
-    sort_label = c1.selectbox("Сортировка", list(SORT_OPTIONS), key="card_sort")
+    sort_label = st.selectbox("Сортировка", list(SORT_OPTIONS), key="card_sort")
     sort_col, ascending = SORT_OPTIONS[sort_label]
     ranked = filtered.sort_values(sort_col, ascending=ascending, na_position="last")
 
     pages = max(1, -(-len(ranked) // PAGE_SIZE))
-    page = c2.number_input(
-        f"Страница (всего {pages})", min_value=1, max_value=pages, value=1, step=1, key="card_page"
-    )
-    start = (int(page) - 1) * PAGE_SIZE
+    page = _page_number(pages)
+    start = (page - 1) * PAGE_SIZE
     chunk = ranked.iloc[start : start + PAGE_SIZE]
     st.caption(f"Компании {start + 1}–{min(start + PAGE_SIZE, len(ranked))} из {len(ranked)}")
 
     for _, row in chunk.iterrows():
-        sub = f" / {row['subindustry']}" if str(row.get("subindustry", "")).strip() else ""
         star = "⭐ " if bool(row.get("watchlist")) else ""
         with st.expander(
             f"{star}{row['name']} — {row.get('one_liner', '')}  (score {row.get('score', '')})"
         ):
-            st.markdown(
-                f"**Индустрия:** {row.get('industry', '')}{sub}  \n"
-                f"**Батч:** {row.get('batch', '')}  \n"
-                f"**Статус:** {row.get('status', '')} — {row.get('investability', '')}  \n"
-                f"**Стадия воронки:** {row.get('my_stage', '')}  \n"
-                f"**Команда:** {row.get('team_size', '')}"
-            )
-            if str(row.get("my_tags", "")).strip():
-                st.markdown(f"**Мои теги:** {row['my_tags']}")
-            if str(row.get("ai_description", "")).strip():
-                st.markdown(f"**AI-описание:** {row['ai_description']}")
-            if str(row.get("ai_risks", "")).strip():
-                st.markdown(f"**Риски к проверке:** {row['ai_risks']}")
-            links = [
-                f"[{c.replace('_url', '').replace('_', ' ').title() or 'Website'}]({row[c]})"
-                for c in LINK_COLUMNS
-                if c in row and str(row.get(c, "")).startswith("http")
-            ]
-            if links:
-                st.markdown("**Ссылки:** " + " · ".join(links))
-            if st.button("📝 Открыть карточку и заметки", key=f"open_{int(row['id'])}"):
-                select_company(int(row["id"]))
-                st.rerun()
+            company_body(row)
+            note_section(row, place="list")
 
 
 def tab_compare(filtered: pd.DataFrame) -> None:
@@ -693,25 +786,24 @@ def tab_notes(filtered: pd.DataFrame) -> None:
 
     if owner:
         where = (
-            "Google Sheets ✅"
-            if use_gsheets()
-            else "локальный CSV ⚠️ (не переживёт перезапуск на хостинге)"
+            "Google Таблица ✅"
+            if use_gsheets() and not st.session_state.get("gsheets_error")
+            else "локальный файл ⚠️ (не переживёт перезапуск на хостинге)"
         )
         st.caption(
-            f"Массовое редактирование. Хранилище: **{where}**. Ключ — id "
+            f"Массовое редактирование. Хранилище: **{where}**. Ключ — id компании "
             "(переживает переименования). Для одной компании удобнее её карточка."
         )
     else:
         st.info(
-            "👀 **Режим просмотра.** Можешь править таблицу для себя, но изменения "
-            "**временные**: они не влияют на заметки владельца и исчезнут после "
-            "обновления страницы. Сохранять может только владелец.",
+            "👀 **Режим просмотра.** Правки в этой таблице видны только вам и "
+            "исчезнут при обновлении страницы — общее хранилище они не меняют.",
             icon="👀",
         )
 
     editor_cols = [
         c
-        for c in ["id", "name", "my_rating", "watchlist", "my_stage", "my_tags", "my_notes"]
+        for c in ["id", "name", "watchlist", "my_stage", "my_tags", "my_notes"]
         if c in filtered.columns
     ]
     edited = st.data_editor(
@@ -720,7 +812,6 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         hide_index=True,
         disabled=["id", "name"],
         column_config={
-            "my_rating": st.column_config.NumberColumn("Рейтинг", min_value=0, max_value=5),
             "watchlist": st.column_config.CheckboxColumn("⭐ Избранное"),
             "my_stage": st.column_config.SelectboxColumn("Стадия", options=list(user_data.STAGES)),
             "my_tags": st.column_config.TextColumn("Теги (через запятую)"),
@@ -730,15 +821,13 @@ def tab_notes(filtered: pd.DataFrame) -> None:
     )
 
     if not owner:
-        with st.expander("⬇️ Скачать мои временные правки"):
-            export_controls(edited, key="visitor_notes")
+        export_panel(edited, key="visitor_notes")
         return
 
     if st.button("💾 Сохранить заметки", type="primary"):
         store = user_data._ensure_columns(load_annotations()).set_index("id")
         for _, r in edited.iterrows():
             store.loc[int(r["id"])] = {
-                "my_rating": r.get("my_rating"),
                 "watchlist": bool(r.get("watchlist")),
                 "my_stage": r.get("my_stage", user_data.DEFAULT_STAGE),
                 "my_tags": r.get("my_tags", ""),
@@ -772,19 +861,10 @@ def main() -> None:
     df = load_data(str(path), path.stat().st_mtime)
     df = user_data.merge_annotations(df, load_annotations())
 
-    if err := st.session_state.pop("gsheets_error", None):
-        st.error(
-            f"Не удалось прочитать Google Sheets — заметки временно недоступны. {err}",
-            icon="⚠️",
-        )
-    elif is_owner() and not use_gsheets():
-        st.info(
-            "ℹ️ Заметки сейчас пишутся в локальный файл. На Streamlit Cloud подключи "
-            "Google Sheets (см. docs/DEPLOY.md), иначе правки не переживут перезапуск.",
-            icon="💾",
-        )
+    gsheets_error_banner()
+    storage_banner()
     if _owner_key() and is_owner():
-        st.sidebar.success("🔓 Режим владельца — можно сохранять.")
+        st.sidebar.success("🔓 Полный доступ — заметки сохраняются.")
 
     filtered = sidebar_filters(df)
 
