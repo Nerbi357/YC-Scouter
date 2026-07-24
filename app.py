@@ -9,6 +9,10 @@ Storage for your personal notes/tags/stage is chosen automatically:
   required for hosting on Streamlit Community Cloud, whose disk is ephemeral);
 * a local **CSV** otherwise (Colab / local use).
 
+Performance note: with ~4k companies, anything built eagerly on every rerun
+(exports, per-row Python loops) blows the free-tier resource limits. Exports are
+therefore generated only on demand, and the card list is paginated.
+
 Run locally:  ``streamlit run app.py``
 """
 
@@ -42,18 +46,17 @@ except Exception:  # pragma: no cover - optional
 
 USER_DATA_CSV = Path(os.environ.get("YC_SCOUTER_USERDATA", "data/user_data.csv"))
 
+#: Cards rendered per page (each card is a widget — rendering thousands stalls the app).
+PAGE_SIZE = 50
 
-def dataset_path() -> Path | None:
-    """Newest dated dataset the dashboard should read (AI preferred, else Base)."""
-    env = os.environ.get("YC_SCOUTER_DATASET")
-    if env:
-        return Path(env)
-    for stage in ("ai", "base"):
-        p = config.latest_dated(stage, "parquet")
-        if p is not None:
-            return p
-    return None
-
+SORT_OPTIONS = {
+    "Score (по убыванию)": ("score", False),
+    "Score (по возрастанию)": ("score", True),
+    "Год батча (новые первыми)": ("batch_year", False),
+    "Год батча (старые первыми)": ("batch_year", True),
+    "Название (А→Я)": ("name", True),
+    "Название (Я→А)": ("name", False),
+}
 
 LINK_COLUMNS = [
     "website",
@@ -77,6 +80,18 @@ CSS = """
   div[data-testid="stMetricValue"] {font-size: 1.7rem;}
 </style>
 """
+
+
+def dataset_path() -> Path | None:
+    """Newest dated dataset the dashboard should read (AI preferred, else Base)."""
+    env = os.environ.get("YC_SCOUTER_DATASET")
+    if env:
+        return Path(env)
+    for stage in ("ai", "base"):
+        p = config.latest_dated(stage, "parquet")
+        if p is not None:
+            return p
+    return None
 
 
 # --------------------------------------------------------------------------- data
@@ -131,8 +146,17 @@ def owner_gate() -> None:
 
 
 def load_annotations() -> pd.DataFrame:
+    """Load notes from the configured backend, degrading gracefully on failure.
+
+    A Sheets problem (not shared with the service account, revoked key, API quota)
+    must never take the whole dashboard down — we warn and fall back to empty.
+    """
     if use_gsheets():
-        return gsheets.load(_secrets())
+        try:
+            return gsheets.load(_secrets())
+        except Exception as exc:  # pragma: no cover - network/credentials
+            st.session_state["gsheets_error"] = str(exc)
+            return user_data.empty_user_frame()
     return user_data.load_user_data(USER_DATA_CSV)
 
 
@@ -141,6 +165,13 @@ def save_annotations(df: pd.DataFrame) -> None:
         gsheets.save(_secrets(), df)
     else:
         user_data.save_user_data(df, path=USER_DATA_CSV)
+
+
+def save_one(row_id: int, values: dict) -> None:
+    """Upsert a single company's annotations into the store."""
+    store = user_data._ensure_columns(load_annotations()).set_index("id")
+    store.loc[int(row_id)] = values
+    save_annotations(store.reset_index())
 
 
 # ------------------------------------------------------------------------- export
@@ -164,7 +195,52 @@ def _to_csv_bytes(df: pd.DataFrame) -> bytes:
     return df.map(_clean_cell).to_csv(index=False).encode("utf-8")
 
 
+def export_controls(df: pd.DataFrame, key: str) -> None:
+    """On-demand export. Building a 4k-row workbook on every rerun exhausts the
+    free-tier limits, so the files are produced only when explicitly requested."""
+    state_key = f"export_{key}"
+    if st.button("⬇️ Подготовить файлы для скачивания", key=f"btn_{state_key}"):
+        with st.spinner("Готовлю CSV и Excel…"):
+            st.session_state[state_key] = {
+                "n": len(df),
+                "csv": _to_csv_bytes(df),
+                "xlsx": _to_excel_bytes(df),
+            }
+    ready = st.session_state.get(state_key)
+    if ready:
+        c1, c2 = st.columns(2)
+        c1.download_button(
+            f"⬇️ CSV ({ready['n']} компаний)",
+            ready["csv"],
+            "yc_scouter.csv",
+            "text/csv",
+            width="stretch",
+            key=f"dl_csv_{key}",
+        )
+        c2.download_button(
+            f"⬇️ Excel ({ready['n']} компаний)",
+            ready["xlsx"],
+            "yc_scouter.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            width="stretch",
+            key=f"dl_xlsx_{key}",
+        )
+        if ready["n"] != len(df):
+            st.caption("⚠️ Фильтры изменились — нажми «Подготовить» снова для актуальных данных.")
+
+
 # ------------------------------------------------------------------------ sidebar
+def _int_range(label: str, key: str, *, help_to: str) -> tuple[int | None, int | None]:
+    """Two integer inputs (from / to). Empty means "no bound"."""
+    st.sidebar.markdown(f"**{label}**")
+    c1, c2 = st.sidebar.columns(2)
+    lo = c1.number_input("от", min_value=0, value=None, step=1, format="%d", key=f"{key}_lo")
+    hi = c2.number_input(
+        "до", min_value=0, value=None, step=1, format="%d", key=f"{key}_hi", help=help_to
+    )
+    return (int(lo) if lo is not None else None, int(hi) if hi is not None else None)
+
+
 def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     st.sidebar.header("🔍 Фильтры")
     query = st.sidebar.text_input("Поиск (имя / идея / теги / заметки)")
@@ -196,13 +272,8 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     years = sorted(int(y) for y in df["batch_year"].dropna().unique())
     year_sel = st.sidebar.multiselect("Год батча", years)
 
-    score_lo, score_hi = st.sidebar.slider("Score", 0, 100, (0, 100))
-
-    max_team = int(df["team_size"].fillna(0).max() or 0)
-    if max_team:
-        team_lo, team_hi = st.sidebar.slider("Размер команды", 0, max_team, (0, max_team))
-    else:
-        team_lo, team_hi = 0, None
+    score_lo, score_hi = _int_range("Score (0–100)", "score", help_to="Пусто = без верхней границы")
+    team_lo, team_hi = _int_range("Размер команды", "team", help_to="Пусто = без верхней границы")
 
     return filters.apply_filters(
         df,
@@ -214,12 +285,188 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
         tags=tags or None,
         batch_years=year_sel or None,
         watchlist_only=watchlist_only,
-        min_team_size=team_lo or None,
+        min_team_size=team_lo,
         max_team_size=team_hi,
-        min_score=score_lo or None,
-        max_score=score_hi if score_hi < 100 else None,
+        min_score=score_lo,
+        max_score=score_hi,
         query=query or None,
     )
+
+
+# --------------------------------------------------------------- selection helpers
+def selected_id() -> int | None:
+    """The company currently opened in a detail card (session or ?id= in the URL)."""
+    if "selected_id" in st.session_state:
+        return st.session_state["selected_id"]
+    try:
+        raw = st.query_params.get("id")
+    except Exception:  # pragma: no cover - older runtimes
+        return None
+    try:
+        return int(raw) if raw is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def select_company(row_id: int | None) -> None:
+    """Open a company's detail card and reflect it in the URL (shareable link)."""
+    st.session_state["selected_id"] = row_id
+    try:
+        if row_id is None:
+            st.query_params.pop("id", None)
+        else:
+            st.query_params["id"] = str(row_id)
+    except Exception:  # pragma: no cover - older runtimes
+        pass
+
+
+def selectable_table(df: pd.DataFrame, cols: list[str], key: str) -> None:
+    """Render a table whose row click opens the company's detail card."""
+    cols = [c for c in cols if c in df.columns]
+    col_config = {c: st.column_config.LinkColumn(c) for c in ("website", "yc_url") if c in cols}
+    event = st.dataframe(
+        df[cols],
+        width="stretch",
+        hide_index=True,
+        column_config=col_config,
+        on_select="rerun",
+        selection_mode="single-row",
+        key=key,
+    )
+    rows = getattr(getattr(event, "selection", None), "rows", None) or []
+    if rows:
+        pos = rows[0]
+        if 0 <= pos < len(df):
+            new_id = int(df.iloc[pos]["id"])
+            if new_id != selected_id():
+                select_company(new_id)
+                st.rerun()
+
+
+def card_text(row: pd.Series) -> str:
+    """Plain-text version of a company card (for copy/paste into notes or email)."""
+    parts = [
+        f"{row.get('name', '')} — {row.get('one_liner', '')}",
+        f"Индустрия: {row.get('industry', '')} / {row.get('subindustry', '')}",
+        f"Батч: {row.get('batch', '')} | Статус: {row.get('status', '')} "
+        f"| Команда: {row.get('team_size', '')} | Score: {row.get('score', '')}",
+        f"Investability: {row.get('investability', '')}",
+    ]
+    if str(row.get("ai_description", "")).strip():
+        parts += ["", f"AI-описание: {row['ai_description']}"]
+    if str(row.get("ai_risks", "")).strip():
+        parts += ["", f"Риски: {row['ai_risks']}"]
+    links = [
+        str(row[c]) for c in LINK_COLUMNS if c in row and str(row.get(c, "")).startswith("http")
+    ]
+    if links:
+        parts += ["", "Ссылки: " + " | ".join(links)]
+    return "\n".join(parts)
+
+
+def detail_card(df: pd.DataFrame, place: str) -> None:
+    """Full card for the selected company, with inline note editing (owner only)."""
+    cid = selected_id()
+    if cid is None:
+        return
+    match = df[df["id"] == cid]
+    if match.empty:
+        st.info("Выбранная компания не проходит текущие фильтры.")
+        if st.button("Сбросить выбор", key=f"clear_sel_{place}"):
+            select_company(None)
+            st.rerun()
+        return
+    row = match.iloc[0]
+
+    with st.container(border=True):
+        head, close = st.columns([6, 1])
+        star = "⭐ " if bool(row.get("watchlist")) else ""
+        head.markdown(f"### {star}{row['name']}")
+        head.caption(row.get("one_liner", ""))
+        if close.button("✕", key=f"close_{place}", help="Закрыть карточку"):
+            select_company(None)
+            st.rerun()
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Score", f"{row.get('score', '')}")
+        m2.metric("Команда", f"{row.get('team_size', '')}")
+        m3.metric("Батч", f"{row.get('batch', '')}")
+        m4.metric("Статус", f"{row.get('status', '')}")
+
+        sub = f" / {row['subindustry']}" if str(row.get("subindustry", "")).strip() else ""
+        st.markdown(
+            f"**Индустрия:** {row.get('industry', '')}{sub}  \n"
+            f"**Investability:** {row.get('investability', '')}"
+        )
+        if str(row.get("ai_description", "")).strip():
+            st.markdown(f"**AI-описание:** {row['ai_description']}")
+        if str(row.get("ai_risks", "")).strip():
+            st.markdown(f"**Риски к проверке:** {row['ai_risks']}")
+        links = [
+            f"[{c.replace('_url', '').replace('_', ' ').title() or 'Website'}]({row[c]})"
+            for c in LINK_COLUMNS
+            if c in row and str(row.get(c, "")).startswith("http")
+        ]
+        if links:
+            st.markdown("**Ссылки:** " + " · ".join(links))
+
+        with st.expander("📋 Скопировать карточку"):
+            st.code(card_text(row), language=None)
+
+        _note_editor(row, place)
+
+
+@st.fragment
+def _note_editor(row: pd.Series, place: str) -> None:
+    """Notes for one company, inside a fragment so saving doesn't rerun the page."""
+    cid = int(row["id"])
+    st.markdown("**📝 Мои заметки**")
+    if not is_owner():
+        st.caption("👀 Режим просмотра — сохранять может только владелец.")
+        return
+
+    c1, c2, c3 = st.columns([1, 1, 2])
+    fav = c1.checkbox("⭐ Избранное", value=bool(row.get("watchlist")), key=f"fav_{place}_{cid}")
+    rating = c2.number_input(
+        "Рейтинг 0–5",
+        min_value=0,
+        max_value=5,
+        step=1,
+        format="%d",
+        value=int(row["my_rating"]) if pd.notna(row.get("my_rating")) else None,
+        key=f"rate_{place}_{cid}",
+    )
+    stages = list(user_data.STAGES)
+    cur_stage = row.get("my_stage", user_data.DEFAULT_STAGE)
+    stage = c3.selectbox(
+        "Стадия воронки",
+        stages,
+        index=stages.index(cur_stage) if cur_stage in stages else 0,
+        key=f"stage_{place}_{cid}",
+    )
+    tags = st.text_input(
+        "Теги (через запятую)", value=str(row.get("my_tags", "")), key=f"tags_{place}_{cid}"
+    )
+    notes = st.text_area(
+        "Заметка", value=str(row.get("my_notes", "")), key=f"notes_{place}_{cid}", height=110
+    )
+
+    if st.button("💾 Сохранить", type="primary", key=f"save_{place}_{cid}"):
+        try:
+            save_one(
+                cid,
+                {
+                    "my_rating": rating,
+                    "watchlist": bool(fav),
+                    "my_stage": stage,
+                    "my_tags": tags,
+                    "my_notes": notes,
+                },
+            )
+            st.cache_data.clear()
+            st.success("Сохранено.")
+        except Exception as exc:
+            st.error(f"Не удалось сохранить: {exc}")
 
 
 # --------------------------------------------------------------------------- tabs
@@ -253,12 +500,17 @@ def _pie(df: pd.DataFrame, col: str, title: str) -> None:
     st.plotly_chart(fig, width="stretch")
 
 
-def tab_overview(filtered: pd.DataFrame, total: int) -> None:
+def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> None:
     st.caption(f"Показано **{len(filtered)}** из {total} компаний")
 
+    fav_total = int(all_df.get("watchlist", pd.Series(dtype=bool)).sum())
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Компаний", len(filtered))
-    c2.metric("⭐ В избранном", int(filtered.get("watchlist", pd.Series(dtype=bool)).sum()))
+    c2.metric(
+        "⭐ В избранном",
+        int(filtered.get("watchlist", pd.Series(dtype=bool)).sum()),
+        help=f"Всего в избранном (без фильтров): {fav_total}",
+    )
     c3.metric("Средний score", f"{filtered['score'].mean():.0f}" if len(filtered) else "—")
     c4.metric("Индустрий", filtered["industry"].nunique())
     invested = int((filtered.get("my_stage", pd.Series(dtype=str)) == "Invested").sum())
@@ -304,41 +556,36 @@ def tab_overview(filtered: pd.DataFrame, total: int) -> None:
 
     st.divider()
     st.subheader("🏆 Топ по score")
+    st.caption("Кликни по строке — откроется карточка компании.")
     n = st.slider("Сколько показать", 5, 50, 10, key="topn")
-    lead_cols = [
-        c
-        for c in ["name", "industry", "subindustry", "status", "score", "team_size", "one_liner"]
-        if c in filtered.columns
-    ]
-    st.dataframe(
-        filtered.sort_values("score", ascending=False).head(n)[lead_cols],
-        width="stretch",
-        hide_index=True,
+    top_df = filtered.sort_values("score", ascending=False).head(n).reset_index(drop=True)
+    selectable_table(
+        top_df,
+        ["name", "industry", "subindustry", "status", "score", "team_size", "one_liner"],
+        key="table_top",
     )
+    detail_card(filtered, place="overview")
 
 
 def tab_companies(filtered: pd.DataFrame) -> None:
-    ranked = filtered.sort_values("score", ascending=False)
+    st.caption("Кликни по строке таблицы — откроется карточка компании.")
 
-    d1, d2, _ = st.columns([1, 1, 4])
-    d1.download_button(
-        "⬇️ CSV",
-        _to_csv_bytes(ranked),
-        "yc_scouter_filtered.csv",
-        "text/csv",
-        width="stretch",
+    names = filtered["name"].tolist()
+    picked = st.selectbox(
+        "🔎 Открыть компанию по названию",
+        ["—"] + names,
+        index=0,
+        key="company_picker",
     )
-    d2.download_button(
-        "⬇️ Excel",
-        _to_excel_bytes(ranked),
-        "yc_scouter_filtered.xlsx",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        width="stretch",
-    )
+    if picked and picked != "—":
+        row = filtered[filtered["name"] == picked]
+        if not row.empty and int(row.iloc[0]["id"]) != selected_id():
+            select_company(int(row.iloc[0]["id"]))
+            st.rerun()
 
-    table_cols = [
-        c
-        for c in [
+    selectable_table(
+        filtered.reset_index(drop=True),
+        [
             "name",
             "batch",
             "industry",
@@ -351,16 +598,31 @@ def tab_companies(filtered: pd.DataFrame) -> None:
             "one_liner",
             "website",
             "yc_url",
-        ]
-        if c in ranked.columns
-    ]
-    col_config = {
-        c: st.column_config.LinkColumn(c) for c in ("website", "yc_url") if c in ranked.columns
-    }
-    st.dataframe(ranked[table_cols], width="stretch", hide_index=True, column_config=col_config)
+        ],
+        key="table_all",
+    )
+    detail_card(filtered, place="companies")
 
+    with st.expander("⬇️ Экспорт отфильтрованного"):
+        export_controls(filtered, key="companies")
+
+    st.divider()
     st.subheader("Карточки компаний")
-    for _, row in ranked.head(50).iterrows():
+
+    c1, c2 = st.columns([2, 1])
+    sort_label = c1.selectbox("Сортировка", list(SORT_OPTIONS), key="card_sort")
+    sort_col, ascending = SORT_OPTIONS[sort_label]
+    ranked = filtered.sort_values(sort_col, ascending=ascending, na_position="last")
+
+    pages = max(1, -(-len(ranked) // PAGE_SIZE))
+    page = c2.number_input(
+        f"Страница (всего {pages})", min_value=1, max_value=pages, value=1, step=1, key="card_page"
+    )
+    start = (int(page) - 1) * PAGE_SIZE
+    chunk = ranked.iloc[start : start + PAGE_SIZE]
+    st.caption(f"Компании {start + 1}–{min(start + PAGE_SIZE, len(ranked))} из {len(ranked)}")
+
+    for _, row in chunk.iterrows():
         sub = f" / {row['subindustry']}" if str(row.get("subindustry", "")).strip() else ""
         star = "⭐ " if bool(row.get("watchlist")) else ""
         with st.expander(
@@ -386,6 +648,9 @@ def tab_companies(filtered: pd.DataFrame) -> None:
             ]
             if links:
                 st.markdown("**Ссылки:** " + " · ".join(links))
+            if st.button("📝 Открыть карточку и заметки", key=f"open_{int(row['id'])}"):
+                select_company(int(row["id"]))
+                st.rerun()
 
 
 def tab_compare(filtered: pd.DataFrame) -> None:
@@ -433,8 +698,8 @@ def tab_notes(filtered: pd.DataFrame) -> None:
             else "локальный CSV ⚠️ (не переживёт перезапуск на хостинге)"
         )
         st.caption(
-            f"Правь rating (0–5), избранное, стадию, теги и заметки — потом «Сохранить». "
-            f"Хранилище: **{where}**. Ключ — id (переживает переименования)."
+            f"Массовое редактирование. Хранилище: **{where}**. Ключ — id "
+            "(переживает переименования). Для одной компании удобнее её карточка."
         )
     else:
         st.info(
@@ -465,13 +730,8 @@ def tab_notes(filtered: pd.DataFrame) -> None:
     )
 
     if not owner:
-        # Visitors get a live, in-session copy they can download — never persisted.
-        st.download_button(
-            "⬇️ Скачать мои правки (CSV, только у меня)",
-            _to_csv_bytes(edited),
-            "my_temp_notes.csv",
-            "text/csv",
-        )
+        with st.expander("⬇️ Скачать мои временные правки"):
+            export_controls(edited, key="visitor_notes")
         return
 
     if st.button("💾 Сохранить заметки", type="primary"):
@@ -484,9 +744,12 @@ def tab_notes(filtered: pd.DataFrame) -> None:
                 "my_tags": r.get("my_tags", ""),
                 "my_notes": r.get("my_notes", ""),
             }
-        save_annotations(store.reset_index())
-        st.success(f"Сохранено для {len(edited)} компаний.")
-        st.cache_data.clear()
+        try:
+            save_annotations(store.reset_index())
+            st.success(f"Сохранено для {len(edited)} компаний.")
+            st.cache_data.clear()
+        except Exception as exc:
+            st.error(f"Не удалось сохранить: {exc}")
 
 
 # --------------------------------------------------------------------------- main
@@ -506,17 +769,22 @@ def main() -> None:
 
     owner_gate()
 
-    if is_owner() and not use_gsheets():
+    df = load_data(str(path), path.stat().st_mtime)
+    df = user_data.merge_annotations(df, load_annotations())
+
+    if err := st.session_state.pop("gsheets_error", None):
+        st.error(
+            f"Не удалось прочитать Google Sheets — заметки временно недоступны. {err}",
+            icon="⚠️",
+        )
+    elif is_owner() and not use_gsheets():
         st.info(
             "ℹ️ Заметки сейчас пишутся в локальный файл. На Streamlit Cloud подключи "
-            "Google Sheets (см. HOSTING.md), иначе правки не переживут перезапуск.",
+            "Google Sheets (см. docs/DEPLOY.md), иначе правки не переживут перезапуск.",
             icon="💾",
         )
     if _owner_key() and is_owner():
         st.sidebar.success("🔓 Режим владельца — можно сохранять.")
-
-    df = load_data(str(path), path.stat().st_mtime)
-    df = user_data.merge_annotations(df, load_annotations())
 
     filtered = sidebar_filters(df)
 
@@ -524,7 +792,7 @@ def main() -> None:
         ["📊 Обзор", "🔎 Компании", "⚖️ Сравнение", "📝 Заметки"]
     )
     with overview:
-        tab_overview(filtered, total=len(df))
+        tab_overview(filtered, total=len(df), all_df=df)
     with companies:
         tab_companies(filtered)
     with compare:
