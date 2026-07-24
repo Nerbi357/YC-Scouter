@@ -92,6 +92,19 @@ def test_full_cache_hit_skips_summarizer(tmp_path):
     assert out.set_index("id")["ai_description"].to_dict() == {1: "d1", 2: "d2"}
 
 
+def test_limit_caps_summarized_count(tmp_path):
+    seen = {}
+
+    def summ(records):
+        seen["ids"] = [r["id"] for r in records]
+        yield from _mock_summarizer(records)
+
+    out = ai.add_ai_summaries(_df(), cache_path=tmp_path / "c.json", summarizer=summ, limit=1)
+    assert seen["ids"] == [1]  # only the first missing company summarized
+    d = out.set_index("id")["ai_description"].to_dict()
+    assert d[1] == "desc-1" and d[2] == ai.AI_DISABLED  # the rest wait for next run
+
+
 def test_no_summarizer_yields_placeholder(tmp_path):
     out = ai.add_ai_summaries(_df(), cache_path=tmp_path / "c.json", summarizer=None)
     assert (out["ai_description"] == ai.AI_DISABLED).all()

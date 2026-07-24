@@ -267,12 +267,15 @@ def add_ai_summaries(
     prompt_version: str = PROMPT_VERSION,
     summarizer: Summarizer | None = None,
     save_every: int = 25,
+    limit: int | None = None,
 ) -> pd.DataFrame:
     """Attach ``ai_description``, ``ai_risks``, ``ai_model``, ``ai_prompt_version``.
 
     Only companies missing the current ``(id, model, prompt_version)`` key are
     summarized; results persist incrementally (resumable). With no summarizer the
     columns show :data:`AI_DISABLED` and no call is made. Old keys are preserved.
+    ``limit`` caps how many missing companies are summarized in this call (a cheap
+    real smoke test, or chunked runs) — the rest stay for the next run.
     """
     cache = _load_cache(cache_path)
     ids = [int(i) for i in df["id"].tolist()]
@@ -281,6 +284,8 @@ def add_ai_summaries(
         return _ckey(i, model, prompt_version)
 
     missing = [i for i in ids if ck(i) not in cache]
+    if limit is not None:
+        missing = missing[:limit]
     if missing and summarizer is not None:
         n = 0
         for cid, res in summarizer(_records_for(df, missing)):

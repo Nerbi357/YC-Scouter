@@ -95,6 +95,7 @@ def build_ai(
     out_dir: Path = config.DATA_DIR,
     date: str | None = None,
     progress_every: int = 50,
+    limit: int | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Path]]:
     """Build the "AI Summary": load the newest Base, add ``ai_description``/``ai_risks``
     for NEW cache keys only, and write the dated AI export.
@@ -114,6 +115,8 @@ def build_ai(
     else:
         summarizer, model = _pick_summarizer(provider, model, api_key, progress_every)
 
-    out = ai.add_ai_summaries(df, cache_path=cache_path, model=model, summarizer=summarizer)
+    out = ai.add_ai_summaries(
+        df, cache_path=cache_path, model=model, summarizer=summarizer, limit=limit
+    )
     paths = export.export(out, stage="ai", date=date, out_dir=out_dir)
     return out, paths
