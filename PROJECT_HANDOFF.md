@@ -180,7 +180,36 @@ tests/                   pytest (network+AI замоканы), 53 теста
 4. Возможные улучшения дашборда: подсветка новых компаний с прошлого обновления,
    переключение видимости колонок, ещё графики.
 
-## 11. Что приложить в новом чате
+## 11. Skills / команды (папка `.claude/`)
+
+В репозиторий **вшит форк `addyosmani/agent-skills`** (MIT, атрибуция в
+`.claude/README.md`). Это набор методологических скиллов и слэш-команд.
+
+- **Скиллы** (`.claude/skills/…`, 23 шт.): spec-driven-development,
+  planning-and-task-breakdown, incremental-implementation, test-driven-development,
+  code-review-and-quality, debugging-and-error-recovery, git-workflow-and-versioning,
+  security-and-hardening, documentation-and-adrs, source-driven-development,
+  using-agent-skills и др.
+- **Слэш-команды** (`.claude/commands/…`): `/spec`, `/plan`, `/build`, `/test`,
+  `/review`, `/ship`, `/code-simplify`, `/webperf`.
+- **Агенты** (`.claude/agents/…`): code-reviewer, security-auditor, test-engineer,
+  web-performance-auditor.
+
+### Поймёт ли новый чат, какие скиллы использовать?
+- **Если новый чат — Claude Code с этим репозиторием** (Colab web / claude.ai/code /
+  GitHub): **да, автоматически** — харнесс сам находит `.claude/skills|commands|agents`
+  и подгружает их; скиллы выбираются по описаниям, `/`-команды работают из коробки.
+  Ничего делать не нужно.
+- **Если это обычный чат на claude.ai** (только вставленный текст, без репо): механизм
+  скиллов не подгрузится. Тогда следуй методологии по описанию ниже.
+
+### Как мы их применяли (workflow проекта)
+`/spec` (спека) → `/plan` (разбивка на задачи) → `/build` (инкрементально: код →
+тест → проверка → коммит) с TDD, затем при необходимости `/review` и `/code-simplify`.
+На практике: сначала предлагаю варианты → жду решения → пишу код → прогоняю
+pytest+ruff+black → коммичу → пушу. Именно этот цикл и надо продолжать.
+
+## 12. Что приложить в новом чате
 
 - Этот файл (`PROJECT_HANDOFF.md`).
 - Доступ к репозиторию `Nerbi357/VC-Tracking` (ветка
