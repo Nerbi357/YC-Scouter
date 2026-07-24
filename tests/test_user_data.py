@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from yc_radar import normalize, user_data
+from yc_scouter import normalize, user_data
 
 
 def test_merge_without_file_adds_empty_columns(tmp_path, sample_records):

@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from yc_radar import normalize
+from yc_scouter import normalize
 
 
 def test_parse_batch_year_full_words():

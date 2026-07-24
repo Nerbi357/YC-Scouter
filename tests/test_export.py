@@ -3,7 +3,7 @@
 import pandas as pd
 from openpyxl import load_workbook
 
-from yc_radar import export, normalize
+from yc_scouter import export, normalize
 
 
 def _df(sample_records):

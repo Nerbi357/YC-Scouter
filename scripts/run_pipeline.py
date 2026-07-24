@@ -1,6 +1,6 @@
 """Headless pipeline runner for CI / server execution (GitHub Actions).
 
-Runs the whole pipeline and writes data/processed/yc_radar.{xlsx,parquet,csv}.
+Runs the whole pipeline and writes data/processed/yc_scouter.{xlsx,parquet,csv}.
 Uses free Groq AI summaries when GROQ_API_KEY is set; otherwise fills a
 placeholder (no error, no cost). Designed to run unattended — you can close your
 computer and download the artifact later.
@@ -14,7 +14,7 @@ import sys
 # make src/ importable whether or not the package was pip-installed
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from yc_radar import ai, enrich, export, fetch, normalize, score, user_data  # noqa: E402
+from yc_scouter import ai, enrich, export, fetch, normalize, score, user_data  # noqa: E402
 
 
 def main() -> int:

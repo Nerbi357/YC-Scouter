@@ -4,7 +4,7 @@ import json
 
 import pandas as pd
 
-from yc_radar import ai
+from yc_scouter import ai
 
 
 def _df():

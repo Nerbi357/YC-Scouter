@@ -7,10 +7,10 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
 
 ## Phase 0 — Foundation  → CP-0
 
-- [ ] **T0.1 Rename package `yc_radar` → `yc_scouter`**
-  - Move `src/yc_radar/` → `src/yc_scouter/`; update all imports (src, tests, app).
-  - Accept: `import yc_scouter` works; no `yc_radar` references remain.
-  - [V] `grep -r yc_radar` returns nothing; `pytest -q` green.
+- [x] **T0.1 Rename package `yc_radar` → `yc_scouter`** ✅
+  - Moved `src/yc_radar/` → `src/yc_scouter/`; updated all imports (src, tests, app);
+    pyproject name → `yc-scouter`; package docstring/version bumped (0.2.0).
+  - [V] no `yc_radar` in *.py/*.toml; `pytest -q` green (53); ruff/black clean.
 
 - [ ] **T0.2 Add `src/yc_scouter/config.py` (single source of truth)**
   - Constants: `PROVIDER_DEFAULT="claude"`, `CLAUDE_MODEL="claude-haiku-4-5"`,

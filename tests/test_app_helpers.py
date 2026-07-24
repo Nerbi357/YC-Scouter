@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from yc_radar import enrich, filters, normalize, score
+from yc_scouter import enrich, filters, normalize, score
 
 
 def _full_df(sample_records):

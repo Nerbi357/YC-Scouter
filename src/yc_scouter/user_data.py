@@ -4,7 +4,7 @@ Keyed by company ``slug`` so they survive data refreshes. Two storage backends
 share the same schema:
 
 * a local CSV (``data/user_data.csv``) — used in Colab / locally, and
-* Google Sheets (see :mod:`yc_radar.gsheets`) — used when the dashboard is
+* Google Sheets (see :mod:`yc_scouter.gsheets`) — used when the dashboard is
   hosted on Streamlit Community Cloud, whose container disk is ephemeral.
 
 The merge/coerce helpers here are backend-agnostic: give them an annotations

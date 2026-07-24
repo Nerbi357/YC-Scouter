@@ -12,7 +12,7 @@ import pandas as pd
 from openpyxl.utils import get_column_letter
 
 DEFAULT_OUT_DIR = Path("data/processed")
-BASENAME = "yc_radar"
+BASENAME = "yc_scouter"
 
 # Control chars Excel/openpyxl rejects (matches openpyxl's ILLEGAL_CHARACTERS_RE).
 _ILLEGAL_XLSX_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")

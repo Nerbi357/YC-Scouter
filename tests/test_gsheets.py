@@ -1,6 +1,6 @@
 """Tests for the Google Sheets backend's pure config guard (no network)."""
 
-from yc_radar import gsheets
+from yc_scouter import gsheets
 
 
 class _Secrets(dict):

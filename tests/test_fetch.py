@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from yc_radar import fetch
+from yc_scouter import fetch
 
 
 class _FakeResponse:

@@ -23,21 +23,21 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-# Make ``src/yc_radar`` importable on Streamlit Cloud (repo layout); in Colab the
-# flat ``yc_radar_pipeline`` module is used instead.
+# Make ``src/yc_scouter`` importable on Streamlit Cloud (repo layout); in Colab the
+# flat ``yc_scouter_pipeline`` module is used instead.
 _SRC = Path(__file__).parent / "src"
 if _SRC.is_dir():
     sys.path.insert(0, str(_SRC))
 
 try:
-    from yc_radar import filters, user_data
+    from yc_scouter import filters, user_data
 
     try:
-        from yc_radar import gsheets
+        from yc_scouter import gsheets
     except Exception:  # pragma: no cover - optional deps
         gsheets = None
 except ModuleNotFoundError:  # Colab: everything lives in one flat module
-    import yc_radar_pipeline as _m
+    import yc_scouter_pipeline as _m
 
     filters = user_data = _m
     gsheets = None
@@ -47,7 +47,7 @@ try:
 except Exception:  # pragma: no cover - optional
     px = None
 
-DATASET = Path(os.environ.get("YC_RADAR_DATASET", "data/processed/yc_radar.parquet"))
+DATASET = Path(os.environ.get("YC_RADAR_DATASET", "data/processed/yc_scouter.parquet"))
 USER_DATA_CSV = Path(os.environ.get("YC_RADAR_USERDATA", "data/user_data.csv"))
 
 LINK_COLUMNS = [
@@ -319,14 +319,14 @@ def tab_companies(filtered: pd.DataFrame) -> None:
     d1.download_button(
         "⬇️ CSV",
         _to_csv_bytes(ranked),
-        "yc_radar_filtered.csv",
+        "yc_scouter_filtered.csv",
         "text/csv",
         use_container_width=True,
     )
     d2.download_button(
         "⬇️ Excel",
         _to_excel_bytes(ranked),
-        "yc_radar_filtered.xlsx",
+        "yc_scouter_filtered.xlsx",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
     )
@@ -495,7 +495,7 @@ def main() -> None:
     if not DATASET.exists():
         st.warning(
             f"Датасет не найден: `{DATASET}`. Собери его пайплайном (тетрадь/Actions) "
-            "или закоммить `yc_radar.parquet` в репозиторий для хостинга."
+            "или закоммить `yc_scouter.parquet` в репозиторий для хостинга."
         )
         st.stop()
 
