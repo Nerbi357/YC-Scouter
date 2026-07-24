@@ -72,16 +72,15 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
 
 ## Phase 2 — AI enrichment (File 2)  → CP-2
 
-- [ ] **T2.1 Rewrite `ai.py`**
-  - Two outputs `ai_description` (rich, 6–7 sentences) + `ai_risks` (1–2 short);
-    Claude sync default + Groq option (provider switch); cache keyed
-    `(id, model_id, prompt_version)` with those as separate columns; **print running
-    cost estimate** from real usage; no hard cap; resumable cache; input truncated to
-    `MAX_DESC_CHARS`, `max_tokens=MAX_TOKENS`; one-liner NOT AI-generated.
-  - Accept: injected mock summarizer path fully tested; only missing keys summarized;
-    old-key rows preserved.
-  - [V] tests: cache-key behavior, incremental (only new ids called), cost-estimate
-    accumulation, provider switch, JSON parse/retry — all mocked (no spend).
+- [x] **T2.1 Rewrite `ai.py`** ✅
+  - Two outputs `ai_description` (6–7 sentences) + `ai_risks` (1–2 short); generator
+    summarizers for Claude (default) + Groq; cache keyed `(id, model_id, prompt_version)`
+    with those stored as separate columns; running cost estimate printed from real
+    usage (no hard cap); resumable/incremental cache owned by `add_ai_summaries`; input
+    truncated to `MAX_DESC_CHARS`, `max_tokens=MAX_TOKENS`; one-liner from YC (not AI).
+  - [V] `tests/test_ai.py` (8): missing-only, full-cache skip, placeholder,
+    prompt-version-change re-summarize + old preserved, Claude parse+cost print,
+    truncation, Groq parse, failure message — all mocked, no spend.
 
 - [ ] **T2.2 `notebooks/02_ai_summary.ipynb` (thin)**
   - Provider switch + Drive/download/commit switch; load newest Base + repo AI cache;
