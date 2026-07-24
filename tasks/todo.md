@@ -39,11 +39,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
   - [V] tests: id present+int, dedupe-by-id, stable ascending order, 2020 kept, 2012
     dropped. Full suite 61 green; ruff/black clean.
 
-- [ ] **T1.2 `export.py`: dated filename builder**
-  - `export(df, *, stage, date, out_dir)` → `yc_dataset_<stage>_<YYYY-MM-DD>.{parquet,xlsx}`;
-    Russian human title inside the xlsx sheet header.
-  - Accept: writes the two dated files; parquet round-trips; xlsx opens with filter/freeze.
-  - [V] tests: filenames, parquet read-back equals input, illegal-char cleaning.
+- [x] **T1.2 `export.py`: dated filename builder** ✅
+  - `export(df, *, stage, date, out_dir)` → `yc_dataset_<stage>_<YYYY-MM-DD>.{parquet,xlsx}`
+    (dropped CSV; 2 files per stage); Russian tab title ("Данные YC" / "YC + AI");
+    freeze panes + autofilter + hyperlinks + illegal-char cleaning retained.
+  - [V] `tests/test_export.py` (6): dated names, ai naming, parquet round-trip,
+    styled+Russian-title xlsx, control-char strip, list stringify. Suite green.
 
 - [ ] **T1.3 `fetch.py`: tidy for full re-scrape**
   - Always fetch fresh in run mode; keep an optional local cache only for dev.

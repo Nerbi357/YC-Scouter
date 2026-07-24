@@ -1,21 +1,28 @@
-"""Export the enriched DataFrame to Parquet + CSV + a styled Excel workbook.
+"""Export the pipeline DataFrame to dated Parquet + styled Excel.
 
 Parquet is the canonical machine-readable snapshot (keeps native list columns and
-is what the Streamlit app reads). CSV and XLSX are human-facing; list columns are
-flattened to comma-joined strings and URL columns become clickable hyperlinks.
+is what the dashboard reads). XLSX is the human-facing view: list columns are
+flattened to comma-joined strings, URL columns become clickable hyperlinks, and
+the worksheet tab carries a short Russian title. Filenames are dated via
+``config.dated_path`` — ``yc_dataset_<stage>_<YYYY-MM-DD>.<ext>``.
 """
 
+from __future__ import annotations
+
+import datetime as dt
 import re
 from pathlib import Path
 
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-DEFAULT_OUT_DIR = Path("data/processed")
-BASENAME = "yc_scouter"
+from . import config
 
 # Control chars Excel/openpyxl rejects (matches openpyxl's ILLEGAL_CHARACTERS_RE).
 _ILLEGAL_XLSX_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+# Short Russian sheet-tab titles (the only Russian in the data artifacts).
+_SHEET_TITLES = {"base": "Данные YC", "ai": "YC + AI"}
 
 
 def _clean_cell(value: object) -> object:
@@ -26,7 +33,7 @@ def _clean_cell(value: object) -> object:
 
 
 def _flatten_for_sheet(df: pd.DataFrame) -> pd.DataFrame:
-    """Flatten list columns to strings and strip Excel-illegal chars for CSV/XLSX."""
+    """Flatten list columns to strings and strip Excel-illegal chars for XLSX."""
     out = df.copy()
     for col in out.columns:
         if out[col].apply(lambda v: isinstance(v, list)).any():
@@ -45,11 +52,12 @@ def _is_url_column(name: str) -> bool:
     return name == "website" or name.endswith("url")
 
 
-def _style_workbook(xlsx_path: Path, columns: list[str]) -> None:
+def _style_workbook(xlsx_path: Path, columns: list[str], title: str) -> None:
     from openpyxl import load_workbook
 
     wb = load_workbook(xlsx_path)
     ws = wb.active
+    ws.title = title[:31]  # Excel tab-name limit
 
     ws.freeze_panes = "A2"
     last_col = get_column_letter(len(columns))
@@ -67,20 +75,30 @@ def _style_workbook(xlsx_path: Path, columns: list[str]) -> None:
     wb.save(xlsx_path)
 
 
-def export(df: pd.DataFrame, *, out_dir: Path = DEFAULT_OUT_DIR) -> dict[str, Path]:
-    """Write ``df`` to Parquet, CSV, and a styled XLSX. Returns the paths."""
+def export(
+    df: pd.DataFrame,
+    *,
+    stage: str,
+    date: str | dt.date | None = None,
+    out_dir: Path = config.DATA_DIR,
+) -> dict[str, Path]:
+    """Write ``df`` to a dated Parquet + styled XLSX. Returns the two paths.
+
+    ``stage`` is ``"base"`` or ``"ai"``; ``date`` defaults to today (ISO). Files are
+    named ``yc_dataset_<stage>_<YYYY-MM-DD>.{parquet,xlsx}``.
+    """
+    iso = date if date is not None else config.today_iso()
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    parquet_path = out_dir / f"{BASENAME}.parquet"
-    csv_path = out_dir / f"{BASENAME}.csv"
-    xlsx_path = out_dir / f"{BASENAME}.xlsx"
+    parquet_path = config.dated_path(stage, iso, "parquet", out_dir=out_dir)
+    xlsx_path = config.dated_path(stage, iso, "xlsx", out_dir=out_dir)
 
     df.to_parquet(parquet_path, index=False)
 
     flat = _flatten_for_sheet(df)
-    flat.to_csv(csv_path, index=False)
     flat.to_excel(xlsx_path, index=False, engine="openpyxl")
-    _style_workbook(xlsx_path, list(flat.columns))
+    iso_str = iso.isoformat() if isinstance(iso, dt.date) else str(iso)
+    _style_workbook(xlsx_path, list(flat.columns), f"{_SHEET_TITLES.get(stage, stage)} {iso_str}")
 
-    return {"parquet": parquet_path, "csv": csv_path, "xlsx": xlsx_path}
+    return {"parquet": parquet_path, "xlsx": xlsx_path}
