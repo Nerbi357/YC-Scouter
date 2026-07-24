@@ -32,11 +32,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
 
 ## Phase 1 — Data pipeline (File 1)  → CP-1
 
-- [ ] **T1.1 `normalize.py`: add `id`, dedupe by `id` + stable sort, years 2020→current**
-  - Add `id` to `CORE_COLUMNS`; `DEFAULT_YEARS` = 2020..current year (helper);
-    `sort_values("id", kind="stable")` before `drop_duplicates(subset="id")`.
-  - Accept: output has `id`; deterministic row order; keeps 2020–2026 rows.
-  - [V] tests: id present, dedupe-by-id, stable order, year filter incl. 2020.
+- [x] **T1.1 `normalize.py`: add `id`, dedupe by `id` + stable sort, years 2020→current** ✅
+  - `id` first in `CORE_COLUMNS` (Int64); default years = `config.target_years()`
+    (2020..now); `sort_values("id", stable)` → `drop_duplicates("id")` → year filter.
+    Fixture updated (true id-dupe on 101; added a Winter-2020 company).
+  - [V] tests: id present+int, dedupe-by-id, stable ascending order, 2020 kept, 2012
+    dropped. Full suite 61 green; ruff/black clean.
 
 - [ ] **T1.2 `export.py`: dated filename builder**
   - `export(df, *, stage, date, out_dir)` → `yc_dataset_<stage>_<YYYY-MM-DD>.{parquet,xlsx}`;

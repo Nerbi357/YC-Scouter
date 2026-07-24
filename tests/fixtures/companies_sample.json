@@ -155,7 +155,7 @@
     "url": "https://www.ycombinator.com/companies/old-co"
   },
   {
-    "id": 108,
+    "id": 101,
     "name": "Acme AI (dupe)",
     "slug": "acme-ai",
     "website": "https://acme.ai",
@@ -197,5 +197,27 @@
     "nonprofit": true,
     "launched_at": null,
     "url": "https://www.ycombinator.com/companies/noweb-nonprofit"
+  },
+  {
+    "id": 110,
+    "name": "Twenty Twenty",
+    "slug": "twenty-twenty",
+    "website": "https://2020.co",
+    "all_locations": "Seattle, WA, USA",
+    "regions": ["America / Canada"],
+    "long_description": "An early-pandemic company from the Winter 2020 batch.",
+    "one_liner": "Batch of 2020",
+    "team_size": 20,
+    "industry": "B2B",
+    "subindustry": "B2B -> Infrastructure",
+    "tags": ["B2B"],
+    "batch": "Winter 2020",
+    "status": "Acquired",
+    "stage": "Series A",
+    "isHiring": false,
+    "top_company": false,
+    "nonprofit": false,
+    "launched_at": 1580000000,
+    "url": "https://www.ycombinator.com/companies/twenty-twenty"
   }
 ]
