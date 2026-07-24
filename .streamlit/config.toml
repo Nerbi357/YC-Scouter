@@ -1,0 +1,12 @@
+# Dashboard configuration (committed). Secrets go in .streamlit/secrets.toml
+# (gitignored) or the Streamlit Cloud Secrets UI — see docs/DEPLOY.md.
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#4C9BE8"

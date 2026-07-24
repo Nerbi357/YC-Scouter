@@ -129,17 +129,17 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
 
 ## Phase 4 — Docs & final-phase cleanup  → CP-4
 
-- [ ] **T4.1 `docs/HOW_IT_WORKS.md` + `docs/AI_METHODOLOGY.md`**
-  - Architecture, data flow, APIs/sites used; prompts + skills + how to replicate the
-    AI-agent help.
-  - Accept: both complete, accurate to the shipped code.
+- [x] **T4.1 `docs/HOW_IT_WORKS.md` + `docs/AI_METHODOLOGY.md`** ✅
+  - HOW_IT_WORKS: architecture, package map, data source/fields, repro model, update
+    flow, dashboard, testing. AI_METHODOLOGY: the File 2 prompts + params/cache, and
+    the spec→plan→build/TDD agent-skills workflow with a replicate-me prompt.
 
-- [ ] **T4.2 `docs/HOW_TO_UPDATE.md` + `docs/DEPLOY.md` + `README.md`**
-  - Maintenance checklist (keys, credits, lockfile regen, model migration one-liner,
-    two buttons, Streamlit sleep, notes safety), with concrete steps + a ready
-    AI-agent prompt for routine ops; deploy steps; short README + dashboard link +
-    "built with Claude Code".
-  - Accept: a newcomer can operate the project from docs alone.
+- [x] **T4.2 `docs/HOW_TO_UPDATE.md` + `docs/DEPLOY.md` + `README.md`** ✅
+  - HOW_TO_UPDATE: routine two-button refresh + a watch-list table (credits, model
+    retirement, key rotation, lockfile regen, source drift, sleep, notes) with steps
+    and ready AI-agent maintenance prompts. DEPLOY: Streamlit Cloud + Google Sheets +
+    owner-lock sharing. Short README with dashboard-link placeholder + "built with
+    Claude Code". Added `.streamlit/config.toml`; refreshed `.env.example`.
 
 - [ ] **T4.3 Prune to final-phase files**
   - Remove stray/working files (`scripts/run_pipeline.py`, old notebooks, obsolete
