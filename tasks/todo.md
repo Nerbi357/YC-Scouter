@@ -89,11 +89,11 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
   - [V] `test_pipeline.py` build_ai (mock / disk-load / no-key placeholder) +
     `test_notebook_smoke.py` File 2 papermill smoke (mock). Demoed 3 companies, 0 spend.
 
-- [ ] **T2.3 `.github/workflows/build-ai-summary.yml` (Button 2)**
-  - `workflow_dispatch`; `ANTHROPIC_API_KEY`/`GROQ_API_KEY` from Secrets; run File 2;
-    commit dated AI files + updated cache; strip outputs.
-  - Accept: YAML valid; secret wiring correct; provider input.
-  - [V] YAML parse; logic reviewed.
+- [x] **T2.3 `.github/workflows/build-ai-summary.yml` (Button 2)** ✅
+  - Separate `workflow_dispatch` with a `provider` choice input (claude/groq);
+    `ANTHROPIC_API_KEY`/`GROQ_API_KEY` from Secrets; papermill runs File 2; commits the
+    dated AI files + `data/cache/ai_cache.json` (guarded when unchanged).
+  - [V] YAML parses; `provider` input + secret env wiring present.
 
 **CP-2 review.**
 
