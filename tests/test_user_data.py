@@ -72,3 +72,32 @@ def test_load_missing_returns_empty_schema(tmp_path):
     assert user_data.USER_COLUMNS[0] == "id"
     assert len(ud) == 0
     assert isinstance(ud, pd.DataFrame)
+
+
+def test_migrate_slug_to_id(tmp_path, sample_records):
+    df = normalize.normalize(sample_records)  # has both id and slug
+    old = tmp_path / "user_data_old.csv"
+    pd.DataFrame(
+        [
+            {
+                "slug": "acme-ai",
+                "my_rating": 5,
+                "watchlist": True,
+                "my_notes": "hot",
+                "my_tags": "fav",
+                "my_stage": "Contacted",
+            },
+            {"slug": "does-not-exist", "my_rating": 1, "my_notes": "orphan"},
+        ]
+    ).to_csv(old, index=False)
+
+    out = tmp_path / "user_data.csv"
+    migrated = user_data.migrate_slug_to_id(old, df, out_path=out, backup=False)
+
+    assert list(migrated.columns) == list(user_data.USER_COLUMNS)
+    m = migrated.set_index("id")
+    assert 101 in m.index and m.loc[101, "my_notes"] == "hot"  # acme-ai -> id 101
+    assert len(migrated) == 1  # unmapped slug dropped
+    # written to disk and reloadable by id
+    reloaded = user_data.load_user_data(out).set_index("id")
+    assert reloaded.loc[101, "my_tags"] == "fav"

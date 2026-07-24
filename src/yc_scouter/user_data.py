@@ -92,3 +92,34 @@ def merge_annotations(df: pd.DataFrame, user: pd.DataFrame) -> pd.DataFrame:
 def merge_user_data(df: pd.DataFrame, path: Path = DEFAULT_PATH) -> pd.DataFrame:
     """Convenience: load the CSV backend and merge it onto ``df``."""
     return merge_annotations(df, load_user_data(path))
+
+
+def migrate_slug_to_id(
+    old: Path,
+    dataset: pd.DataFrame | str | Path,
+    *,
+    out_path: Path | None = None,
+    backup: bool = True,
+) -> pd.DataFrame:
+    """One-off: convert a legacy **slug-keyed** annotations CSV to the id-keyed schema.
+
+    ``dataset`` provides the slug→id map (a DataFrame or a path to a Base/AI parquet
+    that has both ``slug`` and ``id``). Rows whose slug isn't found are dropped. The
+    old file is renamed to ``*.slug.bak`` (when ``backup``) before the new one is
+    written. Returns the migrated frame.
+    """
+    old = Path(old)
+    old_df = pd.read_csv(old)
+    if isinstance(dataset, (str, Path)):
+        dataset = pd.read_parquet(dataset)
+    smap = (
+        dataset.dropna(subset=["slug", "id"]).astype({"id": "Int64"}).set_index("slug")["id"]
+    ).to_dict()
+    old_df["id"] = old_df["slug"].map(smap)
+    migrated = _ensure_columns(old_df.dropna(subset=["id"]))
+
+    out_path = Path(out_path) if out_path else old
+    if backup and out_path.exists():
+        out_path.replace(out_path.with_suffix(out_path.suffix + ".slug.bak"))
+    save_user_data(migrated, path=out_path)
+    return migrated

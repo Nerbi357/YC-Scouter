@@ -116,11 +116,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
   - [V] `tests/test_app.py` (3): env override, newest-AI selection, merged frame has
     ai_* + notes cols; `import app` clean; pytest pythonpath adds repo root.
 
-- [ ] **T3.3 Notes migration slug→id**
-  - One-off helper: map existing slug-keyed notes to `id` via a fresh dataset;
-    write id-keyed store; keep a backup.
-  - Accept: existing notes preserved under id; documented in HOW_TO_UPDATE.
-  - [V] test on a small fixture mapping.
+- [x] **T3.3 Notes migration slug→id** ✅
+  - `user_data.migrate_slug_to_id(old, dataset, out_path, backup)`: maps legacy
+    slug-keyed CSV to id via a Base/AI parquet's slug→id map, drops unmapped rows,
+    backs up the old file to `*.slug.bak`, writes the id-keyed store. (Documented in
+    HOW_TO_UPDATE in T4.2.)
+  - [V] `test_migrate_slug_to_id`: acme-ai→101, orphan dropped, reloadable by id.
 
 **CP-3 review.**
 
