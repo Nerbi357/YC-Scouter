@@ -59,11 +59,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
   - [V] `tests/test_pipeline.py` (3) + `tests/test_notebook_smoke.py` (papermill
     execute on the fixture, `importorskip`) produce the two dated Base files. Suite 66.
 
-- [ ] **T1.5 `.github/workflows/build-dataset.yml` (Button 1)**
-  - `workflow_dispatch` only; install lockfile; run File 1 via papermill; commit the
-    dated Base files (+ strip notebook outputs).
-  - Accept: workflow YAML valid; dispatch input for output-dir; no secrets needed.
-  - [V] `actionlint`/YAML parse; dry-run logic reviewed.
+- [x] **T1.5 `.github/workflows/build-dataset.yml` (Button 1)** ✅
+  - `workflow_dispatch` only; installs `requirements.txt --require-hashes` + `-e .`;
+    registers the kernel; runs File 1 via papermill (`output=commit`); commits the
+    dated Base files (guarded no-op when unchanged). No secrets. Removed the obsolete
+    `build-radar.yml`.
+  - [V] YAML parses; trigger = workflow_dispatch; `permissions: contents: write`.
 
 **CP-1 review.**
 
