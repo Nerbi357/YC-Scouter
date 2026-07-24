@@ -1,311 +1,377 @@
-# Spec: YC Startup Radar (2024–2026)
+# Spec: YC Scouter
 
-A personal research tool that collects Y Combinator companies from the last three
-years (batches **2024–2026**), enriches them with as much decision-useful data as
-is publicly obtainable, and presents them in a filterable, sortable form so the
-user can review startups and decide which are worth deeper diligence / potential
-investment interest.
+A personal, reproducible toolkit + hosted dashboard to scout and analyze
+Y Combinator companies from **2020 to the current year**. It is a significant
+rework of the earlier "YC Startup Radar" project: same spirit (collect open YC
+data, enrich, summarize with an LLM, review in a dashboard), but re-scoped for a
+wider batch range, a two-notebook pipeline, strict cost control, button-only
+updates, and a clean final-phase file layout.
 
----
-
-## 1. Objective
-
-**Who:** A single user (personal use), reviewing YC startups to build a personal
-"radar" and shortlist companies of interest.
-
-**What:** A Jupyter notebook (primary deliverable) that:
-1. Parses YC companies filtered to batches from 2024, 2025, 2026.
-2. Normalizes them into a clean, typed table (pandas DataFrame).
-3. Enriches with best-effort external signals (patents, deep-dive links, optional
-   AI summaries).
-4. Computes an interpretable ranking score.
-5. Exports a review-friendly file (Excel + CSV) and provides analytics charts.
-
-**Why:** Speed up manual review. The user browses the output, filters/sorts by the
-criteria they care about, and marks a personal shortlist.
-
-**Success looks like:** One command / one notebook run produces an `.xlsx` (and
-`.csv`) of all YC 2024–2026 companies with, at minimum, per company: **industry,
-idea summary (what they do + uniqueness), status, investability signal, key
-quantitative fields, deep-dive links, and a ranking score** — filterable by
-industry, batch, status, team size, and score.
+> **Language policy:** the whole project is in **English** — code, comments,
+> notebooks, docs, and company data. The **only** exceptions are (a) this planning
+> chat and (b) the **dashboard UI** (labels, filters, buttons, tabs) which is in
+> **Russian**. Company names and AI-generated descriptions stay in English.
 
 ---
 
-## 2. Data Sources & Availability (honest scope)
+## 0. Project Phases (shared vocabulary)
 
-### Tier A — Core, reliable (primary source)
-**`yc-oss/api`** — public JSON, MIT-style community dataset, rebuilt daily from the
-official YC directory. Fields per company:
+- **Working phase** — anything goes: scratch files, worktrees, experiments,
+  temporary scripts. The goal is to reach the final state; clutter is fine here.
+- **Final phase** — only the agreed files remain. The maintainer's entire routine
+  is: press two buttons every few months to rebuild data. Everything else works on
+  its own; there are no stray/service files.
 
-- `name`, `slug`, `website`, `all_locations` / `regions`
-- `one_liner`, `long_description`, `team_size`
-- `industry`, `subindustry`, `tags`, `batch`, `stage`, `status`
-- `status` ∈ {`Active`, `Acquired`, `Public`, `Inactive`}
-- `isHiring`, `top_company`, `nonprofit`, `launched_at`
-- diversity highlights, demo-day/app video flags, `url` (YC profile)
-
-Fallback / cross-check: YC's own Algolia-backed company search endpoint.
-
-### Tier B — Enrichment, best-effort (optional notebook cells)
-- **Deep-dive links (OPEN sources only)** — generated URLs (no scraping), pointing
-  only at freely accessible pages so the user can study each company at no cost:
-  the startup's own **website**, its **YC profile**, **Google Search/News**,
-  **Product Hunt**, **Hacker News (Algolia search)**, **GitHub**, and **Wikipedia**.
-  No Crunchbase / LinkedIn / paywalled or login-walled links.
-- **GitHub signal** — for devtools/OSS startups, star count if a public repo is
-  found (optional).
-- **AI idea/uniqueness summary & risk notes — ENABLED (Haiku 4.5).** Via the Claude
-  API, summarizing `long_description` into "what they do / why unique / what to
-  check", run over the whole 2024–2026 set. Requires `ANTHROPIC_API_KEY`; uses the
-  **Batch API** to halve cost and **prompt-caches** the shared instruction prefix.
-  Results cached to disk so a re-run only summarizes *new* companies. Cost ≈ §5a.
-- ~~Patents count~~ — **dropped for v1** (fuzzy matching, low signal/effort ratio).
-
-### Tier C — NOT publicly available (explicitly out of scope)
-- ❌ **Cap table** for private startups — does not exist publicly. Only public
-  (post-IPO) companies have a real capital structure, surfaced via `status=Public`.
-- ❌ **Exact funding amounts / valuations / round details** — not in YC data, and
-  the closest sources (Crunchbase/PitchBook) are paywalled/login-walled, which the
-  user has excluded. Represented only via **open** link-outs (Google News, HN),
-  never fabricated numbers.
-- ❌ Anything requiring scraping sources whose ToS forbid it (e.g. LinkedIn).
-
-> **Rule:** Never fabricate or estimate financial figures and present them as fact.
-> Missing = empty cell + a link to where the user can check manually.
+This spec defines the **final-phase** target. The working phase may add whatever it
+needs to get there.
 
 ---
 
-## 3. Output Columns (the final table)
+## 1. Objective & User
 
-**Required (Tier A + derived):**
-| Column | Source | Notes |
-|---|---|---|
-| `name` | A | |
-| `batch` / `batch_year` | A | filtered to 2024–2026 |
-| `industry`, `subindustry`, `tags` | A | primary filters |
-| `one_liner` | A | short idea |
-| `idea_summary` | A/derived | "what they do + uniqueness" (from long_description, optional AI) |
-| `status` | A | Active / Acquired / Public / Inactive |
-| `stage` | A | |
-| `team_size` | A | quantitative |
-| `location`, `region` | A | |
-| `is_hiring` | A | activity signal |
-| `top_company` | A | YC's own success signal |
-| `investability` | derived | Public=market-buyable; Acquired=no; Active=accredited/SPV only |
-| `score` | derived | weighted, configurable ranking |
-| `yc_url`, `website` | A | |
-| `news_url`, `producthunt_url`, `hn_url`, `github_url`, `wikipedia_url` | B | OPEN-source deep-dive links only |
+**Who:** a single maintainer (personal use) scouting YC startups since 2020 to
+build a shortlist and do lightweight investment analysis.
 
-**Optional (Tier B):** `github_stars`, `ai_summary`, `ai_risk_notes` (patents dropped for v1).
+**What:** two notebooks that produce dated datasets, a Streamlit dashboard that
+browses the latest dataset, and docs that make the project self-maintainable.
 
-**User-owned (persisted across refreshes):** `my_rating` (0–5), `watchlist` (bool),
-`my_notes` (free text).
+**Success looks like:**
+1. Notebook **File 1** rebuilds a full "YC Dataset Base" (all companies 2020→now)
+   into dated `.parquet` + `.xlsx`.
+2. Notebook **File 2** adds LLM `ai_description` + `ai_risks` into a dated
+   "YC Dataset AI Summary" `.parquet` + `.xlsx`, paying only for **new/changed**
+   companies and never exceeding a hard **$9** budget per run.
+3. A **hosted Streamlit dashboard** (independent of the maintainer's machine) reads
+   the latest dataset, offers rich filters/charts/comparison, and keeps personal
+   notes across refreshes.
+4. Re-running is **two GitHub Actions buttons** (one per notebook); no structural
+   changes to the notebooks are ever required to refresh.
 
 ---
 
-## 4. Additional criteria available for the radar (proposed)
+## 2. Reproducibility (contract)
 
-Beyond industry + idea + quantitative metrics, these are cheaply derivable and
-useful for reviewing:
-- Founder count / repeat-founder & background keywords (where present in profile)
-- Hiring intensity (open-roles / isHiring)
-- Top-company flag (YC-marked breakouts)
-- B2B vs B2C / business-model tags
-- Geography & region clustering
-- Website liveness / domain signal
-- Product-launch traction (Hacker News / Product Hunt presence — optional)
-- Description-derived keywords: "moat", "AI", "open-source", regulated-market flags
-- A configurable **interestingness score** combining the above with user weights
+Reproducibility here means **logic/code reproducibility, not data reproducibility**:
 
----
+- The notebooks are **thin** and self-contained: essentially all logic lives in the
+  shared `src/yc_scouter/` package, so the same functions run identically in Colab,
+  in GitHub Actions, and locally.
+- The environment is pinned with a **hashed lockfile** + a fixed **Python 3.11.x**,
+  so "same code" behaves the same over time.
+- **Data may differ between runs** within normal tolerance — the upstream YC source
+  is rebuilt daily, and File 1 deliberately re-scrapes everything on each run. We do
+  **not** snapshot raw data or hash-verify datasets. AI text is naturally
+  non-deterministic and is bounded only by `temperature=0` + the result cache.
 
-## 5. Tech Stack
-
-- **Language:** Python 3.11+
-- **Primary deliverable:** `notebooks/yc_radar.ipynb`
-- **Core libs:** `requests`/`httpx`, `pandas`, `openpyxl` (styled Excel export),
-  `matplotlib`/`plotly` (charts), `python-dotenv`
-- **Reusable logic:** `src/yc_radar/` package (imported by the notebook so logic is
-  testable, notebook stays thin)
-- **Optional review UI:** `app.py` — a **Streamlit** dashboard reading the exported
-  dataset (interactive filters/sort/search). Recommended as the browsing layer.
-- **AI enrichment (enabled):** Claude API (`anthropic`), model `claude-haiku-4-5`,
-  via the Batch API with prompt caching + on-disk result cache.
-
-### Presentation: **BOTH (C)** — how the two layers work together
-
-The notebook and the dashboard are **two views of one dataset**, not two separate
-apps:
-
-1. **`notebooks/yc_radar.ipynb` = the pipeline + producer.** It fetches YC data,
-   normalizes/filters to 2024–2026, enriches (open links, optional AI), scores, and
-   **writes the single source of truth** to `data/processed/yc_radar.parquet` (+ a
-   styled `.xlsx` and a `.csv`). It also holds the analytics/charts. Run it whenever
-   you want fresh data. → produces **Excel**, a portable offline snapshot you can
-   sort/filter/annotate anywhere.
-2. **`app.py` (Streamlit) = the consumer / browser.** It **reads that same exported
-   file** and gives an interactive UI: sidebar filters (industry, batch, status,
-   team size, score slider), full-text search, sortable table, and a per-company
-   card with all the open-source links. It never re-fetches — it just browses what
-   the notebook produced.
-3. **Personal notes survive refreshes.** Your `my_rating` / `watchlist` / `my_notes`
-   live in a separate `data/user_data.csv` keyed by company `slug`. Both the
-   notebook export and the Streamlit app read/merge it, so re-running the pipeline
-   with fresh YC data never wipes your annotations.
-
-Flow: `run notebook → yc_radar.parquet/.xlsx → streamlit run app.py`. Excel = the
-snapshot you keep; Streamlit = live exploration of that snapshot.
-
-### 5a. AI Summary cost estimate (optional feature, OFF by default)
-
-Assumptions: **~1,200–1,600 companies** in batches 2024–2026 (use 1,500 for the
-math); per company ≈ **700 input tokens** (long description + one-liner + prompt) +
-**250 output tokens**.
-
-| Model | $/1M in · out | Per company | **~1,500 companies** | With Batch API (−50%) |
-|---|---|---|---|---|
-| **Haiku 4.5** (recommended) | $1.00 · $5.00 | ~$0.0020 | **≈ $2.9** | **≈ $1.5** |
-| Sonnet 5 | $3.00 · $15.00 | ~$0.0059 | ≈ $8.8 | ≈ $4.4 |
-| Opus 4.8 (overkill) | $5.00 · $25.00 | ~$0.0098 | ≈ $14.6 | ≈ $7.3 |
-
-**Decision: ENABLED with Haiku 4.5.** Full YC 2024–2026 set ≈ **$1.5–3** one-time per
-full refresh (Batch API −50% + prompt caching applied). Runs behind your own
-`ANTHROPIC_API_KEY`; per-company results are cached to `data/processed/ai_cache.json`
-so subsequent refreshes only pay for **new** companies. Model is configurable, but
-Haiku 4.5 is the default.
+There is **no** dated-raw-snapshot / manifest / sha256 machinery. File 1 fetches
+live and processes in the same run.
 
 ---
 
-## 6. Commands
+## 3. Data Source
+
+- **`yc-oss/api`** — public community JSON (`all.json`), rebuilt daily from the
+  official YC directory. Covers batches **Winter 2020 → current** (~3,800–4,000
+  companies in 2020–2026).
+- **~29 fields per company**, including: `id` (immutable numeric key), `slug`
+  (mutable, used for links only), `name`, `website`, `batch`, `status`
+  (Active/Acquired/Public/Inactive), `industry`, `subindustry`, `tags`,
+  `one_liner`, `long_description`, `team_size`, `stage`, `regions`/locations,
+  `url` (YC profile), `isHiring`, `top_company`, `launched_at`.
+- **Not available (do not fabricate):** founders / contacts / social links, cap
+  tables, funding amounts, valuations. Missing data → empty cell + an open link.
+- **Batch-year filter:** extract the 4-digit year from the batch label
+  (`\b20\d{2}\b`), keep 2020→current year. Left boundary fixed at 2020; right
+  boundary is "now".
+
+---
+
+## 4. File 1 — Notebook `01_dataset_base`
+
+Full re-scrape every run (cheap, no API key):
+
+1. **Fetch** `all.json` from yc-oss.
+2. **Normalize** → typed DataFrame; parse `batch_year`; filter 2020→current;
+   **dedupe by `id`** with a **stable total sort** (`sort_values("id")` before
+   `drop_duplicates`) so row order is deterministic.
+3. **Enrich** → `investability` heuristic + OPEN-source deep-dive links only
+   (website, YC profile, Google News, Product Hunt, Hacker News, GitHub, Wikipedia).
+4. **Score** → configurable interestingness `score` (0–100).
+5. **Export** dated `.parquet` (canonical) + `.xlsx` (human view) into Folder 1.
+
+**Output switch at the top of the notebook** (via env var so structure never
+changes): `save to Google Drive folder "Project YC Scouter"` **or** `download when
+the run finishes`. In GitHub Actions the mode is `commit to repo`. Google Drive is
+**only** for the manual Colab path; it is never wired into Actions.
+
+**Output name:** `yc_dataset_base_<YYYY-MM-DD>.{parquet,xlsx}` (ASCII, ISO date;
+the human-facing Russian title lives inside the Excel sheet header, never in the
+filename).
+
+---
+
+## 5. File 2 — Notebook `02_ai_summary`
+
+Incremental LLM enrichment, driven by a content-addressed cache:
+
+1. Load the **latest** `yc_dataset_base_*.parquet` (newest by filename).
+2. Load the existing AI results/cache **from the repo** (so both Colab and Actions
+   start from the same state and don't re-pay).
+3. Call the LLM **only** for companies whose cache key
+   **`(id, model_id, prompt_version)`** is absent. Nothing else is re-summarized —
+   even if a company's description changed, an unchanged key is a cache hit (to
+   force a global refresh, change the prompt → `prompt_version` changes).
+4. Export dated `.parquet` + `.xlsx` into Folder 1.
+
+### 5.1 LLM outputs (exactly two, factual only)
+
+- **`ai_description`** — 6–7 sentences (~120–140 words): what the company does, the
+  idea, what is uniquely differentiated, notable strengths, and any useful factual
+  info present in the source. Marked as AI-authored. Prefer richer.
+- **`ai_risks`** — 1–2 short, concrete risks. Prefer shorter.
+
+The one-liner is **not** generated by AI — YC's own `one_liner` field is used.
+No speculative fields (moat/competitors/traction/funding) — factual only.
+
+### 5.2 Provider switch
+
+- Explicit switch at the top of the notebook: **Claude** (chosen default) or **Groq**
+  (kept as an option). Provider + model live in **one config constant / env var**.
+- **Default: Claude `claude-haiku-4-5`** ($1 / $5 per 1M input/output).
+
+### 5.3 Token budget & hard cost guard
+
+- `MAX_DESC_CHARS = 2200` (input ≈ 780 tokens/company).
+- `max_tokens = 430` (output ≈ 260 tokens/company).
+- Expected full run over ~4,000 companies ≈ **$8.3–8.6**.
+- **Hard budget guard `budget_usd = 9.00`:** the summarizer accumulates **actual**
+  token usage returned by each API response; before each call it checks
+  `spent + worst_case_next ≤ budget_usd`, otherwise it **stops gracefully** and
+  leaves the remainder for the next run (resumable via cache). This makes "never
+  exceed $9" a guarantee, not an estimate. Expected spend leaves margin to finish
+  all companies in one run.
+
+### 5.4 Cache & reproducibility of AI
+
+- Cache keyed on **`(id, model_id, prompt_version)`**, where
+  `prompt_version = sha256(SYSTEM_PROMPT + PROMPT_TEMPLATE)[:12]`.
+- All three key parts are stored as **separate columns**; old results are **never
+  overwritten** (a new prompt/model writes new rows, preserving history).
+- `temperature = 0`. AI text is the sanctioned non-reproducible part.
+- **Migration note:** the previous project's summaries used a different (2–3
+  sentence summary + 1–2 risks) prompt. The new richer-description prompt has a
+  different `prompt_version`, so the existing ~1,736 companies are **re-summarized
+  once** — included in the ~$8.5 full-run estimate — to keep one consistent style
+  and version across the whole dataset.
+
+---
+
+## 6. Folder 1 — dated dataset store (`data/`)
+
+- Each run writes **4 files**: `base.parquet`, `base.xlsx`, `ai.parquet`,
+  `ai.xlsx`, all dated `_<YYYY-MM-DD>`.
+- The **dashboard** loads the newest run via
+  `sorted(glob("data/yc_dataset_ai_*.parquet"))[-1]` — no pointer file.
+- **Git policy:** commit the **latest** dated set the dashboard needs (keeps the
+  repo lean); push the **full dated history** to **GitHub Releases** to avoid
+  long-term git bloat. AI cache is committed so incremental runs stay cheap.
+
+---
+
+## 7. Update / Refresh (button-only)
+
+- **No cron.** Two **manual** GitHub Actions workflows (`workflow_dispatch`):
+  - **Button 1 →** rebuild **File 1** (headless via **papermill** against the
+    unchanged `.ipynb`, driven by env vars), commit the dated Base files.
+  - **Button 2 →** rebuild **File 2** (reads keys from GitHub Secrets, honors the
+    cache + $9 guard), commit the dated AI files.
+- The dashboard auto-updates on the resulting push (Streamlit redeploys on commit).
+- Personal notes are **never** inside the dataset files, so a refresh cannot delete
+  them (see §9).
+
+---
+
+## 8. Dashboard — phase 1 (Streamlit)
+
+- **Host:** **Streamlit Community Cloud** (free; public repo; auto-redeploy on push;
+  Secrets UI for the notes backend). Hugging Face Spaces documented as fallback.
+- Reads the latest dated dataset from the repo; **never** fetches the internet.
+- **UI language: Russian.** Reuses the existing dashboard: tabs (Overview/KPIs +
+  Plotly charts, Companies table + CSV/Excel export, Compare up to 5, Notes), and
+  filters (industry, subindustry, status, investability, funnel stage, tags,
+  favorites, batch year, score & team-size ranges, search).
+
+---
+
+## 9. Personal notes / CRM
+
+- Stored **externally** (Google Sheets, wired later; local CSV until then), keyed on
+  the immutable **`id`** (survives slug renames), left-joined at display time.
+- A data refresh or redeploy physically cannot delete notes.
+- Owner/viewer model: an `[app] owner_key` gates saving; visitors get temporary,
+  session-only edits.
+
+---
+
+## 10. Phase 2 — full website (later)
+
+Deferred until phase 1 is complete. Path: publish the dataset as a stable
+data-contract artifact (parquet/JSON with pre-computed `score`/`investability`/
+`ai_*` columns), build a static front-end (e.g. Cloudflare Pages), add a
+database (e.g. Supabase) only when multi-user notes/auth are needed. The pipeline
+and dataset are reused unchanged.
+
+---
+
+## 11. Tech Stack
+
+- **Python 3.11.x** (pinned via `.python-version`).
+- **Shared package `src/yc_scouter/`** (renamed from `yc_radar`), imported by both
+  notebooks and the dashboard.
+- Core libs: `httpx`, `pandas`, `pyarrow` (parquet), `openpyxl` (xlsx), `plotly`
+  (charts), `streamlit` (dashboard), `anthropic` (Claude), `groq` (optional),
+  `gspread`/`google-auth` (notes, later), `papermill` (headless notebook runs in CI).
+- Dependencies pinned via a **hashed lockfile** (`requirements.lock`, generated from
+  `requirements.in`), installed with `--require-hashes` in Colab + Actions.
+
+---
+
+## 12. Commands
 
 ```bash
-# Setup
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+# Setup (reproducible)
+pip install -r requirements.lock --require-hashes    # or: pip install -e .
 
-# Run the notebook end-to-end (headless)
-jupyter nbconvert --to notebook --execute notebooks/yc_radar.ipynb \
-  --output yc_radar.ipynb
+# File 1 headless (as CI runs it)
+papermill notebooks/01_dataset_base.ipynb /tmp/out1.ipynb -p mode ci
 
-# Or open interactively
-jupyter lab notebooks/yc_radar.ipynb
+# File 2 headless (needs ANTHROPIC_API_KEY)
+papermill notebooks/02_ai_summary.ipynb /tmp/out2.ipynb -p provider claude
 
-# Optional interactive dashboard (if option B chosen)
+# Dashboard
 streamlit run app.py
 
-# Lint / format / test
-ruff check src tests
-black src tests
-pytest -q --cov=src/yc_radar
+# Quality gates
+ruff check src tests app.py
+black --check src tests app.py
+pytest -q
 ```
 
 ---
 
-## 7. Project Structure
+## 13. Project Structure (final phase — ~20 tracked paths, agreed under constraint 4)
 
 ```
-SPEC.md                     → this spec (source of truth)
-requirements.txt            → pinned dependencies
-.env.example                → optional API keys (never commit real .env)
+README.md                         short overview, "built with Claude Code", live dashboard link
+LICENSE
+requirements.in                   top-level deps (human-edited)
+requirements.lock                 pinned + hashed deps (generated; the reproducibility anchor)
+pyproject.toml                    makes `pip install -e .` work so notebooks/app import one package
+.python-version                   pins Python 3.11.x everywhere
+.gitignore                        excludes .env, *.json creds, caches
+.env.example                      key NAMES only (ANTHROPIC_API_KEY, GROQ_API_KEY, Google creds)
+app.py                            Streamlit dashboard entry point (Russian UI)
+src/yc_scouter/                   shared package: fetch, normalize, enrich, score, export, ai,
+                                  filters, user_data, gsheets, config
 notebooks/
-  yc_radar.ipynb            → primary deliverable: parse → enrich → analyze → export
-src/yc_radar/
-  fetch.py                  → download YC dataset (with local cache)
-  normalize.py              → clean/typed DataFrame, batch-year filter (2024–2026)
-  enrich.py                 → patents, deep-dive links, optional AI/GitHub
-  score.py                  → configurable interestingness score
-  export.py                 → styled Excel + CSV export
-data/
-  raw/                      → cached API responses (gitignored)
-  processed/                → exported yc_radar.parquet / .xlsx / .csv (gitignored)
-  user_data.csv             → personal ratings/watchlist/notes (persisted, gitignored)
-app.py                      → Streamlit dashboard (reads data/processed/)
-tests/
-  test_normalize.py         → batch filtering, typing, dedup
-  test_score.py             → scoring math
-  test_enrich.py            → open-source link generation, graceful missing-field handling
+  01_dataset_base.ipynb           File 1: scrape YC 2020→now → dated Base parquet/xlsx
+  02_ai_summary.ipynb             File 2: LLM description + risks, cache by (id,model,prompt_version)
+data/                             Folder 1: latest dated base+ai (parquet+xlsx) the dashboard reads
+  cache/ai_cache.json             AI cache (committed) for cheap incremental runs
+docs/
+  HOW_IT_WORKS.md                 File 3: architecture, how it works, which APIs/sites used
+  AI_METHODOLOGY.md               File 4: prompts + skills + how to replicate the AI-agent help
+  HOW_TO_UPDATE.md                maintenance checklist (keys, lockfile, model migration, buttons)
+  DEPLOY.md                       hosting steps (Streamlit Cloud + notes backend)
+.streamlit/config.toml            dashboard config (+ secrets.toml.example template)
+.github/workflows/
+  build-dataset.yml               Button 1: File 1 via papermill, commit dated files
+  build-ai-summary.yml            Button 2: File 2 via papermill, secrets + cache + $9 guard
+tests/                            determinism + schema-guard + logic unit tests
 ```
 
----
-
-## 8. Code Style
-
-- PEP 8, formatted by **black**, linted by **ruff**; type hints on public functions.
-- Small, pure, testable functions; the notebook orchestrates, `src/` holds logic.
-- No silent failures on external calls — handle timeouts, log skips, keep going.
-
-```python
-def filter_batches(df: pd.DataFrame, years: tuple[int, ...] = (2024, 2025, 2026)) -> pd.DataFrame:
-    """Keep only companies whose batch falls in the given years."""
-    years_set = set(years)
-    return df[df["batch_year"].isin(years_set)].reset_index(drop=True)
-```
+Auxiliary files the maintainer might not have anticipated but that are **required**
+and were explicitly agreed: `requirements.lock` + `.python-version` (reproducibility),
+`src/` package (no duplicated notebook logic), `.github/workflows/` (the two
+buttons), `.streamlit/` (dashboard config), `data/cache/` (cheap incremental AI),
+`tests/`. Deployment is **config + docs**, not a "File 5 notebook".
 
 ---
 
-## 9. Testing Strategy
+## 14. Code Style
 
-- **Framework:** pytest (+ pytest-cov).
-- **Unit tests** on `src/yc_radar/` pure logic: batch-year parsing/filtering, dedup,
-  score computation, deep-dive link generation, graceful handling of missing fields.
-- External network calls are **mocked** (fixtures with sample API payloads) — tests
-  never hit the live API.
-- Notebook smoke-executed in CI via `nbconvert --execute` against cached fixture
-  data (optional, once stable).
-- Coverage target: ≥ 80% on `src/yc_radar/`.
+- PEP 8, **black** (line-length 100), **ruff** (E,F,I,UP,B); type hints on public
+  functions.
+- Small pure testable functions in `src/`; notebooks orchestrate only.
+- Model IDs, token limits, budget, paths, and the dated-filename builder live in
+  `src/yc_scouter/config.py` — single source of truth.
+- No silent failures on network/API — timeout, retry with backoff, log skips.
 
 ---
 
-## 10. Boundaries
+## 15. Testing Strategy
+
+- **pytest**; network + LLM fully **mocked** (no live calls, no spend in tests).
+- Unit tests: batch-year parsing/filter, dedupe-by-id + stable sort, score math,
+  open-link generation, notes merge idempotency (keyed by `id`), filter logic,
+  AI cache-key + budget-guard logic, schema-guard on the source.
+- `ruff`/`black` clean; keep the suite green before every commit.
+
+---
+
+## 16. Boundaries
 
 **Always:**
-- Use the public YC JSON API; cache responses locally; respect rate limits.
-- Attribute the data source; keep secrets in `.env` (gitignored).
-- Leave a cell/empty value + a manual-check link when data is unavailable.
-- Write tests for parsing/normalization/scoring logic.
+- Use the public yc-oss JSON; OPEN-source deep-dive links only.
+- Keep secrets in `.env`/GitHub Secrets/Streamlit Secrets (never committed).
+- Enforce the `$9` AI budget guard; key notes + AI cache on immutable `id`.
+- Write tests for parsing/scoring/cache/budget logic; keep notebooks thin.
 
 **Ask first:**
-- Changing the AI model away from Haiku 4.5, or running AI on every refresh without
-  the disk cache (cost).
-- Adding paid/keyed APIs (Crunchbase, etc.).
-- Scraping any HTML source (ToS review first).
-- Adding heavy dependencies or changing the output schema.
+- Changing the AI model, prompt (⇒ re-summarization cost), or token budget.
+- Adding paid/keyed APIs, scraping any HTML source, or adding a founders source.
+- Changing the output schema or the dated-file naming convention.
 
 **Never:**
-- Commit API keys or a real `.env`.
-- Scrape sources that forbid it (e.g. LinkedIn).
-- **Add links to closed / paywalled / login-walled resources** (Crunchbase,
-  LinkedIn, PitchBook) — open sources only, per user decision.
-- Fabricate or estimate cap-table / funding / valuation numbers and present them as
-  fact.
-- Remove failing tests without approval.
+- Commit API keys / real `.env` / service-account JSON.
+- Fabricate founders, cap tables, funding, or valuations.
+- Add closed/paywalled links (Crunchbase, LinkedIn, PitchBook).
+- Store personal notes inside a regenerated dataset file.
+- Exceed the AI budget guard, or remove failing tests without approval.
 
 ---
 
-## 11. Success Criteria
+## 17. Maintenance & Longevity (summarized; full checklist in docs/HOW_TO_UPDATE.md)
 
-- [ ] Notebook runs end-to-end and outputs `data/processed/yc_radar.parquet`,
-      `.xlsx`, and `.csv`.
-- [ ] Contains all YC companies from batches 2024, 2025, 2026 (deduplicated).
-- [ ] Each row has: industry, idea summary, status, investability, team_size,
-      score, and OPEN-source deep-dive links.
-- [ ] Streamlit `app.py` reads the exported dataset and filters/sorts/searches it.
-- [ ] Personal `my_rating` / `watchlist` / `my_notes` persist across data refreshes.
-- [ ] Analytics section: distributions by industry, batch, status, geography.
-- [ ] `src/yc_radar/` logic covered by tests ≥ 80%; `ruff`/`black` clean.
-- [ ] Honest handling of unavailable data (no fabricated financials, open links only).
+The project is **not** fully hands-off — expect ~15 min every few months:
+
+| Item | When to act | Action |
+|---|---|---|
+| Anthropic credits/billing | before a full run | keep balance funded; File 2 is resumable + guarded |
+| Model retirement (~6–12 mo) | model ID 404s | change one config constant |
+| Groq free-tier / key (if used) | on 401 / limit change | rotate key, keep model in config |
+| Locked dependencies | 6–12 mo or on breakage | regenerate `requirements.lock`, re-test |
+| GitHub Actions | on use | button-only; each run commits (no 60-day auto-disable concern) |
+| yc-oss schema drift | on fetch error | schema-guard fails loudly; keep last-good data |
+| Streamlit sleep (12h idle) | on visit | click to wake; normal for a personal tool |
+| Notes safety | after any refresh | verify notes survive (external store, keyed by id) |
 
 ---
 
-## 12. Resolved Decisions (from user, 2026-07-22)
+## 18. Resolved Decisions
 
-1. **Presentation:** **C — both** Excel + Streamlit (see §5, how they work together).
-2. **Deep-dive links:** **OPEN sources only** (website, YC, Google News, Product Hunt,
-   Hacker News, GitHub, Wikipedia). No Crunchbase / LinkedIn / paywalled links.
-3. **AI summaries:** **ENABLED with Haiku 4.5** over the whole set (Batch API +
-   prompt cache + disk cache). Cost ≈ **$1.5–3** one-time (§5a). Needs user's key.
-4. **Patents:** **dropped for v1.**
-5. **Batch scope:** all batches tagged **2024–2026** as they appear in the source. ✅
-6. **No Crunchbase API key** — funding stays as open link-outs, never numbers.
-```
+1. Repo: **public**.
+2. **Migrate** the existing repo (rename package `yc_radar → yc_scouter`).
+3. Batch range: **2020 → current year**; File 1 full re-scrape each run.
+4. Data reproducibility: **logic only**, no snapshots (per user).
+5. AI: **Claude `claude-haiku-4-5`**, **two outputs** (`ai_description` richer ~120–140
+   words, `ai_risks` 1–2 short), `MAX_DESC_CHARS=2200`, `max_tokens=430`, hard
+   `budget_usd=9.00`, cache key `(id, model_id, prompt_version)`. Existing summaries
+   re-computed once under the new prompt.
+6. Provider switch Claude/Groq; one-liner from YC (not AI).
+7. Updates: **two manual buttons** (File 1, File 2); no cron; no Google Drive in CI.
+8. Hosting: **Streamlit Community Cloud** now; full website later (phase 2).
+9. Notes: external store keyed on **`id`**; owner/viewer model.
+10. Language: **English** everywhere except **Russian dashboard UI** (+ this chat).
+11. Docs: `HOW_IT_WORKS.md`, `AI_METHODOLOGY.md`, `HOW_TO_UPDATE.md`, `DEPLOY.md`.
+12. File naming: `yc_dataset_<base|ai>_<YYYY-MM-DD>.{parquet,xlsx}`.
