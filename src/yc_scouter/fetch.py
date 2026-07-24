@@ -1,14 +1,15 @@
-"""Download and cache the public YC company dataset (yc-oss/api).
+"""Download the public YC company dataset (yc-oss/api).
 
-The data is a community-maintained JSON export of the official YC company
-directory, rebuilt daily. We fetch it once and cache it under ``data/raw/`` so
-repeated runs don't re-download unless the cache is stale or a refresh is forced.
+The data is a community-maintained JSON export of the official YC directory,
+rebuilt daily. File 1 re-scrapes **fresh on every run** (the project's
+reproducibility is about code logic, not frozen data), so by default this always
+downloads. A local cache is written when ``cache_path`` is given and can be reused
+with ``use_cache=True`` for offline development only.
 """
 
 from __future__ import annotations
 
 import json
-import time
 from pathlib import Path
 
 import httpx
@@ -17,47 +18,40 @@ import httpx
 COMPANIES_URL = "https://yc-oss.github.io/api/companies/all.json"
 
 DEFAULT_CACHE_PATH = Path("data/raw/yc_companies.json")
-DEFAULT_MAX_AGE_HOURS = 24.0
 _TIMEOUT_SECONDS = 60.0
-
-
-def _cache_is_fresh(cache_path: Path, max_age_hours: float) -> bool:
-    if not cache_path.exists():
-        return False
-    age_seconds = time.time() - cache_path.stat().st_mtime
-    return age_seconds < max_age_hours * 3600
 
 
 def fetch_companies(
     *,
-    force_refresh: bool = False,
-    cache_path: Path = DEFAULT_CACHE_PATH,
-    max_age_hours: float = DEFAULT_MAX_AGE_HOURS,
     url: str = COMPANIES_URL,
+    cache_path: Path | None = None,
+    use_cache: bool = False,
+    timeout: float = _TIMEOUT_SECONDS,
 ) -> list[dict]:
-    """Return the list of YC company records, using a local cache when fresh.
+    """Return the list of YC company records, downloading fresh by default.
 
     Args:
-        force_refresh: Ignore the cache and re-download.
-        cache_path: Where the raw JSON is cached.
-        max_age_hours: Cache is reused only if younger than this.
         url: Source endpoint (overridable for testing/mirrors).
+        cache_path: If given, the downloaded JSON is written here.
+        use_cache: Dev-only — if True and ``cache_path`` exists, reuse it and skip
+            the network. Off by default so runs always re-scrape.
+        timeout: HTTP timeout in seconds.
 
     Raises:
         RuntimeError: On any network or HTTP failure, with a clear message.
     """
-    cache_path = Path(cache_path)
-
-    if not force_refresh and _cache_is_fresh(cache_path, max_age_hours):
-        return json.loads(cache_path.read_text())
+    if use_cache and cache_path is not None and Path(cache_path).exists():
+        return json.loads(Path(cache_path).read_text())
 
     try:
-        response = httpx.get(url, timeout=_TIMEOUT_SECONDS)
+        response = httpx.get(url, timeout=timeout)
         response.raise_for_status()
         records = response.json()
     except httpx.HTTPError as exc:
         raise RuntimeError(f"Failed to fetch YC companies from {url}: {exc}") from exc
 
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    cache_path.write_text(json.dumps(records))
+    if cache_path is not None:
+        cache_path = Path(cache_path)
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(json.dumps(records))
     return records

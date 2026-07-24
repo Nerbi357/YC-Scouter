@@ -46,10 +46,11 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
   - [V] `tests/test_export.py` (6): dated names, ai naming, parquet round-trip,
     styled+Russian-title xlsx, control-char strip, list stringify. Suite green.
 
-- [ ] **T1.3 `fetch.py`: tidy for full re-scrape**
-  - Always fetch fresh in run mode; keep an optional local cache only for dev.
-  - Accept: `fetch_companies()` returns the parsed list (mocked in tests).
-  - [V] existing fetch tests adapted, green.
+- [x] **T1.3 `fetch.py`: tidy for full re-scrape** ✅
+  - Removed the 24h mtime-cache reliance; `fetch_companies()` downloads **fresh every
+    run** by default; `cache_path` writes an optional copy; `use_cache=True` reuses it
+    (dev/offline only). Clear RuntimeError on network failure.
+  - [V] tests: downloads+writes, default-ignores-stale-cache, use_cache reuse, error.
 
 - [ ] **T1.4 `notebooks/01_dataset_base.ipynb` (thin)**
   - Top switch (env var) `output=drive|download|commit`; fetch→normalize→enrich→
