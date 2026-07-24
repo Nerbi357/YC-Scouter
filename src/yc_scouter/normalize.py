@@ -11,10 +11,11 @@ import re
 
 import pandas as pd
 
-DEFAULT_YEARS: tuple[int, ...] = (2024, 2025, 2026)
+from . import config
 
-#: Columns the rest of the pipeline relies on.
+#: Columns the rest of the pipeline relies on. ``id`` is the immutable join key.
 CORE_COLUMNS: tuple[str, ...] = (
+    "id",
     "name",
     "slug",
     "batch",
@@ -65,14 +66,22 @@ def _first_region(regions: object) -> str:
 def normalize(
     records: list[dict],
     *,
-    years: tuple[int, ...] = DEFAULT_YEARS,
+    years: tuple[int, ...] | None = None,
 ) -> pd.DataFrame:
-    """Return a typed DataFrame filtered to ``years`` and deduped by slug."""
+    """Return a typed DataFrame filtered to ``years`` and deduped by ``id``.
+
+    ``years`` defaults to 2020..current year (``config.target_years()``). Rows are
+    sorted by ``id`` (stable) before de-duplication so output order is
+    deterministic across runs and machines.
+    """
+    if years is None:
+        years = config.target_years()
     if not records:
         return pd.DataFrame(columns=list(CORE_COLUMNS))
 
     df = pd.DataFrame(records)
 
+    df["id"] = pd.to_numeric(df.get("id"), errors="coerce").astype("Int64")
     df["batch_year"] = df.get("batch").map(parse_batch_year).astype("Int64")
     df["is_hiring"] = df.get("isHiring", False).astype("boolean").fillna(False).astype(bool)
     df["yc_url"] = df.get("url", "")
@@ -101,8 +110,10 @@ def normalize(
     if "launched_at" not in df.columns:
         df["launched_at"] = pd.NA
 
+    # Stable sort by id, then dedupe by id, then filter years — deterministic order.
+    df = df.sort_values("id", kind="stable")
+    df = df.drop_duplicates(subset="id", keep="first")
     keep = df["batch_year"].isin(set(years))
     df = df[keep].copy()
-    df = df.drop_duplicates(subset="slug", keep="first")
 
     return df[list(CORE_COLUMNS)].reset_index(drop=True)

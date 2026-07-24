@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from yc_radar import score
+from yc_scouter import score
 
 
 def _rows():

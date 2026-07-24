@@ -1,140 +1,51 @@
-# YC Startup Radar (2024–2026)
+# YC Scouter
 
-A personal radar for Y Combinator startups from the last three batches years
-(**2024–2026**). It fetches the public YC company data, filters and cleans it,
-enriches each company with an investability heuristic, open-source deep-dive
-links, a configurable interestingness score, and optional AI idea/uniqueness/risk
-summaries, then gives you two ways to review:
+A personal tool to scout and analyze **Y Combinator companies from 2020 to now**.
+It collects the public YC data, enriches it (investability heuristic, open-source
+deep-dive links, an interestingness score), adds concise **AI descriptions + risks**
+per company, and serves it in an interactive dashboard for filtering, charting,
+comparing, and keeping a personal shortlist.
 
-- a **styled Excel** snapshot you can sort/filter/annotate offline, and
-- an interactive **Streamlit** dashboard for filtering, searching, and shortlisting.
+> 🔗 **Live dashboard:** _add your Streamlit URL here after deploying_ (see
+> [`docs/DEPLOY.md`](docs/DEPLOY.md)).
 
-Personal ratings/notes persist across data refreshes. Full requirements: `SPEC.md`.
+> Built with **[Claude Code](https://claude.com/claude-code)** using spec-driven,
+> test-driven agent skills — see [`docs/AI_METHODOLOGY.md`](docs/AI_METHODOLOGY.md).
 
-## ▶️ Easiest: run on Google Colab (all-in-one)
+## What's inside
 
-Open **`notebooks/yc_radar_colab.ipynb`** in Google Colab and `Runtime → Run all`.
-It is self-contained (no repo clone, no local setup) and:
+- **File 1** — `notebooks/01_dataset_base.ipynb`: scrapes all YC companies
+  (2020→now) into a dated `yc_dataset_base_<date>.parquet` + `.xlsx`.
+- **File 2** — `notebooks/02_ai_summary.ipynb`: adds `ai_description` + `ai_risks`
+  (Claude by default, or Groq) into `yc_dataset_ai_<date>.parquet` + `.xlsx`, paying
+  only for new companies (≈ $8–9 for a full run).
+- **Dashboard** — `app.py`: a Streamlit app (Russian UI) reading the newest dated
+  dataset; filters, charts, comparison, export, and personal notes.
+- **Two buttons** — GitHub Actions rebuild the data on demand; no schedule.
 
-1. installs dependencies and writes its own pipeline module + dashboard app,
-2. fetches live YC data → builds **`yc_radar.xlsx`** and pops a download,
-3. (optional) fills AI idea/risk summaries if you add an `ANTHROPIC_API_KEY` in
-   Colab **Secrets** (🔑) — Claude Haiku 4.5, ≈ 3–4 USD for the full set; skip it and
-   the AI columns show a placeholder with no charge,
-4. launches the **Streamlit dashboard** behind a temporary public
-   `trycloudflare.com` link (the last cell prints the URL; stop that cell to shut
-   the dashboard down).
-
-To upload it to Colab: `File → Upload notebook` and pick
-`notebooks/yc_radar_colab.ipynb`, or push this repo to GitHub and open the notebook
-via Colab's GitHub tab.
-
-> Colab note: Streamlit can't be reached directly from Colab, so the notebook
-> tunnels it via cloudflared — that's why you get a public link instead of
-> `localhost`. The Excel file is the primary deliverable; the dashboard is for
-> interactive browsing of that same data.
-
----
-
-The sections below describe running the project **locally** (outside Colab).
-Implementation plan: `tasks/plan.md`.
-
-## Data sources & honesty
-
-- **Core data:** the community `yc-oss/api` JSON (rebuilt daily from the official
-  YC directory).
-- **Deep-dive links:** OPEN sources only — company website, YC profile, Google
-  News, Product Hunt, Hacker News, GitHub, Wikipedia. No Crunchbase/LinkedIn or
-  other paywalled/login-walled links.
-- **Not included, by design:** cap tables and exact funding/valuation numbers for
-  private startups don't exist publicly, so the tool never fabricates them. The
-  `investability` column is an honest, status-derived heuristic.
-
-## Setup
+## Quick start (local)
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # optional: add ANTHROPIC_API_KEY to enable AI summaries
+pip install -r requirements.txt --require-hashes    # or: pip install -e .
+streamlit run app.py                                 # dashboard (after data exists)
+pytest -q                                            # tests (network + LLM mocked)
 ```
 
-## Run the pipeline (produces the dataset + Excel)
+Run the pipeline via the notebooks (Colab or `papermill`), or the two GitHub
+Actions workflows. AI needs `ANTHROPIC_API_KEY` (or `GROQ_API_KEY`); without a key
+the AI columns show a placeholder and nothing is charged.
 
-```bash
-# interactive
-jupyter lab notebooks/yc_radar.ipynb
+## Docs
 
-# or headless
-jupyter nbconvert --to notebook --execute notebooks/yc_radar.ipynb --output yc_radar.ipynb
-```
+- [`SPEC.md`](Archive/SPEC.md) — the specification (source of truth).
+- [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) — architecture & implementation.
+- [`docs/AI_METHODOLOGY.md`](docs/AI_METHODOLOGY.md) — the prompts + how it was built.
+- [`docs/HOW_TO_UPDATE.md`](docs/HOW_TO_UPDATE.md) — maintenance checklist.
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — hosting + Google Sheets + sharing.
 
-Outputs land in `data/processed/`: `yc_radar.parquet` (canonical), `yc_radar.xlsx`
-(styled, clickable links), and `yc_radar.csv`.
+## Honesty about data
 
-## Browse it (Streamlit)
-
-```bash
-streamlit run app.py
-```
-
-The dashboard reads the exported Parquet — run the notebook first. It has four tabs:
-
-- **📊 Обзор** — KPI cards + interactive Plotly charts (by industry / subindustry /
-  batch year, score distribution, status & funnel-stage breakdown) and a top-N
-  leaderboard.
-- **🔎 Компании** — filterable table + per-company cards, with **download the
-  filtered view** as CSV or Excel.
-- **⚖️ Сравнение** — compare up to 5 companies side by side.
-- **📝 Заметки** — edit rating, ⭐ favorite, funnel **stage**, free **tags**, and
-  notes.
-
-Filters: industry, subindustry, status, investability, funnel stage, your tags,
-favorites-only, batch year, and score/team-size ranges, plus full-text search.
-
-Annotations persist across data refreshes. Storage is chosen automatically:
-a local `data/user_data.csv` locally/Colab, or **Google Sheets** when hosted (see
-below).
-
-## Host it online (permanent link, no Colab)
-
-Deploy on **Streamlit Community Cloud** so the dashboard lives at a fixed URL,
-independent of any Colab session. Because that host's disk is ephemeral, notes are
-persisted to **Google Sheets**. Full step-by-step: **`HOSTING.md`**.
-
-## AI summaries
-
-AI idea/uniqueness/risk summaries are pluggable engines in `ai.py`:
-
-- **Claude Haiku 4.5 (paid, cheap — recommended)** — `make_claude_summarizer(...)`,
-  synchronous with a resumable cache and progress output. Tuned for review quality
-  within budget: cheapest capable model, `max_tokens=500` (richer 2–3 sentence
-  summary + concrete risks), truncated input (`MAX_DESC_CHARS=1500`) → ≈ **3–4 USD**
-  for the full 2024–2026 set. For the absolute lowest price, use the Batch API (−50%):
-  `add_ai_summaries(df, api_key=...)` with no summarizer.
-- **Groq (free)** — `make_groq_summarizer(...)`, free tier at console.groq.com.
-  Note: the free daily token cap can't cover the whole set in one run.
-
-Either way: no key → the columns show a placeholder and **no API call is made**.
-Results cache to `data/processed/ai_cache.json`, so re-runs only summarize **new**
-companies. The engine is injected via the `summarizer=` argument of
-`add_ai_summaries`, so swapping it never touches the rest of the pipeline.
-
-## Project layout
-
-```
-notebooks/yc_radar.ipynb   pipeline + analytics (fetch→normalize→enrich→score→AI→export)
-app.py                     Streamlit dashboard (reads the export)
-src/yc_radar/              reusable, tested logic
-  fetch.py  normalize.py  enrich.py  score.py  ai.py  export.py  filters.py  user_data.py
-tests/                     pytest suite (network + AI fully mocked)
-data/                      raw cache + processed exports (gitignored)
-SPEC.md  tasks/plan.md     spec and implementation plan
-```
-
-## Development
-
-```bash
-pytest --cov=src/yc_radar   # tests never hit the network or the AI API
-ruff check src tests app.py
-black src tests app.py
-```
+Uses the community `yc-oss/api` (open). Open-source deep-dive links only (no
+Crunchbase/LinkedIn). Cap tables, funding, and valuations for private startups
+don't exist publicly, so the tool never fabricates them; `investability` is an
+honest status-derived heuristic.

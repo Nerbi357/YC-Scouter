@@ -1,0 +1,36 @@
+# Top-level dependencies (human-edited source).
+# Compile to the pinned + hashed lock with:
+#   uv pip compile requirements.in --generate-hashes -o requirements.txt
+# Install reproducibly with:
+#   pip install -r requirements.txt --require-hashes
+
+# --- Core pipeline ---
+httpx
+pandas
+pyarrow            # Parquet
+openpyxl           # styled Excel export
+
+# --- Dashboard & charts ---
+streamlit
+plotly
+
+# --- AI enrichment (File 2) ---
+anthropic          # Claude (default provider)
+groq               # Groq (optional provider)
+
+# --- Personal notes backend (hosted) ---
+gspread
+google-auth
+
+# --- Notebook execution (headless in GitHub Actions) ---
+papermill
+ipykernel
+
+# --- Config / secrets ---
+python-dotenv
+
+# --- Dev / quality gates ---
+pytest
+pytest-cov
+ruff
+black

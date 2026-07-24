@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from yc_radar import normalize
+from yc_scouter import normalize
 
 
 def test_parse_batch_year_full_words():
@@ -24,22 +24,34 @@ def test_parse_batch_year_unknown_returns_none():
     assert normalize.parse_batch_year(None) is None
 
 
-def test_normalize_filters_to_target_years(sample_records):
+def test_normalize_filters_2020_to_current(sample_records):
     df = normalize.normalize(sample_records)
-    assert set(df["batch_year"].unique()) <= {2024, 2025, 2026}
-    assert "old-co" not in df["slug"].values  # 2012 filtered out
+    # 2012 is filtered out; 2020 (left boundary) is kept.
+    assert "old-co" not in df["slug"].values
+    assert 2020 in set(df["batch_year"].unique())
+    assert "twenty-twenty" in df["slug"].values
+    assert df["batch_year"].min() >= 2020
 
 
-def test_normalize_dedupes_by_slug(sample_records):
+def test_normalize_dedupes_by_id(sample_records):
     df = normalize.normalize(sample_records)
-    assert df["slug"].is_unique
-    assert (df["slug"] == "acme-ai").sum() == 1
+    # two source rows share id 101 (acme-ai + its dupe) -> collapse to one
+    assert df["id"].is_unique
+    assert (df["id"] == 101).sum() == 1
+
+
+def test_normalize_stable_sort_by_id(sample_records):
+    df = normalize.normalize(sample_records)
+    ids = df["id"].tolist()
+    assert ids == sorted(ids)  # deterministic ascending-id order
 
 
 def test_normalize_renames_and_types(sample_records):
     df = normalize.normalize(sample_records)
     for col in normalize.CORE_COLUMNS:
         assert col in df.columns, f"missing column {col}"
+    assert "id" in normalize.CORE_COLUMNS
+    assert pd.api.types.is_integer_dtype(df["id"])
     # renamed fields
     assert "is_hiring" in df.columns and "isHiring" not in df.columns
     assert "yc_url" in df.columns

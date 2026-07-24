@@ -1,6 +1,6 @@
 """Tests for enrichment: investability heuristic and open-source links."""
 
-from yc_radar import enrich, normalize
+from yc_scouter import enrich, normalize
 
 
 def _df(sample_records):
