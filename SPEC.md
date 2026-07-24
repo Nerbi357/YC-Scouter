@@ -272,7 +272,7 @@ pyproject.toml                    makes `pip install -e .` work so notebooks/app
 .env.example                      key NAMES only (ANTHROPIC_API_KEY, GROQ_API_KEY, Google creds)
 app.py                            Streamlit dashboard entry point (Russian UI)
 src/yc_scouter/                   shared package: fetch, normalize, enrich, score, export, ai,
-                                  filters, user_data, gsheets, config
+                                  filters, user_data, gsheets, config, pipeline
 notebooks/
   01_dataset_base.ipynb           File 1: scrape YC 2020→now → dated Base parquet/xlsx
   02_ai_summary.ipynb             File 2: LLM description + risks, cache by (id,model,prompt_version)

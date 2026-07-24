@@ -141,10 +141,12 @@ Vertical tasks with acceptance criteria + verification. Sliced from `SPEC.md` /
     owner-lock sharing. Short README with dashboard-link placeholder + "built with
     Claude Code". Added `.streamlit/config.toml`; refreshed `.env.example`.
 
-- [ ] **T4.3 Prune to final-phase files**
-  - Remove stray/working files (`scripts/run_pipeline.py`, old notebooks, obsolete
-    tests); confirm the tree matches `SPEC.md §13`.
-  - Accept: `git ls-files` == the agreed structure; `pytest`/`ruff`/`black` green.
-  - [V] structure diff vs SPEC §13.
+- [x] **T4.3 Prune to final-phase files** ✅
+  - Removed old notebooks (`yc_radar*.ipynb`), `scripts/run_pipeline.py`, `HOSTING.md`,
+    `PROJECT_HANDOFF.md`, the old `data/processed/*` (incl. `yc_radar.parquet`).
+    Rewrote `.gitignore` (track dated datasets + AI cache; ignore local notes/scratch);
+    added `data/.gitkeep` + `data/cache/.gitkeep`; updated `session_start.sh`. Kept
+    (flagged for the user): `SPEC.md`, `tasks/`, `scripts/session_start.sh`, `.claude/`.
+
 
 **CP-4 review → ready to host.**

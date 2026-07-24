@@ -4,4 +4,5 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 pip install -q -r requirements.txt >/dev/null 2>&1 || true
-echo "yc-radar: environment ready (deps installed)"
+pip install -q -e . --no-deps >/dev/null 2>&1 || true
+echo "yc-scouter: environment ready (deps installed)"

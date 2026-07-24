@@ -9,20 +9,18 @@ venv/
 .coverage
 htmlcov/
 
-# Secrets
+# Secrets — never commit
 .env
-
-# Data & generated artifacts (never commit)
-data/raw/*
-data/processed/*
-data/user_data.csv
-!data/raw/.gitkeep
-!data/processed/.gitkeep
-# ...except the dataset you deliberately commit to host the dashboard:
-!data/processed/yc_radar.parquet
-
-# Streamlit secrets (service-account keys, sheet ids) — never commit
 .streamlit/secrets.toml
+
+# Data: dated datasets (data/yc_dataset_*.{parquet,xlsx}) and the AI cache
+# (data/cache/ai_cache.json) ARE committed so the dashboard has data. Ignore only
+# local/scratch bits:
+data/user_data.csv
+data/*.slug.bak
+data/raw/
+!data/.gitkeep
+!data/cache/.gitkeep
 
 # Jupyter
 .ipynb_checkpoints/
