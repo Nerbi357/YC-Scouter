@@ -24,6 +24,7 @@ import io
 import os
 import re
 import sys
+import time
 import traceback
 from pathlib import Path
 
@@ -398,6 +399,36 @@ def save_one(row_id: int, values: dict) -> None:
     save_annotations(store.reset_index())
 
 
+# --------------------------------------------------------------- "saved" feedback
+#: (what was saved, when) — a save is followed by a rerun, which wipes an inline
+#: st.success, so the confirmation has to survive in session state.
+SAVED_FLASH = "saved_flash"
+FLASH_TTL_SECONDS = 60
+#: Stands in for a company id when the whole notes table was saved at once.
+BULK_FLASH_ID = "bulk"
+
+
+def _flash_is_fresh(flash: object, cid: object, now: float, ttl: float) -> bool:
+    if not isinstance(flash, tuple) or len(flash) != 2:
+        return False
+    saved_cid, stamp = flash
+    return saved_cid == cid and (now - float(stamp)) <= ttl
+
+
+def mark_saved(cid: object) -> None:
+    """Remember that ``cid`` was just saved (and pop a toast about it)."""
+    st.session_state[SAVED_FLASH] = (cid, time.time())
+    try:
+        st.toast("Сохранено ✅", icon="✅")
+    except Exception:  # pragma: no cover - toast needs a live runtime
+        pass
+
+
+def saved_recently(cid: object) -> bool:
+    """True while the "saved" confirmation for ``cid`` should still be visible."""
+    return _flash_is_fresh(st.session_state.get(SAVED_FLASH), cid, time.time(), FLASH_TTL_SECONDS)
+
+
 # ------------------------------------------------------------------------- export
 def _clean_cell(v: object) -> object:
     if isinstance(v, (list, tuple)):
@@ -701,6 +732,8 @@ def _note_form(row: pd.Series, place: str) -> None:
     cid = _row_id(row)
     if cid is None:
         return
+    if saved_recently(cid):
+        st.success("Сохранено ✅ — изменения записаны.")
     if not is_owner():
         st.caption(
             "👀 Ваши личные заметки: работают полностью, но живут только в этой "
@@ -734,6 +767,7 @@ def _note_form(row: pd.Series, place: str) -> None:
                     "my_notes": notes,
                 },
             )
+            mark_saved(cid)
             st.rerun(scope="app")  # refresh stars, counters and the table
         except Exception as exc:
             st.error(f"Не удалось сохранить: {exc}")
@@ -856,6 +890,30 @@ def _bar_count(
     st.plotly_chart(fig, width="stretch")
 
 
+def year_bar(df: pd.DataFrame):
+    """Companies-per-batch-year bar chart, or None when there is nothing to draw.
+
+    The x axis is explicitly **categorical**: years look like numbers, so Plotly
+    puts them on a continuous axis and pads it with ticks like 2020.5 — glaringly
+    wrong with a single year selected.
+    """
+    if px is None or "batch_year" not in df.columns:
+        return None
+    years = pd.to_numeric(df["batch_year"], errors="coerce").dropna().astype(int)
+    if years.empty:
+        return None
+    counts = years.value_counts().sort_index()
+    fig = px.bar(
+        x=counts.index.astype(str),
+        y=counts.values,
+        labels={"x": "Год батча", "y": "Компаний"},
+        title="Компании по годам батча",
+    )
+    fig.update_traces(marker_color="#4C9BE8")
+    fig.update_xaxes(type="category")
+    return fig
+
+
 def _pie(df: pd.DataFrame, col: str, title: str) -> None:
     counts = df[col].dropna().value_counts()
     if counts.empty:
@@ -895,18 +953,9 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
-            yr = filtered.dropna(subset=["batch_year"]).copy()
-            if len(yr):
-                yr["batch_year"] = yr["batch_year"].astype(int)
-                counts = yr["batch_year"].value_counts().sort_index()
-                fig = px.bar(
-                    x=counts.index.astype(str),
-                    y=counts.values,
-                    labels={"x": "Год батча", "y": "Компаний"},
-                    title="Компании по годам батча",
-                )
-                fig.update_traces(marker_color="#4C9BE8")
-                st.plotly_chart(fig, width="stretch")
+            year_fig = year_bar(filtered)
+            if year_fig is not None:
+                st.plotly_chart(year_fig, width="stretch")
         with r2c2:
             fig = px.histogram(filtered, x="score", nbins=20, title="Распределение score")
             fig.update_traces(marker_color="#7C5CFC")
@@ -932,17 +981,38 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
     detail_card(filtered, place="overview")
 
 
+def _step_page(delta: int, pages: int) -> None:
+    """Move the pager by ``delta``, clamped to the pages that exist."""
+    page = int(st.session_state.get("card_page", 1)) + delta
+    st.session_state["card_page"] = min(max(page, 1), max(pages, 1))
+
+
 def _page_number(pages: int) -> int:
-    """← / → pager stored in session state (nicer than a +/- number input)."""
-    page = int(st.session_state.get("card_page", 1))
-    page = min(max(page, 1), pages)
-    prev_col, label_col, next_col = st.columns([1, 3, 1])
-    if prev_col.button("← Назад", width="stretch", disabled=page <= 1, key="page_prev"):
-        page -= 1
-    if next_col.button("Вперёд →", width="stretch", disabled=page >= pages, key="page_next"):
-        page += 1
-    page = min(max(page, 1), pages)
+    """← / → pager stored in session state (nicer than a +/- number input).
+
+    The step runs as an ``on_click`` **callback**: Streamlit executes it before the
+    script reruns, so the buttons are drawn from the page we are actually on.
+    Updating the page after drawing them left "Вперёд →" clickable on the last page.
+    """
+    page = min(max(int(st.session_state.get("card_page", 1)), 1), pages)
     st.session_state["card_page"] = page
+    prev_col, label_col, next_col = st.columns([1, 3, 1])
+    prev_col.button(
+        "← Назад",
+        width="stretch",
+        disabled=page <= 1,
+        key="page_prev",
+        on_click=_step_page,
+        args=(-1, pages),
+    )
+    next_col.button(
+        "Вперёд →",
+        width="stretch",
+        disabled=page >= pages,
+        key="page_next",
+        on_click=_step_page,
+        args=(1, pages),
+    )
     label_col.markdown(
         f"<div style='text-align:center;padding-top:0.45rem'>Страница <b>{page}</b> из {pages}"
         "</div>",
@@ -1045,6 +1115,8 @@ def tab_compare(filtered: pd.DataFrame) -> None:
 
 def tab_notes(filtered: pd.DataFrame) -> None:
     st.subheader("📝 Заметки, теги и воронка")
+    if saved_recently(BULK_FLASH_ID):
+        st.success("Сохранено ✅ — изменения записаны.")
     if filtered.empty:
         st.info("Под текущие фильтры не попала ни одна компания.")
         return
@@ -1106,7 +1178,7 @@ def tab_notes(filtered: pd.DataFrame) -> None:
             }
         try:
             save_annotations(store.reset_index())
-            st.success(f"Сохранено для {len(edited)} компаний.")
+            mark_saved(BULK_FLASH_ID)
             st.rerun()
         except Exception as exc:
             st.error(f"Не удалось сохранить: {exc}")
