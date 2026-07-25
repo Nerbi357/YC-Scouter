@@ -224,7 +224,6 @@ anything. Alongside the unit tests:
 
 - [`HOW_TO_DEPLOY_DASHBOARD.md`](HOW_TO_DEPLOY_DASHBOARD.md) — publish it yourself.
 - [`HOW_TO_UPDATE.md`](HOW_TO_UPDATE.md) — the maintenance checklist.
-- [`../AI_USAGE/AI_METHODOLOGY.md`](../AI_USAGE/AI_METHODOLOGY.md) — the reusable
-  principles behind how this was built.
-- [`../FOR_AI/PROJECT_MEMORY.md`](../FOR_AI/PROJECT_MEMORY.md) — the continuity file
-  for working on *this* project with an AI agent.
+- [`../AI_USAGE/PROJECT_MEMORY.md`](../AI_USAGE/PROJECT_MEMORY.md) — the continuity
+  file for working on this project with an AI agent, next to the instructions that
+  agent follows.

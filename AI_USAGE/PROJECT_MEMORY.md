@@ -6,9 +6,9 @@
 >
 > **Reading order.** [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) first (how to work
 > with the owner — it applies to every project and outranks any habit), then this
-> file, then [`PLAN.md`](PLAN.md) (what is in flight), then
-> `../DOCS/HOW_IT_WORKS.md` (how the code works) and `../DOCS/HOW_TO_UPDATE.md`
-> (maintenance).
+> file, then `../DOCS/HOW_IT_WORKS.md` (how the code works) and
+> `../DOCS/HOW_TO_UPDATE.md` (maintenance). Ideas that were raised but not
+> scheduled live in [`IDEAS.md`](IDEAS.md).
 >
 > **Keep it current.** Decisions, results and open questions are written here in the
 > same pass as the work. A stale memory file is worse than none.
@@ -66,15 +66,16 @@ only blocks and a few mandatory files, with no service clutter.
    service code rather than a project block.
 3. **Everything the AI agent needs lives in `.claude/`**: skills, commands, agents,
    `settings.json`, `session_start.sh`.
-4. **`AI_USAGE/` is for visitors only**: the portable methodology
-   (`AI_METHODOLOGY.md`) and the description of the skills used (`SKILLS_USED.md`).
-   No working agent configuration here.
+4. **`AI_USAGE/` is the AI's own folder**: `AI_INSTRUCTIONS.md`,
+   `PROJECT_MEMORY.md`, `IDEAS.md`. Documents aimed at outside readers belong in
+   `DOCS/`, not here.
 5. **`DOCS/` holds documents for people**, one per job: how it works, how to
    deploy, how to update. Never create two documents answering the same question.
 6. **Never delete anything from `data/`** — dated runs are kept as an archive.
-7. **Everything the AI needs lives in `FOR_AI/`**: `AI_INSTRUCTIONS.md` (portable
-   rules, travels between projects), `PROJECT_MEMORY.md` (this file) and `PLAN.md`
-   (the living plan). There is no separate SPEC / TODO any more.
+7. **Everything the AI needs lives in `AI_USAGE/`**: `AI_INSTRUCTIONS.md` (portable
+   rules, travels between projects), `PROJECT_MEMORY.md` (this file) and
+   `IDEAS.md` (the backlog). No separate SPEC / plan / TODO in the final state —
+   the plan is a working instrument and is folded in here when the project closes.
 
 **What physically cannot be moved** (verified — moving it breaks the project):
 `requirements.txt` (Streamlit Cloud only reads it from the root), `pyproject.toml`
@@ -147,12 +148,9 @@ DOCS/HOW_IT_WORKS.md              how everything works — detailed, for outside
 DOCS/HOW_TO_DEPLOY_DASHBOARD.md   step-by-step deployment + Google Sheet + sharing
 DOCS/HOW_TO_UPDATE.md             maintenance checklist (buttons, keys, models, lock)
 
-FOR_AI/AI_INSTRUCTIONS.md    HOW to work with the owner — portable, travels along
-FOR_AI/PROJECT_MEMORY.md     THIS file — everything about this project
-FOR_AI/PLAN.md               the living plan: phases, status, what is next
-
-AI_USAGE/AI_METHODOLOGY.md   how this project was built with AI — for readers
-AI_USAGE/SKILLS_USED.md      which skills were used and what each contributed
+AI_USAGE/AI_INSTRUCTIONS.md  HOW to work with the owner — portable, travels along
+AI_USAGE/PROJECT_MEMORY.md   THIS file — everything about this project
+AI_USAGE/IDEAS.md            backlog: proposals raised but not scheduled
 
 .claude/                    agent service files: skills, commands, agents,
                             settings.json, session_start.sh (prepares the session)
@@ -161,10 +159,9 @@ AI_USAGE/SKILLS_USED.md      which skills were used and what each contributed
 ```
 
 **Roles of the documents** (do not mix them):
-`FOR_AI/AI_INSTRUCTIONS.md` — how to work with the owner, on **any** project;
-`FOR_AI/PROJECT_MEMORY.md` — everything about **this** project (this file);
-`FOR_AI/PLAN.md` — what is in flight right now;
-`AI_USAGE/*` — for readers: how this project was built with AI, with real prompts;
+`AI_USAGE/AI_INSTRUCTIONS.md` — how to work with the owner, on **any** project;
+`AI_USAGE/PROJECT_MEMORY.md` — everything about **this** project (this file);
+`AI_USAGE/IDEAS.md` — proposals not yet scheduled;
 `DOCS/*` — for people: how it works / how to deploy / how to maintain;
 `README.md` — the shop window and navigation.
 
@@ -186,8 +183,9 @@ The agreed (and delivered) contents:
    *Later simplified by the owner:* the one-liner comes from YC, two AI fields stay.
 3. **A results folder** — 4 files per run (Base/AI × parquet/xlsx), dated.
 4. **A "how it works" document** → `DOCS/HOW_IT_WORKS.md`.
-5. **An "AI prompts and skills" document** → `AI_USAGE/AI_METHODOLOGY.md` +
-   `SKILLS_USED.md`; the prompts themselves live in `DOCS/HOW_IT_WORKS.md` §5.
+5. **An "AI prompts and skills" document** → the prompts, their constraints and the
+   cost controls live in `DOCS/HOW_IT_WORKS.md` §5; how the agent was set up and
+   directed lives in `AI_USAGE/AI_INSTRUCTIONS.md`.
 6. **File 5** — "a notebook preparing the dashboard deployment" → **not built
    separately**: `app.py` and `DOCS/HOW_TO_DEPLOY_DASHBOARD.md` fill that role.
 7. **README** — a short description + a link to the dashboard.
@@ -224,9 +222,9 @@ re-run to collect new companies; no service files beyond the agreed ones.
 - Documents for people: `HOW_IT_WORKS`, `HOW_TO_DEPLOY_DASHBOARD`, `HOW_TO_UPDATE`.
 - Spec, plans and TODO were **absorbed into this file**; `Archive/` deleted
   (2026-07-25): instructions for the AI live in one place.
-- `AI_METHODOLOGY` rewritten as a **portable playbook** and moved to `AI_USAGE/`
-  together with `SKILLS_USED.md`; the project's prompts moved into
-  `DOCS/HOW_IT_WORKS.md`.
+- Documents for outside readers about the AI work were **dropped** (2026-07-25) —
+  the owner does not need them. What survives: the prompts and cost controls in
+  `DOCS/HOW_IT_WORKS.md`, and the agent-facing files in `AI_USAGE/`.
 - Tests moved to `src/tests/`, `session_start.sh` to `.claude/`, `requirements.in`
   folded into `pyproject.toml`, `.env.example` deleted.
 - **File 5 of the original brief is not built separately**: `app.py` and
@@ -354,6 +352,6 @@ re-run to collect new companies; no service files beyond the agreed ones.
 
 > "Here is the repository Nerbi357/YC-Scouter, branch
 > `claude/ycombinator-startups-agent-skills-eyv4ar`. Read
-> `FOR_AI/AI_INSTRUCTIONS.md` first, then `FOR_AI/PROJECT_MEMORY.md` and
-> `FOR_AI/PLAN.md`, then `DOCS/HOW_IT_WORKS.md`. Talk to me in Russian, write
+> `AI_USAGE/AI_INSTRUCTIONS.md` first, then `AI_USAGE/PROJECT_MEMORY.md`, then
+> `DOCS/HOW_IT_WORKS.md`. Talk to me in Russian, write
 > everything in the repository in English. Continue from the plan."
