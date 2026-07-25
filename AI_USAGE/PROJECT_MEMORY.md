@@ -115,10 +115,17 @@ Commands: `/spec /plan /build /test /review /ship /code-simplify /webperf`
 
 ## 5. Git and deployment
 
-- Working branch: **`claude/ycombinator-startups-agent-skills-eyv4ar`**.
-- **`main` is what is deployed** to Streamlit Cloud. After a change: commit to the
-  working branch → push → merge into `main` → push. Streamlit redeploys itself in
-  2–3 minutes.
+- **One branch only: `main`.** The owner asked for it (2026-07-25) once the project
+  reached its final state: the working branch had become an exact copy of `main`
+  after every merge, so it was clutter rather than protection.
+- **`main` is what is deployed** to Streamlit Cloud, so a push goes live in 2–3
+  minutes. That is the trade-off of a single branch, and it puts the burden on the
+  checks: **run the tests and the linters before every push**, and for anything the
+  visitor can see, the browser check as well. Nothing goes to `main` unverified.
+- **For risky or multi-step work, create a temporary branch, merge it, delete it.**
+  The rule is "no permanent second branch", not "never branch".
+- The two Actions buttons commit straight to `main` (dated datasets + the AI cache),
+  so pull before starting work — CI may be ahead of you.
 - Do not open pull requests unless explicitly asked.
 - Never commit secrets (`.env`, `.streamlit/secrets.toml` are git-ignored).
 

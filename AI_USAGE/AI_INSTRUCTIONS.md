@@ -313,7 +313,12 @@ Beyond that:
 - **Atomic commits**, each with tests and linters green, each explaining *why*.
 - **Secrets never enter the repository** — not in code, not in notebooks, not in
   examples.
-- **A working branch, and a main branch that equals what is deployed.**
+- **A main branch that always equals what is deployed.** Whether a permanent
+  working branch sits next to it is the owner's call: it is useful while a project
+  is being built and becomes clutter once every merge makes it an exact copy. When
+  there is only one branch, the checks carry the whole weight — tests, linters and,
+  for anything user-facing, a real browser pass before every push — and risky work
+  gets a temporary branch that is deleted after the merge.
 
 ## 11. Project-type playbooks
 
