@@ -140,7 +140,7 @@ src/yc_scouter/             ALL the logic (notebooks and the dashboard import it
   user_data.py              notes (id, watchlist, my_tags, my_stage, my_notes)
   gsheets.py                Google Sheets backend for the notes
   pipeline.py               build_base() / build_ai() — the thin API for notebooks
-src/tests/                  154 tests; network and LLM mocked (a run costs nothing)
+src/tests/                  the test suite; network and LLM mocked (a run costs nothing)
 
 notebooks/01_dataset_base.ipynb   File 1 — collect all companies 2020→now
 notebooks/02_ai_summary.ipynb     File 2 — AI enrichment (Claude/Groq/mock)
@@ -240,9 +240,12 @@ re-run to collect new companies; no service files beyond the agreed ones.
   project. `README.ru.md` is the Russian version of the README. Conversation with
   the owner stays in Russian.
 - Visitor-facing folders are named in CAPS (`DOCS/`, `AI_USAGE/`).
-- **No exact company counts in any description** (2026-07-25): they drift with every
-  rebuild and had already disagreed across files (4037 vs 4040). Documents say
-  "several thousand"; the dashboard shows the real number of the dataset it reads.
+- **No drifting counts in descriptions** (2026-07-25): company and test counts drift
+  with every rebuild and had already disagreed across files (4037 vs 4040).
+  Descriptions say "several thousand" / "the test suite"; the dashboard reports the
+  real number of the dataset it reads. **Measurements and examples keep their
+  numbers** — they are facts about one moment — but must name the date or the run
+  they came from ("the full run of 2026-07-24 cost $7.14 for ~4,000 companies").
 
 ## 9. What is done (state as of the last session)
 
@@ -307,7 +310,7 @@ re-run to collect new companies; no service files beyond the agreed ones.
   (rewritten step by step), `HOW_IT_WORKS.md` expanded, `Archive/` deleted (the
   brief absorbed here), `requirements.in` → `pyproject.toml`, `.env.example`
   deleted. Verified after the move: the whole suite, ruff, a browser check on the real
-  dataset, and **a File 1 Actions run on the new structure succeeded** (so
+  dataset (~4,000 rows), and **a File 1 Actions run on the new structure succeeded** (so
   `pip install -e .` and papermill still work).
 - ✅ **Preflight before spending** (2026-07-25, `src/yc_scouter/preflight.py`, 7
   tests): File 2 verifies the key, the credit balance and the model id before the
