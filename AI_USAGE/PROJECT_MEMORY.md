@@ -99,7 +99,9 @@ A fork of **`addyosmani/agent-skills`** is vendored into `.claude/`.
 3. **Verify for real.** For UI — a real browser (Playwright) against the real
    dataset; for speed — a before/after measurement, not a feeling.
 4. **Deploy:** merge the working branch into `main` → push (Streamlit picks it up).
-5. **Write the decision and the result into `PROJECT_MEMORY.md` and `PLAN.md`** in the same pass.
+5. **Write the decision and the result into `PROJECT_MEMORY.md`** in the same pass.
+   (While a project is in flight there is also a `PLAN.md`; this one is finished, so
+   its plan was folded in here and deleted.)
 6. On any failure use `debugging-and-error-recovery`: find the root cause in the
    traceback first, then change code. Never guess.
 
@@ -365,14 +367,22 @@ re-run to collect new companies; no service files beyond the agreed ones.
    - The structural win would be rendering only the active tab (≈ 0.4 s), at the
      cost of tab switching becoming a server round-trip.
    - Measure with the Playwright script on the real dataset, before and after.
-2. **Audit:** all confirmed critical findings are closed (see §9). The detailed
-   list of **high/medium** findings was lost with the old chat — re-run the
-   adversarial audit (multi-agent Workflow) when the owner asks.
+2. **Audit — closed and approved by the owner (2026-07-25).** Two passes were run:
+   the first covered confirmed-critical defects, the second was cross-verified across
+   five lenses (see §9). Everything confirmed is fixed with a regression test. The
+   working plan file was deleted at that point, as agreed — a plan is an instrument
+   for a project in flight, not part of a finished repository.
 3. **Failure alerting** — the owner picked option 2 only (a preflight in File 2);
    done, see §9. The options he declined for now: a data-contract check after each
    run, a data-health line in the dashboard, and a check-only cron.
 4. Possibly phase 2: a full website (Cloudflare Pages on the same dataset). The
    owner decided: **not this time**, keep it for the future.
+
+**Deliberately not doing** (decided, do not re-propose without a reason):
+a scheduled data refresh (updates stay manual: predictable, no silent spending,
+nothing breaks unattended) · a separate "File 5" deployment notebook (`app.py` plus
+`DOCS/HOW_TO_DEPLOY_DASHBOARD.md` fill that role) · documents about the AI work
+aimed at outside readers · keeping `AI_INSTRUCTIONS.md` in its own repository.
 
 ## 11. Risks and maintenance (details in `DOCS/HOW_TO_UPDATE.md`)
 
