@@ -506,50 +506,77 @@ def card_text(row: pd.Series) -> str:
 
 
 @st.fragment
+def note_section_lazy(row: pd.Series, place: str) -> None:
+    """Notes behind a button — the cheap variant used in the 50-card list.
+
+    Rendering the editor for every card costs ~6 widgets each (≈350 per page), which
+    is what made the card list slow. Here a single button stands in for it until the
+    user actually wants to write something.
+    """
+    cid = _row_id(row)
+    if cid is None:
+        return
+    opened = f"notes_open_{place}_{cid}"
+    if not st.session_state.get(opened):
+        if st.button("📝 Заметки о компании", key=f"opennotes_{place}_{cid}"):
+            st.session_state[opened] = True
+            st.rerun(scope="fragment")
+        return
+    with st.container(border=True):
+        _note_form(row, place)
+
+
+@st.fragment
 def note_section(row: pd.Series, place: str) -> None:
     """Collapsed per-company notes. A fragment, so saving doesn't rerun the page."""
     cid = _row_id(row)
     if cid is None:
         return
     with st.expander("📝 Заметки о компании"):
-        if not is_owner():
-            st.caption(
-                "👀 Ваши личные заметки: работают полностью, но живут только в этой "
-                "вкладке браузера — они не видны владельцу и пропадут при обновлении "
-                "страницы."
+        _note_form(row, place)
+
+
+def _note_form(row: pd.Series, place: str) -> None:
+    """The note widgets themselves (favorite / stage / tags / note + save)."""
+    cid = _row_id(row)
+    if cid is None:
+        return
+    if not is_owner():
+        st.caption(
+            "👀 Ваши личные заметки: работают полностью, но живут только в этой "
+            "вкладке браузера — они не видны владельцу и пропадут при обновлении "
+            "страницы."
+        )
+    c1, c2 = st.columns([1, 2])
+    fav = c1.checkbox("⭐ Избранное", value=bool(row.get("watchlist")), key=f"fav_{place}_{cid}")
+    stages = list(user_data.STAGES)
+    cur_stage = row.get("my_stage", user_data.DEFAULT_STAGE)
+    stage = c2.selectbox(
+        "Стадия воронки",
+        stages,
+        index=stages.index(cur_stage) if cur_stage in stages else 0,
+        key=f"stage_{place}_{cid}",
+    )
+    tags = st.text_input(
+        "Теги (через запятую)", value=str(row.get("my_tags", "")), key=f"tags_{place}_{cid}"
+    )
+    notes = st.text_area(
+        "Заметка", value=str(row.get("my_notes", "")), key=f"notes_{place}_{cid}", height=110
+    )
+    if st.button("💾 Сохранить", type="primary", key=f"save_{place}_{cid}"):
+        try:
+            save_one(
+                cid,
+                {
+                    "watchlist": bool(fav),
+                    "my_stage": stage,
+                    "my_tags": tags,
+                    "my_notes": notes,
+                },
             )
-        c1, c2 = st.columns([1, 2])
-        fav = c1.checkbox(
-            "⭐ Избранное", value=bool(row.get("watchlist")), key=f"fav_{place}_{cid}"
-        )
-        stages = list(user_data.STAGES)
-        cur_stage = row.get("my_stage", user_data.DEFAULT_STAGE)
-        stage = c2.selectbox(
-            "Стадия воронки",
-            stages,
-            index=stages.index(cur_stage) if cur_stage in stages else 0,
-            key=f"stage_{place}_{cid}",
-        )
-        tags = st.text_input(
-            "Теги (через запятую)", value=str(row.get("my_tags", "")), key=f"tags_{place}_{cid}"
-        )
-        notes = st.text_area(
-            "Заметка", value=str(row.get("my_notes", "")), key=f"notes_{place}_{cid}", height=110
-        )
-        if st.button("💾 Сохранить", type="primary", key=f"save_{place}_{cid}"):
-            try:
-                save_one(
-                    cid,
-                    {
-                        "watchlist": bool(fav),
-                        "my_stage": stage,
-                        "my_tags": tags,
-                        "my_notes": notes,
-                    },
-                )
-                st.rerun(scope="app")  # refresh stars, counters and the table
-            except Exception as exc:
-                st.error(f"Не удалось сохранить: {exc}")
+            st.rerun(scope="app")  # refresh stars, counters and the table
+        except Exception as exc:
+            st.error(f"Не удалось сохранить: {exc}")
 
 
 def company_body(row: pd.Series) -> None:
@@ -776,7 +803,7 @@ def tab_companies(filtered: pd.DataFrame) -> None:
             f"{star}{row['name']} — {row.get('one_liner', '')}  (score {row.get('score', '')})"
         ):
             company_body(row)
-            note_section(row, place="list")
+            note_section_lazy(row, place="list")
 
 
 def tab_compare(filtered: pd.DataFrame) -> None:
