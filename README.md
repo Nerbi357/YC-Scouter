@@ -37,6 +37,7 @@ the AI columns show a placeholder and nothing is charged.
 
 ## Docs
 
+- [`FOR_CLAUDE.md`](FOR_CLAUDE.md) — **read this first when continuing the project in a new chat**: plans, conventions, decisions, open tasks.
 - [`SPEC.md`](Archive/SPEC.md) — the specification (source of truth).
 - [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) — architecture & implementation.
 - [`docs/AI_METHODOLOGY.md`](docs/AI_METHODOLOGY.md) — the prompts + how it was built.
