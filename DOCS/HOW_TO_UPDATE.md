@@ -17,6 +17,27 @@ concrete steps. Keep it open when you do maintenance.
 > Prefer Colab? Open the two notebooks and Run all, with the top switch set to
 > `drive` or `download`. Same result; the buttons just do it server-side.
 
+## The preflight: File 2 tells you what is wrong before it spends
+
+File 2 checks the AI provider **before** the loop over companies starts: is the key
+present, is it still valid, is there credit left, and is the configured model still
+offered. The check costs one token and turns the four classic failures into a named
+message on the first line of the log, for example:
+
+```
+Preflight failed: the model 'claude-haiku-4-5' is not in the account's model list.
+Available now: claude-haiku-5, claude-opus-5, ... Change the model constant in
+src/yc_scouter/config.py.
+```
+
+So a broken run stops in ~10 seconds with an instruction instead of dying halfway
+through a few thousand companies. A network blip is only a warning and never blocks
+a run that would otherwise work. (Pass `check_first=False` to `build_ai` to skip it.)
+
+**Turn on GitHub's own alerting once:** GitHub → your avatar → **Settings →
+Notifications → Actions** → *Send notifications for failed workflows only*. Then any
+failed button run reaches you by email without anyone watching the Actions tab.
+
 ## Things to watch (and exactly what to do)
 
 | When | Symptom | What YOU do |

@@ -298,6 +298,10 @@ re-run to collect new companies; no service files beyond the agreed ones.
   deleted. Verified after the move: 154 tests, ruff, a browser check on 4040
   companies, and **a File 1 Actions run on the new structure succeeded** (so
   `pip install -e .` and papermill still work).
+- ✅ **Preflight before spending** (2026-07-25, `src/yc_scouter/preflight.py`, 7
+  tests): File 2 verifies the key, the credit balance and the model id before the
+  loop, and turns each failure into a named instruction. Costs one token. A network
+  blip is a warning, not a blocker.
 - ✅ **Full switch to English** (2026-07-25): the dashboard UI, this file and the
   tests are English; `DOCS/` and `AI_USAGE/` are CAPS.
 
@@ -315,8 +319,9 @@ re-run to collect new companies; no service files beyond the agreed ones.
 2. **Audit:** all confirmed critical findings are closed (see §9). The detailed
    list of **high/medium** findings was lost with the old chat — re-run the
    adversarial audit (multi-agent Workflow) when the owner asks.
-3. **Failure alerting** — the owner asked for it: the runs should notice an expired
-   key, a retired model, a changed source schema, and surface it visibly.
+3. **Failure alerting** — the owner picked option 2 only (a preflight in File 2);
+   done, see §9. The options he declined for now: a data-contract check after each
+   run, a data-health line in the dashboard, and a check-only cron.
 4. Possibly phase 2: a full website (Cloudflare Pages on the same dataset). The
    owner decided: **not this time**, keep it for the future.
 

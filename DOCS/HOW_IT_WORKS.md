@@ -195,6 +195,11 @@ notebook headlessly with **papermill**, and commits the dated output files (File
 also commits the updated AI cache). Pushing to `main` redeploys the dashboard
 automatically.
 
+Before spending anything, File 2 runs a **preflight** (`src/yc_scouter/preflight.py`):
+key present, key valid, credit available, model still offered. Each of those four
+failures gets a named message with the fix, on the first line of the log, instead of
+the run dying in the middle. See `HOW_TO_UPDATE.md`.
+
 There is deliberately **no cron**: data that changes only when the owner asks is
 predictable, cannot silently spend money, and cannot break the live dashboard
 while nobody is watching. Personal notes are keyed by the immutable company `id`
