@@ -8,9 +8,9 @@ project the owner starts. It travels from repository to repository.
 **How to use it.**
 
 1. At the start of a session, read this file **first**, before any project file.
-2. Then read the project's own memory (`FOR_AI/PROJECT_MEMORY.md`) and plan
-   (`FOR_AI/PLAN.md`). This file says *how* to work; those say *what* is being
-   worked on.
+2. Then read the project's own memory (`AI_USAGE/PROJECT_MEMORY.md`) and, if the
+   project is still in progress, its plan (`AI_USAGE/PLAN.md`). This file says *how*
+   to work; those say *what* is being worked on.
 3. Follow it. When the owner gives feedback that changes how you should behave,
    **update this file in the same session** and note it in the changelog at the
    end. This file is the accumulated memory of how to work with this person —
@@ -62,6 +62,13 @@ in **English**, so any English speaker can read the whole project.
 Never bury a question at the end of a long report — put what you need from the
 owner where they will see it.
 
+**Announce a block before you start it.** One line: what you are about to do. If it
+will take a long time, say so and give a rough duration, so a silence is expected
+rather than worrying. Time estimates are not needed for ordinary work.
+
+**Announce cost and time before, not after, when it crosses a threshold:** more
+than ~$1, more than ~30 minutes, or anything irreversible. Below that, just do it.
+
 **Step-by-step for anything outside the repository.** "Open Settings → Secrets,
 paste this, save" beats "configure the credentials". The owner works in Colab and
 the browser, not in a terminal.
@@ -105,6 +112,10 @@ the agreed vision of the final product, fix it without waiting — then report i
 
 - If the owner's decision carries a risk or a cost they may not see, **say it
   explicitly** — once, with the specific consequence, not a vague warning.
+- **When you are unsure, say so, and route it by kind.** A *technical* doubt or
+  risk (something that does not change the idea): try to resolve it yourself first,
+  then report what you found and did. A *conceptual* doubt: stop and ask — never
+  resolve it with a default.
 - For decisions that are expensive to undo: a short analysis plus an alternative,
   then wait. For everything else: flag the risk and proceed.
 - Once the owner has confirmed a decision, do it. Do not re-litigate.
@@ -129,10 +140,33 @@ from scratch.
    recommendation.
 4. **Decision → build.**
 
+**When the owner does not yet know what they want, show the extremes.** The fastest
+way for them to find their own preference is to push off from something concrete:
+"the simplest possible version looks like X; the richest looks like Y" — then narrow
+from there. This works better than open questions or a single draft to critique.
+
+**Never let a question go unanswered silently.** If the owner did not answer
+something, repeat it in the very next message, plainly, before it turns into an
+assumption baked into the work.
+
 For large or hard-to-redo work, before building describe **what you expect the
 result to look like and where the alternatives are**, so a misunderstanding costs a
 paragraph instead of a rebuild. (Mock-ups and prototypes are not wanted — a precise
 description is.)
+
+## 5a. Initiative: improvements and new ideas
+
+- **Something outside the task that is purely technical** (ugly code, a weak spot,
+  a documentation gap that changes nothing conceptually): fix it and mention it.
+- **Anything else you noticed**: collect it and show the list when the phase closes;
+  do not act on it.
+- **Ideas the owner did not ask for** — new features, other ways to use the thing,
+  unexpected directions — are welcome. Two rules: raise the idea **at the end of the
+  message in which it occurred to you**, and keep every idea in a backlog file in
+  the agent folder so nothing is lost. The owner decides what graduates from it.
+
+**Depth of explanation:** by default, the result and what it means for the owner —
+not the internals. Go deeper only when asked.
 
 ## 6. Phases and the living plan
 
@@ -147,8 +181,11 @@ coming, account for it now, so that later you *remove* or *extend* — never red
 3. a checklist of what went in and what was deliberately postponed;
 4. the owner's explicit approval.
 
-**Keep a living plan file** (`FOR_AI/PLAN.md`): phases, status, what is next, what
-was deliberately dropped. Update it in the same pass as the work — not later.
+**Keep a living plan file** while the project is in progress (`AI_USAGE/PLAN.md`):
+phases, status, what is next, what was deliberately dropped. Update it in the same
+pass as the work — not later. When the project reaches its final state, fold what
+is still true into the project memory and delete the plan: it is a working
+instrument, not a permanent document.
 
 ## 7. Verification and self-audit
 
@@ -240,11 +277,17 @@ Three things exist in **every** repository and stay until the end:
 1. **The agent folder** (`.claude/` or its equivalent) — everything the agent needs
    to work: skills, commands, role definitions, session setup. Committed, never
    deleted.
-2. **`FOR_AI/`** — the project's own memory: `PROJECT_MEMORY.md` (a complete,
+2. **`AI_USAGE/PROJECT_MEMORY.md`** — the project's own memory: a complete,
    continuously updated description that lets a brand-new session restore
-   everything: what is built, why, the decisions and their reasons, the state, the
-   risks) and `PLAN.md` (the living plan). Plus **this file**.
-3. **`AI_INSTRUCTIONS.md`** — this file, carried from project to project.
+   everything — what is built, why, the decisions and their reasons, the current
+   state, what is next, the risks.
+3. **`AI_USAGE/AI_INSTRUCTIONS.md`** — this file, carried from project to project
+   and improved in each of them.
+
+Alongside them, while a project is being built: a **living plan** (phases, status,
+what was postponed) and an **ideas backlog**. Both are working instruments — they
+are folded into the project memory and removed when the project reaches its final
+state, so the finished repository carries only what stays useful.
 
 Beyond that:
 
@@ -255,8 +298,8 @@ Beyond that:
   the platform (CI workflow directories, host configuration directories, the
   dependency file) and moving them silently breaks deployment.
 - **One document per job.** If two documents answer the same question, merge them.
-- **Visitor-facing folders in CAPS** (`DOCS/`, `AI_USAGE/`); service folders stay
-  lowercase or dot-prefixed.
+- **Folders that a human is meant to open are named in CAPS** (`DOCS/`,
+  `AI_USAGE/`); service folders stay lowercase or dot-prefixed.
 - **Never delete produced data.** Dated outputs are an archive.
 - **Atomic commits**, each with tests and linters green, each explaining *why*.
 - **Secrets never enter the repository** — not in code, not in notebooks, not in
@@ -265,7 +308,12 @@ Beyond that:
 
 ## 11. Project-type playbooks
 
-The principles above are constant. What changes by project type:
+The principles above are constant; the notes below are what changed in the project
+types met **so far**. This list is deliberately open — when a new kind of project
+appears (a game, a data science model, a browser extension, an API service, a
+mobile app, anything else), work out what is different about it and **add a new
+block here** at the end of that project. Never squeeze a new project into an
+existing block because it is the closest fit.
 
 ### A. Data pipeline + AI enrichment
 
@@ -317,6 +365,28 @@ The principles above are constant. What changes by project type:
 - "Tests" become checks: are all claims sourced, are the numbers consistent, does
   the structure still match what was approved?
 
+## 11a. What the project is for — ask at the start
+
+Purpose changes almost every judgement call: how much polish, what tone the readme
+takes, whether an outside reader matters. So at the start of **every** project ask
+three questions and write the answers into the project memory:
+
+1. **Why this project?** (a personal tool, a portfolio piece, learning, a future
+   product, something else)
+2. **Who besides the owner will see it?**
+3. **What will "this went well" look like for you?**
+
+Until told otherwise, assume the default: **an educational-professional project
+that can be attached to a CV or used as material for an article.**
+
+Regardless of the answers, **every project is polished to a finished, professional
+state** — working as intended, not breaking, looking good, presented properly on
+GitHub. "It is only for me" is never a reason to leave rough edges.
+
+The universal success criteria, which hold in addition to whatever the project
+defines: it does not break; it does what it was meant to do; it looks good and the
+repository is polished; and the owner has understood how it works and approved it.
+
 ## 12. Regular check-ins
 
 Ask these at phase boundaries, at the end of a large task, whenever the project
@@ -330,15 +400,30 @@ that, and never as a substitute for doing the work:
 - **Our collaboration:** "Что улучшить в том, как я работаю и отвечаю? Где я тебя
   недопонимаю?"
 
-Feedback from the last question is written straight into this file.
+Feedback from the last question is written straight into this file: **append the
+rule yourself and report exactly what you appended**, so the owner can correct the
+wording. Do this at natural boundaries — the end of a phase or of a project — not
+after every exchange.
+
+## 12a. When the situation outranks these instructions
+
+These instructions are the general principles by which work is built and judged.
+The situation wins when the result justifies it: it is allowed to depart from them
+in the moment.
+
+But do it openly. To work in a **fast mode** — skipping the options round, deciding
+alone, deferring the checks — **ask for it first**, and say three things: why the
+situation requires it, what will be fixed afterwards, and where it ends (this step,
+this phase). Request it only when the situation clearly calls for it. **When in
+doubt, ask instead of assuming.**
 
 ## 13. Templates
 
 ### 13.1 Starter prompt for a new project
 
-> Вот новый проект. Прочитай `FOR_AI/AI_INSTRUCTIONS.md` — это правила работы со
-> мной, они важнее любых умолчаний. Затем `FOR_AI/PROJECT_MEMORY.md` и
-> `FOR_AI/PLAN.md`, если они уже есть. Работаем по нашему алгоритму: сначала идеи и
+> Вот новый проект. Прочитай `AI_USAGE/AI_INSTRUCTIONS.md` — это правила работы со
+> мной, они важнее любых умолчаний. Затем `AI_USAGE/PROJECT_MEMORY.md` и
+> `AI_USAGE/PLAN.md`, если они уже есть. Работаем по нашему алгоритму: сначала идеи и
 > направления, потом моё видение, потом варианты, потом код. Общение по-русски, всё
 > в репозитории — по-английски.
 
@@ -355,8 +440,8 @@ Do these in order, and stop where it says stop:
 4. **Bring 5–8 directions** the project could take, one line each. **Stop.**
 5. **Turn the chosen direction into options** (2–4) with effects and downsides.
    **Stop.**
-6. **Write down the agreement**: create `FOR_AI/PROJECT_MEMORY.md` (what/why/for
-   whom, decisions and their reasons, constraints) and `FOR_AI/PLAN.md` (phases,
+6. **Write down the agreement**: create `AI_USAGE/PROJECT_MEMORY.md` (what/why/for
+   whom, decisions and their reasons, constraints) and `AI_USAGE/PLAN.md` (phases,
    the definition of done for each). Get approval on the plan. **Stop.**
 7. **Set up the skeleton**: repository layout per §10, the agent folder with the
    skills you will use, the test harness, the linter, the ignore rules, an empty
