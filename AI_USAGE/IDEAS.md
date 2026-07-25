@@ -51,6 +51,20 @@ Format: `[status] Idea — value · cost · origin`, where status is
 - **[declined] Paginate the bulk notes editor.** Measured 1.06 s → 1.12 s, i.e. no
   effect, and it would cost the ability to edit many companies at once. Reverted.
 
+## The way we work (raised while writing the instructions)
+
+- **[open] Keep `AI_INSTRUCTIONS.md` in its own tiny repository.** It is meant to
+  travel between projects and to improve in each of them; copies in N repositories
+  will drift apart, and the newest version will be whichever project was touched
+  last. One canonical repository (or gist) copied into each new project — and
+  improvements pushed back to it — keeps a single history. *Value: the file
+  actually accumulates instead of forking. Cost: ~20 minutes once.*
+- **[open] A session-start sanity check.** When a session begins in an existing
+  project, verify the ground before building on it: branch synced with the remote,
+  working tree clean, test suite green. *Value: no work is built on a broken base
+  after a restart or a crash. Cost: ~30 minutes, and it belongs in the agent folder
+  so every project inherits it.*
+
 ## Beyond this project
 
 - **[open] Phase 2: a standalone website.** The dataset is already a clean data
