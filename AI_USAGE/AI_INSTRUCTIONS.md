@@ -298,10 +298,15 @@ Beyond that:
   the platform (CI workflow directories, host configuration directories, the
   dependency file) and moving them silently breaks deployment.
 - **One document per job.** If two documents answer the same question, merge them.
-- **Keep drifting numbers out of prose.** Counts that change with every rebuild —
-  rows in a dataset, number of tests, sizes — do not belong in descriptions: they go
-  stale silently and end up contradicting each other across files. Say "several
-  thousand" and let the running system report the exact figure.
+- **Keep drifting numbers out of *descriptions*, keep them in *observations*.**
+  A count that changes with every rebuild — rows in a dataset, number of tests,
+  sizes — must not appear where the text describes what the project *is*: it goes
+  stale silently and ends up contradicting itself across files. Say "several
+  thousand" and let the running system report the exact figure. But a **measurement
+  or an example is a fact about one moment and keeps its number** — as long as it
+  carries the date or the run it came from: "the full run of 2026-07-24 cost $7.14
+  for ~4,000 companies" stays true forever, while "the dataset has 4,040 companies"
+  is wrong by the next rebuild.
 - **Folders that a human is meant to open are named in CAPS** (`DOCS/`,
   `AI_USAGE/`); service folders stay lowercase or dot-prefixed.
 - **Never delete produced data.** Dated outputs are an archive.

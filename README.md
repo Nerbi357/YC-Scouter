@@ -43,8 +43,9 @@ app.py  read     →  the dashboard        (never fetches, never pays)
 - **File 2** — `notebooks/02_ai_summary.ipynb`: adds `ai_description` and `ai_risks`
   with **Claude by Anthropic** (Groq optional), writing
   `yc_dataset_ai_<date>.parquet` + `.xlsx`. Results are cached per
-  `(company, model, prompt version)`, so a full run costs ≈ $8 and a later refresh
-  costs cents. It checks the key, the credit balance and the model **before**
+  `(company, model, prompt version)`: the full run of 2026-07-24 cost **$7.14** for
+  ~4,000 companies, and the refresh a day later cost **half a cent** for the 3 new
+  ones. It checks the key, the credit balance and the model **before**
   spending anything.
 - **Dashboard** — `app.py`: a Streamlit app that reads the newest dated dataset.
 - **Two buttons** — GitHub Actions run File 1 and File 2 on demand. There is no
@@ -59,7 +60,7 @@ Full architecture, the prompts and the design rules:
 |---|---|
 | `app.py` | the dashboard — the only thing you run |
 | `src/yc_scouter/` | all the logic; the notebooks, CI and the app import it |
-| `src/tests/` | 161 tests; network and LLM mocked, so a run never costs anything |
+| `src/tests/` | the test suite; network and LLM mocked, so a run never costs anything |
 | `notebooks/` | File 1 and File 2 — thin wrappers over the package |
 | `data/` | dated datasets (Parquet + Excel) and the AI cache |
 | `DOCS/` | documentation for people (see below) |

@@ -119,7 +119,7 @@ truncated to `MAX_DESC_CHARS`.
 | `temperature` | `0` | same input → same output |
 | `MAX_DESC_CHARS` | 2200 (≈ 780 input tokens) | a character cap **is** a cost cap |
 | `MAX_TOKENS` | 430 (≈ 260 output tokens) | fits the two fields with headroom |
-| Full run | ≈ **$7–8.5** for the whole dataset (target ≤ $9) | the summarizer prints a running estimate; it never auto-stops |
+| Full run | **$7.14** for ~4,000 companies — measured on the full run of 2026-07-24 (target ≤ $9) | the summarizer prints a running estimate; it never auto-stops |
 
 **The cache is the cost control.** Every result is stored under
 `(id, model_id, prompt_version)`, where
@@ -167,7 +167,7 @@ caused a real failure:
   button. Building exports on every rerun once exhausted the free tier's resources.
 - **The most-used interaction gets its own render scope.** The table and the detail
   card live in a single `st.fragment`, so picking a company repaints that block
-  only — 1.1 s → 0.4 s on the full dataset.
+  only — 1.1 s → 0.4 s, measured 2026-07-25 on ~4,000 rows.
 - **Widget state is tied to what is on screen.** Streamlit remembers a selection
   and table edits by *row position*, so both the table and the notes editor derive
   their key from the visible ids — otherwise a filter change silently opens or
