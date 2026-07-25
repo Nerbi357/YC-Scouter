@@ -77,16 +77,39 @@ def load(secrets: Any) -> pd.DataFrame:
     return df[list(user_data.USER_COLUMNS)]
 
 
-def save(secrets: Any, df: pd.DataFrame) -> None:
+def _last_column_letter() -> str:
+    return chr(ord("A") + len(user_data.USER_COLUMNS) - 1)
+
+
+def save(secrets: Any, df: pd.DataFrame, *, allow_empty: bool = False) -> None:
     """Overwrite the sheet with ``df`` (header + rows), keyed by company id.
 
     Cells are written as plain text, so the boolean flag is normalised to
     ``TRUE``/``FALSE`` — readable in the spreadsheet and parsed back by
     :func:`yc_scouter.user_data.to_bool` (which also tolerates older spellings).
+
+    Two guards, because this sheet is the only copy of the owner's notes:
+
+    * writing an **empty** frame over a populated sheet raises instead of erasing
+      it (that is what an unreadable sheet or a lost session looks like) — pass
+      ``allow_empty=True`` to mean it;
+    * rows are written **first** and only leftovers below are cleared afterwards,
+      so a failure mid-way can never leave the sheet blank (``ws.clear()`` up front
+      did exactly that).
     """
     ws = _open_worksheet(secrets)
     out = user_data._ensure_columns(df)
     out["watchlist"] = out["watchlist"].map(lambda v: "TRUE" if user_data.to_bool(v) else "FALSE")
     out = out.fillna("").astype(str)
-    ws.clear()
-    ws.update([list(user_data.USER_COLUMNS)] + out.values.tolist())
+
+    existing = len(ws.get_all_values())
+    if out.empty and existing > 1 and not allow_empty:
+        raise ValueError(
+            f"refusing to erase {existing - 1} saved rows with an empty table; "
+            "pass allow_empty=True if that is really intended"
+        )
+
+    grid = [list(user_data.USER_COLUMNS)] + out.values.tolist()
+    ws.update(grid, f"A1:{_last_column_letter()}{len(grid)}")
+    if existing > len(grid):
+        ws.batch_clear([f"A{len(grid) + 1}:{_last_column_letter()}{existing}"])

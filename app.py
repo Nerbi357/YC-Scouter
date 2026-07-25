@@ -18,6 +18,8 @@ Run locally:  ``streamlit run app.py``
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import io
 import os
 import re
@@ -134,6 +136,73 @@ def load_data(path: str, mtime: float) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
+class DatasetError(Exception):
+    """The dataset lacks something the dashboard cannot work without."""
+
+
+#: Without these there is no dashboard: ``id`` keys the notes, ``name`` labels rows.
+REQUIRED_COLUMNS = ("id", "name")
+
+#: Everything else the UI touches, with the value used when a rebuild drops it.
+#: Filling them in beats a KeyError deep inside a chart on a live dashboard.
+OPTIONAL_DEFAULTS: dict[str, object] = {
+    "batch": "",
+    "batch_year": pd.NA,
+    "industry": "",
+    "subindustry": "",
+    "status": "",
+    "investability": "",
+    "one_liner": "",
+    "long_description": "",
+    "tags": "",
+    "team_size": pd.NA,
+    "score": pd.NA,
+    "ai_description": "",
+    "ai_risks": "",
+    "website": "",
+    "yc_url": "",
+}
+
+
+def prepare_data(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """Make any dataset the pipeline produced safe to render.
+
+    Returns the cleaned frame plus human-readable notes about what had to be
+    repaired (shown to the owner, so a broken rebuild is visible rather than
+    silent). Raises :class:`DatasetError` only when nothing sensible can be shown.
+    """
+    notes: list[str] = []
+    missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
+    if missing:
+        raise DatasetError(
+            "В датасете нет обязательных колонок: " + ", ".join(missing) + ". "
+            "Пересоберите данные кнопкой File 1 (Base), затем File 2 (AI)."
+        )
+
+    out = df.copy()
+    ids = pd.to_numeric(out["id"], errors="coerce")
+    bad = ids.isna().sum()
+    if bad:
+        out = out[ids.notna()]
+        ids = ids[ids.notna()]
+        notes.append(f"Пропущено строк без корректного id: {bad}.")
+    out["id"] = ids.astype("int64")
+
+    dupes = int(out["id"].duplicated().sum())
+    if dupes:
+        # Widget keys are built from the id — two rows with the same id crash the app.
+        out = out.drop_duplicates(subset="id", keep="first")
+        notes.append(f"Схлопнуто дублей по id: {dupes}.")
+
+    added = [c for c in OPTIONAL_DEFAULTS if c not in out.columns]
+    for col in added:
+        out[col] = OPTIONAL_DEFAULTS[col]
+    if added:
+        notes.append("Добавлены пустыми отсутствующие колонки: " + ", ".join(added) + ".")
+
+    return out.reset_index(drop=True), notes
+
+
 def _secrets():
     try:
         return st.secrets
@@ -146,34 +215,61 @@ def use_gsheets() -> bool:
 
 
 def _owner_key():
-    """The owner password from secrets (``[app] owner_key``), or None."""
+    """The owner password from secrets (``[app] owner_key``), or None.
+
+    A blank / whitespace-only value counts as *not configured* — an accidentally
+    empty secret must not become a password anyone can guess by pressing space.
+    """
     s = _secrets()
     try:
         app = s.get("app") if hasattr(s, "get") else None
-        return app.get("owner_key") if app else None
+        key = app.get("owner_key") if app else None
     except Exception:
         return None
+    return key if str(key or "").strip() else None
 
 
 def is_owner() -> bool:
-    """True for the owner. With no owner_key configured (local/Colab), always
-    True — single-user mode. On a shared deployment, only unlocked sessions."""
+    """True for the owner.
+
+    With no ``owner_key`` configured this is single-user mode (local/Colab) and
+    everyone is the owner. But when the notes go to a **shared Google Sheet**, a
+    missing or misspelled key would hand every visitor write access to them — so
+    there the gate fails *closed* and nobody is the owner until a key is set.
+    """
     if not _owner_key():
-        return True
+        return not use_gsheets()
     return bool(st.session_state.get("is_owner", False))
+
+
+def check_owner_key(entered: str | None) -> bool:
+    """Unlock the session if ``entered`` matches the configured key."""
+    key = _owner_key()
+    if not key:
+        return False
+    if hmac.compare_digest(str(entered or "").strip(), str(key).strip()):
+        st.session_state["is_owner"] = True
+        return True
+    return False
 
 
 def owner_gate() -> None:
     """Sidebar unlock: turns a visitor session into the owner when an
     ``owner_key`` is configured and entered correctly."""
-    key = _owner_key()
-    if not key or st.session_state.get("is_owner"):
+    if st.session_state.get("is_owner"):
+        return
+    if not _owner_key():
+        if use_gsheets():
+            st.sidebar.error(
+                "🔒 Не задан ключ доступа (`[app] owner_key` в секретах), поэтому "
+                "заметки в общей таблице доступны только на чтение. Добавьте ключ — "
+                "и сможете сохранять (см. docs/DEPLOY.md)."
+            )
         return
     with st.sidebar.expander("🔒 Ключ доступа"):
         entered = st.text_input("Ключ доступа", type="password", key="owner_key_input")
         if st.button("Войти"):
-            if entered == key:
-                st.session_state["is_owner"] = True
+            if check_owner_key(entered):
                 st.rerun()
             else:
                 st.error("Неверный ключ.")
@@ -208,6 +304,17 @@ def storage_banner() -> None:
 
 #: Where a visitor's own notes live for the duration of their browser session.
 VISITOR_STORE = "visitor_notes"
+#: The shared store, read once per session instead of once per rerun.
+SHEETS_CACHE = "gsheets_cache"
+#: Set when the sheet could not be read — writing then would destroy what is in it.
+SHEETS_BLOCKED = "gsheets_readonly"
+
+
+def refresh_annotations() -> None:
+    """Forget the cached copy of the shared store (the "reload" button)."""
+    st.session_state.pop(SHEETS_CACHE, None)
+    st.session_state.pop(SHEETS_BLOCKED, None)
+    st.session_state.pop("gsheets_error", None)
 
 
 def load_annotations() -> pd.DataFrame:
@@ -217,15 +324,26 @@ def load_annotations() -> pd.DataFrame:
     notes nor write into them. The owner gets the shared store (Google Sheets or
     local CSV), degrading gracefully if Sheets is unreachable so a credentials
     problem can never take the dashboard down.
+
+    The sheet is read **once per session** and then kept in session state: it was
+    a network round-trip on every rerun, i.e. on every keystroke in the filters.
     """
     if not is_owner():
         return st.session_state.get(VISITOR_STORE, user_data.empty_user_frame())
     if use_gsheets():
+        cached = st.session_state.get(SHEETS_CACHE)
+        if cached is not None:
+            return cached
         try:
-            return gsheets.load(_secrets())
+            loaded = user_data._ensure_columns(gsheets.load(_secrets()))
         except Exception as exc:  # pragma: no cover - network/credentials
             st.session_state["gsheets_error"] = str(exc)
+            st.session_state[SHEETS_BLOCKED] = True
             return user_data.empty_user_frame()
+        st.session_state[SHEETS_CACHE] = loaded
+        st.session_state.pop(SHEETS_BLOCKED, None)
+        st.session_state.pop("gsheets_error", None)
+        return loaded
     return user_data.load_user_data(USER_DATA_CSV)
 
 
@@ -253,12 +371,22 @@ def gsheets_error_banner() -> None:
 
 
 def save_annotations(df: pd.DataFrame) -> None:
-    """Persist notes for the current viewer (session-only for visitors)."""
+    """Persist notes for the current viewer (session-only for visitors).
+
+    Refuses to write to Sheets while the last read failed: the in-memory table
+    would then be *empty*, and saving it would wipe every note in the sheet.
+    """
     if not is_owner():
         st.session_state[VISITOR_STORE] = user_data._ensure_columns(df)
         return
     if use_gsheets():
+        if st.session_state.get(SHEETS_BLOCKED):
+            raise RuntimeError(
+                "Google Таблица недоступна — сохранение отключено, чтобы не стереть "
+                "уже сохранённые заметки. Почините доступ и нажмите «Обновить из таблицы»."
+            )
         gsheets.save(_secrets(), df)
+        st.session_state[SHEETS_CACHE] = user_data._ensure_columns(df)
     else:
         user_data.save_user_data(df, path=USER_DATA_CSV)
 
@@ -338,6 +466,11 @@ def export_panel(df: pd.DataFrame, key: str) -> None:
 
 
 # ------------------------------------------------------------------------ sidebar
+def keep_valid(selected: object, options: list) -> list:
+    """The part of a previous selection that still exists in ``options``."""
+    return [s for s in (selected or []) if s in options]
+
+
 def _int_range(label: str, key: str, series: pd.Series) -> tuple[int | None, int | None]:
     """Two integer inputs (От / До) with the data's own min/max as hints.
 
@@ -382,9 +515,11 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     subindustries = []
     if "subindustry" in df.columns:
         pool = df[df["industry"].isin(industries)] if industries else df
-        subindustries = st.sidebar.multiselect(
-            "Подиндустрия", sorted(pool["subindustry"].dropna().unique())
-        )
+        sub_opts = sorted(pool["subindustry"].dropna().unique())
+        # Picking an industry rewrites these options, and Streamlit drops the whole
+        # selection when options change — keep the part that is still valid.
+        st.session_state["sub_pick"] = keep_valid(st.session_state.get("sub_pick"), sub_opts)
+        subindustries = st.sidebar.multiselect("Подиндустрия", sub_opts, key="sub_pick")
 
     statuses = st.sidebar.multiselect("Статус (YC)", sorted(df["status"].dropna().unique()))
 
@@ -459,6 +594,29 @@ def _row_id(row: pd.Series) -> int | None:
         return None if pd.isna(value) else int(value)
     except (KeyError, TypeError, ValueError):
         return None
+
+
+def _selection_key(base: str, df: pd.DataFrame) -> str:
+    """Widget key tied to the current result set.
+
+    ``st.dataframe`` remembers the selected **row position**, not the company. Keep
+    one key across a filter change and position 3 of the old list silently becomes
+    position 3 of the new one — the card opens a company the user never clicked.
+    A key derived from the visible ids resets the selection instead; state left by
+    previous result sets is dropped so session state cannot grow without bound.
+    """
+    ids = pd.to_numeric(df["id"], errors="coerce").dropna().astype("int64") if "id" in df else []
+    digest = hashlib.blake2s(
+        pd.Series(ids, dtype="int64").to_numpy().tobytes(), digest_size=8
+    ).hexdigest()
+    key = f"{base}_{digest}"
+    for stale in [
+        k
+        for k in list(st.session_state)
+        if isinstance(k, str) and k.startswith(f"{base}_") and k != key
+    ]:
+        st.session_state.pop(stale, None)
+    return key
 
 
 def selectable_table(df: pd.DataFrame, cols: list[str], key: str) -> None:
@@ -671,7 +829,7 @@ def table_and_card(df: pd.DataFrame, key: str, place: str) -> None:
     everything: inside a fragment Streamlit reruns only this block, skipping the six
     charts of "Обзор", the 50 expanders below and the bulk notes editor.
     """
-    selectable_table(df.reset_index(drop=True), TABLE_COLUMNS, key=key)
+    selectable_table(df.reset_index(drop=True), TABLE_COLUMNS, key=_selection_key(key, df))
     detail_card(df, place=place)
 
 
@@ -823,16 +981,45 @@ def tab_companies(filtered: pd.DataFrame) -> None:
             note_section_lazy(row, place="list")
 
 
+def compare_labels(df: pd.DataFrame) -> dict[str, int]:
+    """Picker label → company ``id``, guaranteed unique.
+
+    A name is not a key: dozens of YC companies share one. Picking "Vera" used to
+    select every Vera and index the comparison by name, producing duplicate columns
+    the renderer refuses. The batch disambiguates; the id settles the rest.
+    """
+    if df.empty:
+        return {}
+    name = df["name"].fillna("—").astype(str)
+    batch = df["batch"].fillna("").astype(str) if "batch" in df.columns else ""
+    label = name if isinstance(batch, str) else name.where(batch == "", name + " · " + batch)
+    ids = pd.to_numeric(df["id"], errors="coerce").astype("Int64")
+    dup = label.duplicated(keep=False)
+    label = label.where(~dup, label + " #" + ids.astype(str))
+    return {str(k): int(v) for k, v in zip(label, ids, strict=False) if pd.notna(v)}
+
+
+def comparison_frame(
+    df: pd.DataFrame, labels: dict[str, int], picked: list[str], fields: list[str]
+) -> pd.DataFrame:
+    """Side-by-side frame: one column per picked company, in the picked order."""
+    ids = [labels[p] for p in picked if p in labels]
+    rows = df[df["id"].isin(ids)].drop_duplicates(subset="id").set_index("id")
+    rows = rows.reindex([i for i in ids if i in rows.index])
+    comp = rows[[f for f in fields if f in rows.columns]].T
+    comp.columns = [p for p in picked if labels.get(p) in rows.index]
+    return comp
+
+
 def tab_compare(filtered: pd.DataFrame) -> None:
     st.subheader("⚖️ Сравнение компаний")
     st.caption("Выбери до 5 компаний — сравнение колонками бок о бок.")
-    names = st.multiselect(
-        "Компании", filtered["name"].tolist(), max_selections=5, key="compare_pick"
-    )
-    if not names:
+    labels = compare_labels(filtered)
+    picked = st.multiselect("Компании", list(labels), max_selections=5, key="compare_pick")
+    if not picked:
         st.info("Выбери компании выше.")
         return
-    rows = filtered[filtered["name"].isin(names)]
+    rows = filtered[filtered["id"].isin([labels[p] for p in picked])]
     fields = [
         c
         for c in [
@@ -852,8 +1039,7 @@ def tab_compare(filtered: pd.DataFrame) -> None:
         ]
         if c in rows.columns
     ]
-    comp = rows.set_index("name")[fields].T
-    comp = comp.map(_clean_cell)
+    comp = comparison_frame(filtered, labels, picked, fields).map(_clean_cell)
     st.dataframe(comp, width="stretch")
 
 
@@ -874,6 +1060,11 @@ def tab_notes(filtered: pd.DataFrame) -> None:
             f"Массовое редактирование. Хранилище: **{where}**. Ключ — id компании "
             "(переживает переименования). Для одной компании удобнее её карточка."
         )
+        if use_gsheets() and st.button("🔄 Обновить из таблицы", key="reload_sheet"):
+            # The sheet is cached per session; press this after editing it directly
+            # in Google Sheets, or once a broken connection is fixed.
+            refresh_annotations()
+            st.rerun()
     else:
         st.info(
             "👀 **Ваши личные заметки.** Редактируйте и сохраняйте как угодно — они "
@@ -938,7 +1129,14 @@ def _render() -> None:
 
     owner_gate()
 
-    df = load_data(str(path), path.stat().st_mtime)
+    try:
+        df, data_notes = prepare_data(load_data(str(path), path.stat().st_mtime))
+    except DatasetError as exc:
+        st.error(f"⚠️ {exc}")
+        st.stop()
+    if data_notes and is_owner():
+        st.warning("Данные пришлось подчистить: " + " ".join(data_notes))
+
     df = user_data.merge_annotations(df, load_annotations())
 
     gsheets_error_banner()

@@ -53,6 +53,12 @@ Add an owner lock so visitors can't change your notes:
 owner_key = "some-long-random-passphrase"
 ```
 
+**With Google Sheets configured this key is required.** Without it the app treats
+*everyone* — including you — as a visitor, so nobody can write into the sheet: an
+empty or forgotten key must not silently hand strangers your notes. The sidebar
+says so when that happens. (No sheet configured = local single-user mode, where no
+key is needed.)
+
 - **You**: expand **🔒 Режим владельца** in the sidebar, enter the key once → the
   **💾 Save** button appears and writes to Google Sheets.
 - **Visitors**: get a view/explore mode — they can filter, chart, compare, and even

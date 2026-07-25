@@ -78,6 +78,21 @@ keyed by `id`, so a refresh never deletes them. See `docs/HOW_TO_UPDATE.md`.
 of the filtered view, and an owner/viewer model so a shared link lets visitors
 explore with temporary-only edits. See `docs/DEPLOY.md`.
 
+It is written to stay up on imperfect input and on a shared link:
+
+- `prepare_data` drops rows with an unusable `id`, collapses duplicate ids (they
+  would collide as widget keys) and fills columns a rebuild might have dropped;
+  only a missing `id`/`name` stops the app, with an instruction instead of a crash.
+- the companies table's widget key is derived from the visible ids, so a filter
+  change resets a selection that would otherwise point at a different row;
+- the notes store is read once per session, is never written while it is
+  unreadable, and `gsheets.save` refuses to overwrite a populated sheet with an
+  empty one (it writes first, then clears leftovers);
+- the owner gate **fails closed** when notes go to a shared sheet and no
+  `owner_key` is set;
+- table + card live in one `st.fragment`, so opening a company repaints that block
+  only (~0.4 s instead of ~1.1 s on 4k rows).
+
 ## Testing
 
 `pytest` with the network and the LLM fully mocked (no spend). Notebook smokes run
