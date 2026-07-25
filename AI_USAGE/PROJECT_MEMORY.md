@@ -316,6 +316,41 @@ re-run to collect new companies; no service files beyond the agreed ones.
   tests): File 2 verifies the key, the credit balance and the model id before the
   loop, and turns each failure into a named instruction. Costs one token. A network
   blip is a warning, not a blocker.
+- ✅ **Second adversarial audit, cross-verified** (2026-07-25): five agents attacked
+  the project with different lenses (data correctness · access and privacy ·
+  resilience to hostile input · user flows · operations and documentation accuracy),
+  and each lens's findings were then handed to a *different* agent whose job was to
+  refute them. 30 candidates → **9 confirmed** (2 high, 5 medium, 2 low), 21 refuted.
+  All nine are fixed, plus one more that the browser check found while verifying:
+  1. **Two sessions could delete each other's notes.** A save wrote back the
+     whole-table snapshot the session had cached, so a note added from another tab —
+     or typed into the Google Sheet by hand — vanished silently. Saving now re-reads
+     the sheet and merges **only the changed companies** (`user_data.upsert`,
+     `app.upsert_annotations`): last-writer-wins per company, not per table.
+  2. **Closing the card on the Overview tab blanked the whole dashboard.**
+     `detail_card` ran outside a fragment there but called
+     `st.rerun(scope="fragment")`, which raises; the error screen's only recovery
+     button clears session state — a visitor's entire set of notes. The Overview
+     table+card now goes through `table_and_card` like the Companies tab.
+  3. **Exports mangled `tags`** into a numpy repr (`"['Bio' 'Climate']"`) in both the
+     shipped .xlsx and every dashboard download — the ndarray-vs-list trap again.
+     Both flatteners now use `filters.is_sequence`.
+  4. **An unparseable `secrets.toml` made every visitor the owner**: it looked exactly
+     like "no secrets configured", i.e. like a private laptop. Unreadable secrets are
+     now distinguished from absent ones and fail closed, with a banner.
+  5. **The bulk save wrote every visible row**, which overflowed the auto-created
+     1000-row worksheet (the save failed outright) and cost ~20 s of quadratic
+     `.loc` growth that any anonymous visitor could trigger. It now writes only the
+     diff, vectorised, and `gsheets.save` grows the grid before writing past it.
+  6. **`inf` and out-of-range ids** crashed or silently collided; they are dropped
+     and counted like any other unusable id.
+  7. **A dead Google Sheet was re-contacted on every rerun** — i.e. every keystroke.
+     The failure is cached too; "🔄 Reload from the sheet" is the retry.
+  8. **The ✕ never actually closed the card** (found by the browser check, not by the
+     audit): the table still held the row selection, so the next fragment rerun
+     re-opened it. Closing now drops the table widget's state as well.
+  Verified: the whole suite green (+13 tests), ruff, and a browser pass over the real
+  dataset covering both cards and the notes tab.
 - ✅ **Full switch to English** (2026-07-25): the dashboard UI, this file and the
   tests are English; `DOCS/` and `AI_USAGE/` are CAPS.
 

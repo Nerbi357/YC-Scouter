@@ -28,6 +28,7 @@ import time
 import traceback
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -181,11 +182,15 @@ def prepare_data(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
         )
 
     out = df.copy()
+    # to_numeric leaves inf alone and lets 1e19 through; the first raises on the cast
+    # below (a blank crash page), the second silently overflows into a negative id that
+    # then looks like a duplicate. Both are "no usable id".
     ids = pd.to_numeric(out["id"], errors="coerce")
-    bad = ids.isna().sum()
+    usable = ids.notna() & np.isfinite(ids) & ids.between(-(2**63), 2**63 - 1)
+    bad = int((~usable).sum())
     if bad:
-        out = out[ids.notna()]
-        ids = ids[ids.notna()]
+        out = out[usable]
+        ids = ids[usable]
         notes.append(f"Skipped rows without a usable id: {bad}.")
     out["id"] = ids.astype("int64")
 
@@ -204,11 +209,49 @@ def prepare_data(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     return out.reset_index(drop=True), notes
 
 
+#: Set when st.secrets itself is unreadable (a malformed secrets.toml — most often a
+#: private key pasted with real newlines). "Unreadable" must never be mistaken for
+#: "not configured": that would silently drop a shared deployment into single-user
+#: mode, where every anonymous visitor is the owner.
+SECRETS_BROKEN = "secrets_unreadable"
+
+
 def _secrets():
+    """The secrets mapping, or ``{}`` — recording the difference between the two ways
+    of getting ``{}``.
+
+    *No secrets file at all* is the normal local/Colab case and means single-user mode.
+    *A file that exists but cannot be parsed* is a broken shared deployment, and must
+    not be mistaken for the first: that is what would silently make every anonymous
+    visitor the owner.
+    """
     try:
-        return st.secrets
-    except Exception:
+        s = st.secrets
+        s.get("app")  # force the file to be parsed, not just referenced
+    except Exception as exc:
+        missing = type(exc).__name__ == "StreamlitSecretNotFoundError"
+        try:
+            if missing:
+                st.session_state.pop(SECRETS_BROKEN, None)
+            else:
+                st.session_state[SECRETS_BROKEN] = str(exc)
+        except Exception:  # pragma: no cover - no session yet
+            pass
         return {}
+    try:
+        st.session_state.pop(SECRETS_BROKEN, None)
+    except Exception:  # pragma: no cover
+        pass
+    return s
+
+
+def secrets_unreadable() -> bool:
+    """True when the secrets file exists but could not be parsed."""
+    _secrets()
+    try:
+        return bool(st.session_state.get(SECRETS_BROKEN))
+    except Exception:  # pragma: no cover
+        return False
 
 
 def use_gsheets() -> bool:
@@ -237,7 +280,14 @@ def is_owner() -> bool:
     everyone is the owner. But when the notes go to a **shared Google Sheet**, a
     missing or misspelled key would hand every visitor write access to them — so
     there the gate fails *closed* and nobody is the owner until a key is set.
+
+    It also fails closed when the secrets file cannot be parsed at all: a malformed
+    ``secrets.toml`` used to look exactly like "no secrets configured", i.e. like a
+    private laptop, and turned the public dashboard into single-user mode.
     """
+    if secrets_unreadable():
+        # We cannot tell whether this deployment is shared, so assume it is.
+        return False
     if not _owner_key():
         return not use_gsheets()
     return bool(st.session_state.get("is_owner", False))
@@ -339,12 +389,28 @@ def load_annotations() -> pd.DataFrame:
         except Exception as exc:  # pragma: no cover - network/credentials
             st.session_state["gsheets_error"] = str(exc)
             st.session_state[SHEETS_BLOCKED] = True
-            return user_data.empty_user_frame()
+            # Cache the failure as well. Without this, every rerun — i.e. every
+            # keystroke in the filters — retries a sheet we already know is dead;
+            # if the failure mode is a hang rather than a 401, the app crawls.
+            # "Reload from the sheet" clears this and retries.
+            st.session_state[SHEETS_CACHE] = user_data.empty_user_frame()
+            return st.session_state[SHEETS_CACHE]
         st.session_state[SHEETS_CACHE] = loaded
         st.session_state.pop(SHEETS_BLOCKED, None)
         st.session_state.pop("gsheets_error", None)
         return loaded
     return user_data.load_user_data(USER_DATA_CSV)
+
+
+def secrets_error_banner() -> None:
+    """A malformed secrets file is now fail-closed — say so, or it looks like a bug."""
+    err = st.session_state.get(SECRETS_BROKEN)
+    if err:
+        st.error(
+            "⚠️ **The secrets file could not be read**, so the dashboard is in "
+            "view-only mode for everyone (it cannot tell whether it is deployed "
+            f"privately or publicly). Fix the file and reload. Reason: {err}"
+        )
 
 
 def gsheets_error_banner() -> None:
@@ -391,11 +457,44 @@ def save_annotations(df: pd.DataFrame) -> None:
         user_data.save_user_data(df, path=USER_DATA_CSV)
 
 
+def upsert_annotations(changes: dict[int, dict]) -> int:
+    """Write **only** the given companies, merged into the freshest store.
+
+    Never writes back a snapshot this session read minutes ago. The dashboard can be
+    open in two tabs (or on a phone), and the owner may edit the Google Sheet by hand
+    — writing a stale whole-table snapshot silently deleted everything the other
+    writer had added. Re-reading immediately before the write makes a save
+    last-writer-wins *per company* instead of per table.
+
+    Returns how many companies were written.
+    """
+    if not changes:
+        return 0
+    if not is_owner():
+        store = st.session_state.get(VISITOR_STORE, user_data.empty_user_frame())
+        st.session_state[VISITOR_STORE] = user_data.upsert(store, changes)
+        return len(changes)
+
+    if use_gsheets():
+        if st.session_state.get(SHEETS_BLOCKED):
+            raise RuntimeError(
+                "The Google Sheet is unreadable — saving is disabled so your existing notes "
+                'are not erased. Fix the access, then press "Reload from the sheet".'
+            )
+        fresh = user_data._ensure_columns(gsheets.load(_secrets()))
+        merged = user_data.upsert(fresh, changes)
+        gsheets.save(_secrets(), merged)
+        st.session_state[SHEETS_CACHE] = merged
+        return len(changes)
+
+    merged = user_data.upsert(user_data.load_user_data(USER_DATA_CSV), changes)
+    user_data.save_user_data(merged, path=USER_DATA_CSV)
+    return len(changes)
+
+
 def save_one(row_id: int, values: dict) -> None:
     """Upsert a single company's annotations into the store."""
-    store = user_data._ensure_columns(load_annotations()).set_index("id")
-    store.loc[int(row_id)] = values
-    save_annotations(store.reset_index())
+    upsert_annotations({int(row_id): values})
 
 
 # --------------------------------------------------------------- "saved" feedback
@@ -430,7 +529,13 @@ def saved_recently(cid: object) -> bool:
 
 # ------------------------------------------------------------------------- export
 def _clean_cell(v: object) -> object:
-    if isinstance(v, (list, tuple)):
+    """One cell, safe for CSV/Excel: multi-value cells joined, control chars stripped.
+
+    ``filters.is_sequence`` rather than ``isinstance(v, list)``: Parquet hands list
+    columns back as numpy arrays, which used to be exported as their repr —
+    ``"['Bio' 'Climate']"``, newlines and all.
+    """
+    if filters.is_sequence(v):
         return ", ".join(map(str, v))
     if isinstance(v, str):
         return _CTRL_RE.sub("", v)
@@ -798,7 +903,19 @@ def company_body(row: pd.Series) -> None:
         st.markdown("**Links:** " + " · ".join(links))
 
 
-def detail_card(df: pd.DataFrame, place: str) -> None:
+def close_card(table_key: str | None) -> None:
+    """Close the detail card **and** untick the row that opened it.
+
+    Clearing only ``selected_id`` is not enough: the table widget still holds the
+    selection, so the next fragment rerun reads it back and the card reopens — the ✕
+    looked like it did nothing. Dropping the widget's state resets the tick as well.
+    """
+    select_company(None)
+    if table_key:
+        st.session_state.pop(table_key, None)
+
+
+def detail_card(df: pd.DataFrame, place: str, table_key: str | None = None) -> None:
     """Full card for the company selected in the table.
 
     Rendered inside :func:`table_and_card`'s fragment, hence the fragment-scoped
@@ -811,7 +928,7 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
     if match.empty:
         st.info("The selected company does not match the current filters.")
         if st.button("Clear the selection", key=f"clear_sel_{place}"):
-            select_company(None)
+            close_card(table_key)
             st.rerun(scope="fragment")
         return
     row = match.iloc[0]
@@ -825,7 +942,7 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
             st.caption("Copy the card")
             st.code(card_text(row), language=None)
         if close.button("✕", key=f"close_{place}", help="Close the card"):
-            select_company(None)
+            close_card(table_key)
             st.rerun(scope="fragment")
 
         m1, m2, m3, m4 = st.columns(4)
@@ -856,15 +973,31 @@ TABLE_COLUMNS = [
 
 
 @st.fragment
-def table_and_card(df: pd.DataFrame, key: str, place: str) -> None:
+def table_and_card(
+    df: pd.DataFrame,
+    key: str,
+    place: str,
+    cols: list[str] | None = None,
+    table_df: pd.DataFrame | None = None,
+) -> None:
     """Table + detail card as one fragment — the fast path for "open a company".
 
     Picking a row is the most-used interaction on the page, so it must not repaint
     everything: inside a fragment Streamlit reruns only this block, skipping the six
     charts of the Overview tab, the 50 expanders below and the bulk notes editor.
+
+    Every table+card pair **must** go through here. ``detail_card`` closes itself with
+    ``st.rerun(scope="fragment")``, which raises outside a fragment — one click on the
+    card's ✕ used to replace the whole page with the error screen, whose only recovery
+    button wipes the session (a visitor's entire set of notes with it).
+
+    ``table_df`` lets the table show a subset (e.g. a top-N) while the card still
+    resolves against the full filtered frame.
     """
-    selectable_table(df.reset_index(drop=True), TABLE_COLUMNS, key=_selection_key(key, df))
-    detail_card(df, place=place)
+    rows = df if table_df is None else table_df
+    table_key = _selection_key(key, rows)
+    selectable_table(rows.reset_index(drop=True), cols or TABLE_COLUMNS, key=table_key)
+    detail_card(df, place=place, table_key=table_key)
 
 
 # --------------------------------------------------------------------------- tabs
@@ -973,12 +1106,13 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
     n = st.slider("How many to show", 5, 50, 10, key="topn")
     top_df = filtered.sort_values("score", ascending=False).head(n).reset_index(drop=True)
     st.markdown("👁 **Open a card** — tick a company in the first column")
-    selectable_table(
-        top_df,
-        ["name", "industry", "subindustry", "status", "score", "team_size", "one_liner"],
+    table_and_card(
+        filtered,
         key="table_top",
+        place="overview",
+        cols=["name", "industry", "subindustry", "status", "score", "team_size", "one_liner"],
+        table_df=top_df,
     )
-    detail_card(filtered, place="overview")
 
 
 def pages_of(df: pd.DataFrame, size: int = PAGE_SIZE) -> int:
@@ -1124,10 +1258,57 @@ def tab_compare(filtered: pd.DataFrame) -> None:
     st.dataframe(comp, width="stretch")
 
 
+ANNOTATION_FIELDS = ("watchlist", "my_stage", "my_tags", "my_notes")
+
+
+def changed_rows(before: pd.DataFrame, after: pd.DataFrame) -> dict[int, dict]:
+    """``{id: values}`` for the rows the user actually edited.
+
+    Comparing what was rendered with what came back keeps a save proportional to the
+    edit, not to the size of the screen — and it is what makes a save safe next to a
+    second session: untouched companies are never rewritten.
+    """
+    if after is None or after.empty:
+        return {}
+    old = {}
+    for _, r in before.iterrows():
+        rid = _row_id(r)
+        if rid is not None:
+            old[rid] = {f: r.get(f) for f in ANNOTATION_FIELDS if f in before.columns}
+
+    changes: dict[int, dict] = {}
+    for _, r in after.iterrows():
+        rid = _row_id(r)
+        if rid is None:
+            continue
+        values = {
+            "watchlist": user_data.to_bool(r.get("watchlist")),
+            "my_stage": r.get("my_stage", user_data.DEFAULT_STAGE),
+            "my_tags": r.get("my_tags", ""),
+            "my_notes": r.get("my_notes", ""),
+        }
+        prev = old.get(rid)
+        if prev is None:
+            changes[rid] = values
+            continue
+        same = (
+            user_data.to_bool(prev.get("watchlist")) == values["watchlist"]
+            and str(prev.get("my_stage") or user_data.DEFAULT_STAGE) == str(values["my_stage"])
+            and str(prev.get("my_tags") or "") == str(values["my_tags"] or "")
+            and str(prev.get("my_notes") or "") == str(values["my_notes"] or "")
+        )
+        if not same:
+            changes[rid] = values
+    return changes
+
+
 def tab_notes(filtered: pd.DataFrame) -> None:
     st.subheader("📝 Notes, tags and funnel")
     if saved_recently(BULK_FLASH_ID):
-        st.success("Saved ✅ — your changes were written.")
+        n = st.session_state.get("bulk_saved_count")
+        st.success(
+            f"Saved ✅ — {n} companies written." if n else "Saved ✅ — your changes were written."
+        )
     if filtered.empty:
         st.info("No company matches the current filters.")
         return
@@ -1182,21 +1363,18 @@ def tab_notes(filtered: pd.DataFrame) -> None:
     )
 
     if st.button("💾 Save the notes", type="primary"):
-        store = user_data._ensure_columns(load_annotations()).set_index("id")
-        for _, r in edited.iterrows():
-            rid = _row_id(r)
-            if rid is None:
-                continue
-            store.loc[rid] = {
-                "watchlist": user_data.to_bool(r.get("watchlist")),
-                "my_stage": r.get("my_stage", user_data.DEFAULT_STAGE),
-                "my_tags": r.get("my_tags", ""),
-                "my_notes": r.get("my_notes", ""),
-            }
+        # Only what the owner actually changed is written. Writing every visible row
+        # cost ~20 s of blocking work on the unfiltered view and pushed thousands of
+        # empty rows into the store — where they could overwrite a concurrent edit.
+        changes = changed_rows(filtered[editor_cols], edited)
         try:
-            save_annotations(store.reset_index())
-            mark_saved(BULK_FLASH_ID)
-            st.rerun()
+            if not changes:
+                st.info("Nothing to save — no changes on this screen.")
+            else:
+                n = upsert_annotations(changes)
+                mark_saved(BULK_FLASH_ID)
+                st.session_state["bulk_saved_count"] = n
+                st.rerun()
         except Exception as exc:
             st.error(f"Could not save: {exc}")
 
@@ -1228,6 +1406,7 @@ def _render() -> None:
 
     df = user_data.merge_annotations(df, load_annotations())
 
+    secrets_error_banner()
     gsheets_error_banner()
     storage_banner()
     if _owner_key() and is_owner():
