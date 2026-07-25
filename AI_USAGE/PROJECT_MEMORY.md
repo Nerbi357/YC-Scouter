@@ -314,6 +314,14 @@ re-run to collect new companies; no service files beyond the agreed ones.
   deleted. Verified after the move: the whole suite, ruff, a browser check on the real
   dataset (~4,000 rows), and **a File 1 Actions run on the new structure succeeded** (so
   `pip install -e .` and papermill still work).
+- ⚠️ **The preflight itself caused one failed run** (2026-07-25) and was corrected:
+  it gated on the provider's model *listing*, which carries dated snapshots
+  (`claude-haiku-4-5-20251001`) but not necessarily the alias we call
+  (`claude-haiku-4-5`), so File 2 refused to start on a model that works fine. The
+  gate is now the single one-token call itself — the same thing the run does — and
+  the listing only enriches the message when a model really is gone. Lesson worth
+  keeping: a guard that can block correct work needs the same adversarial thinking
+  as the thing it guards.
 - ✅ **Preflight before spending** (2026-07-25, `src/yc_scouter/preflight.py`, 7
   tests): File 2 verifies the key, the credit balance and the model id before the
   loop, and turns each failure into a named instruction. Costs one token. A network
