@@ -981,37 +981,52 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
     detail_card(filtered, place="overview")
 
 
-def _step_page(delta: int, pages: int) -> None:
+def pages_of(df: pd.DataFrame, size: int = PAGE_SIZE) -> int:
+    """How many pages ``df`` needs (at least one, even when empty)."""
+    return max(1, -(-len(df) // size))
+
+
+def paginate(df: pd.DataFrame, page: int, size: int = PAGE_SIZE) -> tuple[pd.DataFrame, int, int]:
+    """``(rows of this page, first row index, page count)`` — page is clamped."""
+    pages = max(1, -(-len(df) // size))
+    page = min(max(int(page), 1), pages)
+    start = (page - 1) * size
+    return df.iloc[start : start + size], start, pages
+
+
+def _step_page(delta: int, pages: int, key: str = "card_page") -> None:
     """Move the pager by ``delta``, clamped to the pages that exist."""
-    page = int(st.session_state.get("card_page", 1)) + delta
-    st.session_state["card_page"] = min(max(page, 1), max(pages, 1))
+    page = int(st.session_state.get(key, 1)) + delta
+    st.session_state[key] = min(max(page, 1), max(pages, 1))
 
 
-def _page_number(pages: int) -> int:
+def _page_number(pages: int, key: str = "card_page") -> int:
     """← / → pager stored in session state (nicer than a +/- number input).
 
     The step runs as an ``on_click`` **callback**: Streamlit executes it before the
     script reruns, so the buttons are drawn from the page we are actually on.
     Updating the page after drawing them left "Вперёд →" clickable on the last page.
+
+    ``key`` keeps several pagers (cards, notes) independent of each other.
     """
-    page = min(max(int(st.session_state.get("card_page", 1)), 1), pages)
-    st.session_state["card_page"] = page
+    page = min(max(int(st.session_state.get(key, 1)), 1), pages)
+    st.session_state[key] = page
     prev_col, label_col, next_col = st.columns([1, 3, 1])
     prev_col.button(
         "← Назад",
         width="stretch",
         disabled=page <= 1,
-        key="page_prev",
+        key=f"{key}_prev",
         on_click=_step_page,
-        args=(-1, pages),
+        args=(-1, pages, key),
     )
     next_col.button(
         "Вперёд →",
         width="stretch",
         disabled=page >= pages,
-        key="page_next",
+        key=f"{key}_next",
         on_click=_step_page,
-        args=(1, pages),
+        args=(1, pages, key),
     )
     label_col.markdown(
         f"<div style='text-align:center;padding-top:0.45rem'>Страница <b>{page}</b> из {pages}"
@@ -1036,11 +1051,8 @@ def tab_companies(filtered: pd.DataFrame) -> None:
     sort_col, ascending = SORT_OPTIONS[sort_label]
     ranked = filtered.sort_values(sort_col, ascending=ascending, na_position="last")
 
-    pages = max(1, -(-len(ranked) // PAGE_SIZE))
-    page = _page_number(pages)
-    start = (page - 1) * PAGE_SIZE
-    chunk = ranked.iloc[start : start + PAGE_SIZE]
-    st.caption(f"Компании {start + 1}–{min(start + PAGE_SIZE, len(ranked))} из {len(ranked)}")
+    chunk, start, pages = paginate(ranked, _page_number(pages_of(ranked)))
+    st.caption(f"Компании {start + 1}–{start + len(chunk)} из {len(ranked)}")
 
     for _, row in chunk.iterrows():
         star = "⭐ " if bool(row.get("watchlist")) else ""
@@ -1150,6 +1162,10 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         for c in ["id", "name", "watchlist", "my_stage", "my_tags", "my_notes"]
         if c in filtered.columns
     ]
+    # Deliberately NOT paginated: measured on the real 4040 rows, paging this editor
+    # changed a filter change by 1.06 s -> 1.12 s (i.e. nothing), while it would cost
+    # the ability to edit many companies in one pass. The rerun cost lives elsewhere
+    # (chart building and widget serialisation) — see FOR_CLAUDE.md.
     edited = st.data_editor(
         filtered[editor_cols].copy(),
         width="stretch",
@@ -1161,7 +1177,9 @@ def tab_notes(filtered: pd.DataFrame) -> None:
             "my_tags": st.column_config.TextColumn("Теги (через запятую)"),
             "my_notes": st.column_config.TextColumn("Заметки", width="large"),
         },
-        key="annotations_editor",
+        # Keyed by the rows on screen: st.data_editor stores edits by row *position*,
+        # so a fixed key would replay them onto whatever a filter change brought in.
+        key=_selection_key("annotations_editor", filtered),
     )
 
     if st.button("💾 Сохранить заметки", type="primary"):

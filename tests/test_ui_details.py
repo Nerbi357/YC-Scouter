@@ -79,3 +79,39 @@ def test_mark_saved_records_the_company():
     assert cid == 42
     assert app.saved_recently(42) is True
     assert app.saved_recently(43) is False
+
+
+# --------------------------------------------------------------- notes pagination
+def test_paginate_returns_the_right_slice():
+    df = pd.DataFrame({"id": range(120)})
+    chunk, start, pages = app.paginate(df, page=2, size=50)
+    assert pages == 3 and start == 50
+    assert chunk["id"].tolist() == list(range(50, 100))
+
+
+def test_paginate_clamps_and_survives_an_empty_frame():
+    df = pd.DataFrame({"id": range(10)})
+    chunk, start, pages = app.paginate(df, page=99, size=50)
+    assert pages == 1 and start == 0 and len(chunk) == 10
+    chunk, start, pages = app.paginate(pd.DataFrame({"id": []}), page=1, size=50)
+    assert pages == 1 and start == 0 and chunk.empty
+
+
+def test_pagers_do_not_share_state():
+    st.session_state["card_page"] = 3
+    st.session_state["notes_page"] = 1
+    app._step_page(1, pages=5, key="notes_page")
+    assert st.session_state["notes_page"] == 2
+    assert st.session_state["card_page"] == 3, "the card pager must not move"
+
+
+def test_notes_editor_key_follows_the_visible_rows():
+    """st.data_editor stores edits by row *position*.
+
+    With a fixed key, edits made before a filter change would be replayed onto
+    whichever companies now sit at those positions.
+    """
+    import inspect
+
+    src = inspect.getsource(app.tab_notes)
+    assert '_selection_key("annotations_editor"' in src
