@@ -1,78 +1,73 @@
-# Skills used to build this project
+# The agent setup used on this project
 
-The project was built with **[Claude Code](https://claude.com/claude-code)** driven
-by a vendored copy of the open toolkit
-**[`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills)** (MIT).
-The working copy lives in `.claude/` at the repo root, so every Claude Code session
-picks the skills up automatically — nothing to install.
+This project was built by an AI coding agent that was given **written methods to
+follow** rather than being asked to improvise each time. This page describes that
+setup concretely; the reusable idea behind it is in
+[`../FOR_AI/AI_INSTRUCTIONS.md`](../FOR_AI/AI_INSTRUCTIONS.md) §9.
 
-This page explains **which of them actually did work here, and what each one
-contributed**, so the same assistance can be reproduced elsewhere. For the
-principles that came out of it, see [`AI_METHODOLOGY.md`](AI_METHODOLOGY.md).
+## The idea in one paragraph
 
-## How to get the same setup
+A *skill* is a plain Markdown file describing how a class of task should be done —
+how to plan a feature, how to write a test first, how to investigate a failure, how
+to review a diff before merging. The agent reads the relevant one and follows it.
+The benefit is consistency: the same request produces comparable work across
+sessions and days, and any lesson learned once can be written down so it is not
+re-learned. The files are committed with the project, so a new session inherits
+them automatically.
+
+## What is in the repository
+
+The agent's working files live in `.claude/` and stay with the project:
+
+| Path | What it holds |
+|---|---|
+| `.claude/skills/` | 24 method files — one per class of task |
+| `.claude/commands/` | shortcuts that invoke a method: spec, plan, build, test, review, ship, simplify, performance audit |
+| `.claude/agents/` | role definitions used for focused passes: reviewer, security auditor, test engineer, performance auditor |
+| `.claude/settings.json` | session setup — prepares the environment at the start of every session |
+| `.claude/session_start.sh` | installs the pinned dependencies so tests and linters run immediately |
+
+They are a vendored copy of the open toolkit
+[`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills) (MIT). To
+reproduce the setup elsewhere:
 
 ```bash
 git clone https://github.com/addyosmani/agent-skills
-cp -r agent-skills/.claude <your-repo>/.claude    # skills, commands, agents
+cp -r agent-skills/.claude <your-repo>/.claude
 ```
 
-Then open the repository in Claude Code and drive it with the slash commands
-below. A skill is just a Markdown instruction file: the agent reads it and follows
-that method instead of improvising, so the same command produces comparable work
-across sessions.
+## Which methods actually did work here
 
-## The commands that shaped this repository
+| Method | What it produced on this project |
+|---|---|
+| Idea refinement | turned a rough brief into concrete decisions: source, model and budget, hosting, update strategy, repository layout |
+| Specification | the written spec approved before any code — objective, data model, the two runnable units, budget, boundaries |
+| Planning | vertical tasks with acceptance criteria, dependency order, and owner checkpoints between phases |
+| Incremental build + test-first | the working loop: failing test → minimal code → whole suite green → linters → one atomic commit |
+| Debugging and error recovery | the default response to any failure — reproduce, find the root cause in the traceback, only then change code. This is what turned "the dashboard crashed" into three distinct causes, fixed separately |
+| Code review | pre-merge review across correctness, readability, architecture, security, performance |
+| Security hardening | the owner/visitor model, fail-closed access, constant-time secret comparison, no secrets in the repository |
+| Browser verification | the habit of checking UI changes in a real browser against real data instead of trusting unit tests |
+| Documentation of decisions | recording each decision *with its reason*, which is what the project memory is made of |
+| Performance work | measure → change → measure again, and publish the result even when it is "no change" |
 
-| Command | Skill behind it | What it produced here |
-|---|---|---|
-| `/idea-refine` | `idea-refine` | turned a rough brief into concrete decisions: data source, model and budget, hosting, update strategy, repo layout |
-| `/spec` | `spec-driven-development` | the written specification approved before any code — objective, data model, the two runnable units, budget, boundaries |
-| `/plan` | `planning-and-task-breakdown` | vertical tasks with acceptance criteria, dependency order and owner checkpoints between phases |
-| `/build auto` | `incremental-implementation` + `test-driven-development` | the implementation loop: failing test → minimal code → green suite → linters → one atomic commit |
-| `/review` | `code-review-and-quality` | pre-merge review across correctness, readability, architecture, security, performance |
-| `/test` | `test-driven-development` | the "prove it" pattern for bugs: reproduce with a test first, then fix |
-| `/code-simplify` | `code-simplification` | removing accidental complexity without changing behaviour |
-| `/ship` | `shipping-and-launch` | the pre-launch checklist before the dashboard went public |
-| `/webperf` | `performance-optimization` | the dashboard performance passes (measure → change → re-measure) |
+## Roles, and when several were run at once
 
-## Skills that were used without a command
+Most work was one focused pass. Two situations justified running several agents in
+parallel:
 
-- **`debugging-and-error-recovery`** — the default response to every failure:
-  reproduce, find the root cause in the traceback, then change code. This is what
-  turned "the dashboard crashed" into three distinct, separately-fixed causes.
-- **`security-and-hardening`** — the owner/visitor access model, fail-closed
-  access checks, constant-time secret comparison, never committing keys.
-- **`browser-testing-with-devtools`** — the habit of verifying UI changes in a real
-  browser against the real dataset instead of trusting unit tests.
-- **`documentation-and-adrs`** — recording decisions *with their reason*, which is
-  what the continuity file and the "do not reinvent" section are made of.
-- **`git-workflow-and-versioning`** — atomic commits, a working branch, and a
-  `main` that always equals what is deployed.
+- **Discovery** — independent researchers on the open questions of the spec (data
+  source, cost, hosting, update strategy, longevity), each bringing back trade-offs
+  for the owner to decide.
+- **Adversarial audit** — several attackers on the finished dashboard with
+  different lenses (correctness, data integrity, access, resilience), each blind to
+  the others, so they did not share a blind spot. Every finding was reproduced
+  independently before it was fixed. This produced the ten critical defects listed
+  in [`AI_METHODOLOGY.md`](AI_METHODOLOGY.md) §6.
 
-## Specialist agents (`.claude/agents/`)
+## The rules the agent worked under
 
-Used for focused, parallel passes rather than everyday edits:
-`code-reviewer`, `security-auditor`, `test-engineer`, `web-performance-auditor`.
-The most valuable run was an **adversarial audit**: several agents attacking the
-dashboard in parallel with different lenses, each finding independently reproduced
-before anything was fixed.
-
-## Multi-agent runs
-
-Two moments justified fanning out to many agents at once:
-
-1. **Discovery** — researching the open questions of the spec in parallel
-   (source, cost, hosting, update strategy, longevity) and bringing back
-   trade-offs to decide.
-2. **Adversarial audit** — attacking the finished dashboard from several angles
-   simultaneously, then verifying every candidate finding before fixing it.
-
-Everything else was faster as a single focused session.
-
-## Ground rules the agent was held to
-
-Open sources only (no paywalled links); never fabricate funding, cap-table or
-valuation numbers; never commit secrets; code, comments and docs in English while
-the dashboard UI and the owner conversation stay in the owner's language; present
-options before large changes; every change lands with tests and linters green.
+Open sources only, no paywalled links · never fabricate funding, cap-table or
+valuation figures · never commit secrets · everything written into the repository
+in English · options presented before any large change · every change lands with
+tests and linters green · what the agent decided on its own is reported out loud.

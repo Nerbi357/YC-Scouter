@@ -1163,7 +1163,7 @@ def tab_notes(filtered: pd.DataFrame) -> None:
     # Deliberately NOT paginated: measured on the real 4040 rows, paging this editor
     # changed a filter change by 1.06 s -> 1.12 s (i.e. nothing), while it would cost
     # the ability to edit many companies in one pass. The rerun cost lives elsewhere
-    # (chart building and widget serialisation) — see FOR_CLAUDE.md.
+    # (chart building and widget serialisation) — see FOR_AI/PROJECT_MEMORY.md.
     edited = st.data_editor(
         filtered[editor_cols].copy(),
         width="stretch",
