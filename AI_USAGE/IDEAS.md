@@ -53,12 +53,13 @@ Format: `[status] Idea — value · cost · origin`, where status is
 
 ## The way we work (raised while writing the instructions)
 
-- **[open] Keep `AI_INSTRUCTIONS.md` in its own tiny repository.** It is meant to
+- **[declined] Keep `AI_INSTRUCTIONS.md` in its own tiny repository.** It is meant to
   travel between projects and to improve in each of them; copies in N repositories
   will drift apart, and the newest version will be whichever project was touched
   last. One canonical repository (or gist) copied into each new project — and
   improvements pushed back to it — keeps a single history. *Value: the file
-  actually accumulates instead of forking. Cost: ~20 minutes once.*
+  actually accumulates instead of forking. Cost: ~20 minutes once. **Declined by the
+  owner (2026-07-25):** the file travels with the project instead.*
 - **[open] A session-start sanity check.** When a session begins in an existing
   project, verify the ground before building on it: branch synced with the remote,
   working tree clean, test suite green. *Value: no work is built on a broken base
