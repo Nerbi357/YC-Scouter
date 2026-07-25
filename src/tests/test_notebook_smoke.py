@@ -11,8 +11,8 @@ import pytest
 
 pm = pytest.importorskip("papermill")
 
-ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "tests" / "fixtures" / "companies_sample.json"
+ROOT = Path(__file__).resolve().parents[2]  # repo root (src/tests/..)
+FIXTURE = Path(__file__).parent / "fixtures" / "companies_sample.json"
 
 
 def test_file1_notebook_builds_dated_base(tmp_path):

@@ -5,12 +5,44 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "yc-scouter"
 version = "0.1.0"
-description = "Personal radar for Y Combinator startups (batches 2024-2026)"
+description = "Scout and analyze Y Combinator companies from 2020 to now"
 requires-python = ">=3.11"
 readme = "README.md"
 
+# The single human-edited list of dependencies. The pinned + hashed lock that is
+# actually installed everywhere (Streamlit Cloud, GitHub Actions, local) is built
+# from this list:
+#   uv pip compile pyproject.toml --generate-hashes -o requirements.txt
+# and installed with:
+#   pip install -r requirements.txt --require-hashes
+dependencies = [
+    # Pipeline
+    "httpx",        # fetch the YC data
+    "pandas",
+    "pyarrow",      # Parquet
+    "openpyxl",     # styled Excel export
+    # Dashboard
+    "streamlit",
+    "plotly",
+    # AI enrichment (File 2)
+    "anthropic",    # Claude — the default provider
+    "groq",         # optional alternative provider
+    # Notes storage when hosted
+    "gspread",
+    "google-auth",
+    # Running the notebooks headlessly (GitHub Actions)
+    "papermill",
+    "ipykernel",
+    # Local .env support
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "ruff", "black"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["yc_scouter*"]  # src/tests is a test suite, not a shipped package
 
 [tool.black]
 line-length = 100
@@ -19,12 +51,15 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["src", "tests"]
+src = ["src", "src/tests"]
+# Notebooks are deliberately loose (bootstrap cells, papermill parameter cells);
+# their logic lives in src/ and is linted there.
+extend-exclude = ["notebooks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
-testpaths = ["tests"]
+testpaths = ["src/tests"]
 addopts = "-q"
