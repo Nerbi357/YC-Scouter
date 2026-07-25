@@ -12,11 +12,26 @@ import pandas as pd
 _SEARCH_FIELDS = ("name", "one_liner", "long_description", "tags", "my_notes", "my_tags")
 
 
+def is_sequence(value: object) -> bool:
+    """True for a multi-value cell (list, tuple, **numpy array**) — but not text.
+
+    Parquet round-trips a list column as ``numpy.ndarray``, so an ``isinstance``
+    check against ``list`` alone silently falls through to ``str(array)`` and makes
+    the search match array *punctuation*: typing ``[`` used to return everything.
+    """
+    return not isinstance(value, (str, bytes)) and hasattr(value, "__iter__")
+
+
+def _join(value: object) -> object:
+    """A multi-value cell as space-separated text; anything else untouched."""
+    return " ".join(map(str, value)) if is_sequence(value) else value
+
+
 def _row_text(row: pd.Series) -> str:
     parts = []
     for field in _SEARCH_FIELDS:
         val = row.get(field)
-        if isinstance(val, list):
+        if is_sequence(val):
             parts.append(" ".join(map(str, val)))
         elif pd.notna(val):
             parts.append(str(val))
@@ -35,16 +50,16 @@ def _search_mask(df: pd.DataFrame, needle: str) -> pd.Series:
         if field not in df.columns:
             continue
         col = df[field]
-        if col.map(lambda v: isinstance(v, (list, tuple))).any():
-            col = col.map(lambda v: " ".join(map(str, v)) if isinstance(v, (list, tuple)) else v)
+        if col.map(is_sequence).any():
+            col = col.map(_join)
         text = text + " " + col.fillna("").astype(str)
     return text.str.lower().str.contains(needle, regex=False, na=False)
 
 
 def split_tags(value: object) -> list[str]:
-    """Parse a personal-tags cell (``"ai, fintech"`` or a list) into a clean list."""
-    if isinstance(value, list):
-        items = value
+    """Parse a personal-tags cell (``"ai, fintech"``, a list or an array) into a list."""
+    if is_sequence(value):
+        items = list(value)
     elif value is None or (isinstance(value, float) and pd.isna(value)):
         items = []
     else:
@@ -99,10 +114,16 @@ def apply_filters(
         wanted = {t.strip().lower() for t in tags if str(t).strip()}
         mask = out["my_tags"].apply(lambda v: bool(wanted & {t.lower() for t in split_tags(v)}))
         out = out[mask]
-    if min_team_size is not None:
-        out = out[out["team_size"].fillna(0) >= min_team_size]
-    if max_team_size is not None:
-        out = out[out["team_size"].fillna(0) <= max_team_size]
+    if (min_team_size is not None or max_team_size is not None) and "team_size" in out.columns:
+        # An unknown size is not a size of zero: YC leaves the field empty for plenty
+        # of companies, and reading that as 0 let them pass an explicit "up to N".
+        team = pd.to_numeric(out["team_size"], errors="coerce")
+        mask = team.notna()
+        if min_team_size is not None:
+            mask &= team >= min_team_size
+        if max_team_size is not None:
+            mask &= team <= max_team_size
+        out = out[mask]
     if min_score is not None:
         out = out[out["score"] >= min_score]
     if max_score is not None:
