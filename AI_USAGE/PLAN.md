@@ -26,17 +26,20 @@ preflight before spending, a green test suite.
 - [x] `AI_USAGE/`: portable instructions · project memory · idea backlog
 - [x] Final `README.md` + `README.ru.md` for Russian speakers
 
-## Phase 5 — full audit — **in progress**
+## Phase 5 — full audit — **awaiting approval**
 
 Goal: find what the first pass (confirmed-critical only) did not cover, at every
 severity, and close what matters.
 
-- [ ] Attack the project with several agents and different lenses: correctness ·
-      data integrity · access and privacy · resilience to bad input · UX and
-      accessibility · documentation accuracy
-- [ ] Reproduce every candidate finding independently before touching code
-- [ ] Fix by blast radius; each fix lands with a test that fails without it
-- [ ] Report: what was found, what was fixed, what was consciously left and why
+- [x] Five lenses attacked the project in parallel: data correctness · access and
+      privacy · resilience to hostile input · user flows · operations and
+      documentation accuracy
+- [x] Every candidate handed to a *different* agent to refute — 30 candidates,
+      **9 confirmed** (2 high, 5 medium, 2 low), 21 refuted
+- [x] All nine fixed, each with a test that fails without it, plus one more the
+      browser check found while verifying (the ✕ never closed the card)
+- [x] Verified: whole suite green, ruff, browser pass on the real dataset
+- [ ] Owner reviews the report and approves the phase
 - [ ] Delete this file and fold what remains into `PROJECT_MEMORY.md`
 
 ## Phase 6 — performance — **postponed by the owner**

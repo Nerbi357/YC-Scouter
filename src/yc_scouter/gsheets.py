@@ -110,6 +110,12 @@ def save(secrets: Any, df: pd.DataFrame, *, allow_empty: bool = False) -> None:
         )
 
     grid = [list(user_data.USER_COLUMNS)] + out.values.tolist()
+    # A worksheet created by _open_worksheet has 1000 rows; the store outgrows that as
+    # soon as the owner saves the whole table. Sheets rejects a range past the grid, so
+    # the save would fail outright — grow it first.
+    row_count = getattr(ws, "row_count", None)
+    if row_count is not None and len(grid) > row_count:
+        ws.resize(rows=len(grid) + 100)
     ws.update(grid, f"A1:{_last_column_letter()}{len(grid)}")
     if existing > len(grid):
         ws.batch_clear([f"A{len(grid) + 1}:{_last_column_letter()}{existing}"])

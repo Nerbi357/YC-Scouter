@@ -16,7 +16,7 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from . import config
+from . import config, filters
 
 # Control chars Excel/openpyxl rejects (matches openpyxl's ILLEGAL_CHARACTERS_RE).
 _ILLEGAL_XLSX_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
@@ -33,13 +33,18 @@ def _clean_cell(value: object) -> object:
 
 
 def _flatten_for_sheet(df: pd.DataFrame) -> pd.DataFrame:
-    """Flatten list columns to strings and strip Excel-illegal chars for XLSX."""
+    """Flatten multi-value columns to strings and strip Excel-illegal chars for XLSX.
+
+    ``isinstance(v, list)`` is not enough: a list column read back from Parquet is a
+    ``numpy.ndarray``, which used to fall through and be stringified as its repr —
+    ``"['Bio' 'Climate']"`` instead of ``"Bio, Climate"``.
+    """
     out = df.copy()
     for col in out.columns:
-        if out[col].apply(lambda v: isinstance(v, list)).any():
+        if out[col].apply(filters.is_sequence).any():
             out[col] = out[col].apply(
                 lambda v: (
-                    ", ".join(map(str, v)) if isinstance(v, list) else ("" if pd.isna(v) else v)
+                    ", ".join(map(str, v)) if filters.is_sequence(v) else ("" if pd.isna(v) else v)
                 )
             )
     for col in out.columns:

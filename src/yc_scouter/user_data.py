@@ -134,6 +134,29 @@ def save_user_data(rows: list[dict] | pd.DataFrame, path: Path = DEFAULT_PATH) -
     tmp.replace(path)
 
 
+def upsert(store: pd.DataFrame, changes: dict) -> pd.DataFrame:
+    """Return ``store`` with ``changes`` applied — ``{company_id: {column: value}}``.
+
+    Vectorised on purpose. The row-by-row ``store.loc[id] = ...`` it replaces
+    reallocates the frame on every unseen id, which is quadratic: saving the whole
+    notes table took ~20 s of blocking work before anything was written.
+
+    Companies that are not in ``changes`` are returned untouched, which is what makes
+    a save safe against a concurrent writer: only what actually changed is written.
+    """
+    store = _ensure_columns(store)
+    if not changes:
+        return store
+    new = pd.DataFrame(
+        [
+            {"id": int(cid), **{k: v for k, v in vals.items() if k != "id"}}
+            for cid, vals in changes.items()
+        ]
+    )
+    merged = pd.concat([store, _ensure_columns(new)], ignore_index=True)
+    return _ensure_columns(merged)  # keeps the last entry per id
+
+
 def merge_annotations(df: pd.DataFrame, user: pd.DataFrame) -> pd.DataFrame:
     """Left-join an already-loaded annotations frame onto ``df`` by ``id``.
 
