@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import ai, config, enrich, export, fetch, normalize, score
+from . import ai, config, enrich, export, fetch, normalize, preflight, score
 
 
 def _load_records(
@@ -96,12 +96,15 @@ def build_ai(
     date: str | None = None,
     progress_every: int = 50,
     limit: int | None = None,
+    check_first: bool = True,
 ) -> tuple[pd.DataFrame, dict[str, Path]]:
     """Build the "AI Summary": load the newest Base, add ``ai_description``/``ai_risks``
     for NEW cache keys only, and write the dated AI export.
 
     Provider is ``"claude"`` (default), ``"groq"``, or ``"mock"`` (offline, no spend).
-    Pass ``summarizer`` to inject one directly (tests/demos).
+    Pass ``summarizer`` to inject one directly (tests/demos). ``check_first`` runs the
+    preflight (key, credits, model id) before spending anything — see
+    :mod:`yc_scouter.preflight`.
     """
     if df is None:
         if base_path is None:
@@ -114,6 +117,13 @@ def build_ai(
         model = model or config.CLAUDE_MODEL
     else:
         summarizer, model = _pick_summarizer(provider, model, api_key, progress_every)
+        if summarizer is not None and check_first:
+            # Fail before the loop rather than in the middle of a few thousand
+            # companies: a rotated key, an empty balance and a retired model are
+            # all invisible until the first call. Costs one token.
+            report = preflight.check(provider, model=model, api_key=api_key)
+            if report.warning:
+                print(f"  preflight warning: {report.warning}", flush=True)
 
     out = ai.add_ai_summaries(
         df, cache_path=cache_path, model=model, summarizer=summarizer, limit=limit
