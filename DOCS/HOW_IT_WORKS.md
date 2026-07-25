@@ -226,5 +226,5 @@ anything. Alongside the unit tests:
 - [`HOW_TO_UPDATE.md`](HOW_TO_UPDATE.md) — the maintenance checklist.
 - [`../AI_USAGE/AI_METHODOLOGY.md`](../AI_USAGE/AI_METHODOLOGY.md) — the reusable
   principles behind how this was built.
-- [`../FOR_CLAUDE.md`](../FOR_CLAUDE.md) — the continuity file for working on
-  *this* project with an AI agent.
+- [`../FOR_AI/PROJECT_MEMORY.md`](../FOR_AI/PROJECT_MEMORY.md) — the continuity file
+  for working on *this* project with an AI agent.

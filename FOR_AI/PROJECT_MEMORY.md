@@ -1,12 +1,17 @@
-# FOR_CLAUDE — project memory for continuing in a new session
+# PROJECT MEMORY — YC Scouter
 
-> **Purpose.** This file is the project's memory. If the chat restarted or the work
-> continues in another session, read this first and you will recover what we are
-> doing, how and why, without losing anything.
+> **Purpose.** This file is *this project's* memory. If the session restarted or the
+> work continues elsewhere, it restores what is being built, how, and why — with
+> nothing lost.
 >
-> **How to use it.** Read this file → `DOCS/HOW_IT_WORKS.md` (how the code works)
-> → `DOCS/HOW_TO_UPDATE.md` (maintenance). Keep the decision log and the "what's
-> next" section up to date as you work.
+> **Reading order.** [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) first (how to work
+> with the owner — it applies to every project and outranks any habit), then this
+> file, then [`PLAN.md`](PLAN.md) (what is in flight), then
+> `../DOCS/HOW_IT_WORKS.md` (how the code works) and `../DOCS/HOW_TO_UPDATE.md`
+> (maintenance).
+>
+> **Keep it current.** Decisions, results and open questions are written here in the
+> same pass as the work. A stale memory file is worse than none.
 
 ---
 
@@ -31,24 +36,21 @@ Streamlit dashboard and documentation.
 
 The project is currently **in the final phase**: built, deployed, being polished.
 
-## 3. How to communicate (important)
+## 3. How to communicate
 
-- **Talk to the owner in Russian.** Everything written into the repository —
-  code, comments, docs, dashboard UI, this file — is **English**, so that any
-  English speaker can read the whole project.
-- **Options first, code second.** The owner wants 2–4 options with a
-  recommendation. Do not start large edits without their approval.
-- Explain **step by step**, with concrete actions ("open this, click that").
-- The owner works in **Google Colab** and often asks for step-by-step instructions.
-- Do not argue in circles: once the owner confirms a decision, do it.
-- **But do disagree when the owner is wrong** — once, with evidence (a
-  measurement, a platform limitation) — and then do what they decide.
-- **Honesty about data:** never invent cap tables, round sizes or valuations.
-- **Honesty about results:** if a change did not help, say so with numbers (this
-  happened with paginating the notes editor: 1.06 s → 1.12 s, reverted).
-- Every change lands as an **atomic commit** with tests and linters green.
-- Ask questions when a fork in the road changes the outcome; never guess for the
-  owner.
+The full contract — decision rights, the idea funnel, phases, self-audit, the
+team-of-agents and skills philosophy, templates — lives in
+[`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) and applies here unchanged. Only the
+project-specific additions are listed below.
+
+- **Honesty about this data:** never invent cap tables, round sizes or valuations
+  for private startups; where the source is silent, the cell stays empty and the
+  card offers an open link instead.
+- **Honesty about results, with this project's own example:** paginating the bulk
+  notes editor was expected to speed up a rerun and measured 1.06 s → 1.12 s, i.e.
+  nothing. It was reverted and recorded so nobody retries it.
+- The owner runs the notebooks in **Google Colab** and presses the two buttons on
+  GitHub — instructions for them are always click-by-click.
 
 ## 3a. The owner's requirements for project structure (follow these)
 
@@ -57,8 +59,8 @@ only blocks and a few mandatory files, with no service clutter.
 
 **Placement rules (agreed 2026-07-25):**
 
-1. **Keep the root minimal:** `README.md`, `README.ru.md`, `FOR_CLAUDE.md`,
-   `app.py`, `requirements.txt`, `pyproject.toml`, `LICENSE`, `.gitignore`,
+1. **Keep the root minimal:** `README.md`, `README.ru.md`, `app.py`,
+   `requirements.txt`, `pyproject.toml`, `LICENSE`, `.gitignore`,
    `.python-version`. Nothing else goes to the root — a new file goes into a block.
 2. **Service code lives in `src/`** — including the tests (`src/tests/`), which are
    service code rather than a project block.
@@ -70,8 +72,9 @@ only blocks and a few mandatory files, with no service clutter.
 5. **`DOCS/` holds documents for people**, one per job: how it works, how to
    deploy, how to update. Never create two documents answering the same question.
 6. **Never delete anything from `data/`** — dated runs are kept as an archive.
-7. **Instructions for the AI live in one file** (`FOR_CLAUDE.md`). There is no
-   separate SPEC / plan / TODO any more.
+7. **Everything the AI needs lives in `FOR_AI/`**: `AI_INSTRUCTIONS.md` (portable
+   rules, travels between projects), `PROJECT_MEMORY.md` (this file) and `PLAN.md`
+   (the living plan). There is no separate SPEC / TODO any more.
 
 **What physically cannot be moved** (verified — moving it breaks the project):
 `requirements.txt` (Streamlit Cloud only reads it from the root), `pyproject.toml`
@@ -93,7 +96,7 @@ A fork of **`addyosmani/agent-skills`** is vendored into `.claude/`.
 3. **Verify for real.** For UI — a real browser (Playwright) against the real
    dataset; for speed — a before/after measurement, not a feeling.
 4. **Deploy:** merge the working branch into `main` → push (Streamlit picks it up).
-5. **Write the decision and the result into `FOR_CLAUDE.md`** in the same pass.
+5. **Write the decision and the result into `PROJECT_MEMORY.md` and `PLAN.md`** in the same pass.
 6. On any failure use `debugging-and-error-recovery`: find the root cause in the
    traceback first, then change code. Never guess.
 
@@ -119,7 +122,6 @@ Commands: `/spec /plan /build /test /review /ship /code-simplify /webperf`
 ```
 README.md                   the shop window — for a first-time visitor (English)
 README.ru.md                the same, in Russian
-FOR_CLAUDE.md               THIS file: everything an AI needs to work on the project
 app.py                      the Streamlit dashboard — the most active file
 requirements.txt            pinned + hashed versions (must stay in the root)
 pyproject.toml              dependency source, packaging, ruff/pytest settings
@@ -145,7 +147,11 @@ DOCS/HOW_IT_WORKS.md              how everything works — detailed, for outside
 DOCS/HOW_TO_DEPLOY_DASHBOARD.md   step-by-step deployment + Google Sheet + sharing
 DOCS/HOW_TO_UPDATE.md             maintenance checklist (buttons, keys, models, lock)
 
-AI_USAGE/AI_METHODOLOGY.md   a portable playbook for the owner's other projects
+FOR_AI/AI_INSTRUCTIONS.md    HOW to work with the owner — portable, travels along
+FOR_AI/PROJECT_MEMORY.md     THIS file — everything about this project
+FOR_AI/PLAN.md               the living plan: phases, status, what is next
+
+AI_USAGE/AI_METHODOLOGY.md   how this project was built with AI — for readers
 AI_USAGE/SKILLS_USED.md      which skills were used and what each contributed
 
 .claude/                    agent service files: skills, commands, agents,
@@ -155,8 +161,10 @@ AI_USAGE/SKILLS_USED.md      which skills were used and what each contributed
 ```
 
 **Roles of the documents** (do not mix them):
-`FOR_CLAUDE.md` — how to work on **this** project (for an AI);
-`AI_USAGE/AI_METHODOLOGY.md` — how to build **other** projects (for someone else's AI);
+`FOR_AI/AI_INSTRUCTIONS.md` — how to work with the owner, on **any** project;
+`FOR_AI/PROJECT_MEMORY.md` — everything about **this** project (this file);
+`FOR_AI/PLAN.md` — what is in flight right now;
+`AI_USAGE/*` — for readers: how this project was built with AI, with real prompts;
 `DOCS/*` — for people: how it works / how to deploy / how to maintain;
 `README.md` — the shop window and navigation.
 
@@ -345,7 +353,7 @@ re-run to collect new companies; no service files beyond the agreed ones.
 ## 12. Starter prompt for a new session
 
 > "Here is the repository Nerbi357/YC-Scouter, branch
-> `claude/ycombinator-startups-agent-skills-eyv4ar`. Read `FOR_CLAUDE.md`, then
-> `DOCS/HOW_IT_WORKS.md`. We work by our rules: talk to me in Russian, write
-> everything in the repository in English, options before code, TDD, atomic
-> commits, merge into `main` to deploy. Continue from the 'What's next' section."
+> `claude/ycombinator-startups-agent-skills-eyv4ar`. Read
+> `FOR_AI/AI_INSTRUCTIONS.md` first, then `FOR_AI/PROJECT_MEMORY.md` and
+> `FOR_AI/PLAN.md`, then `DOCS/HOW_IT_WORKS.md`. Talk to me in Russian, write
+> everything in the repository in English. Continue from the plan."

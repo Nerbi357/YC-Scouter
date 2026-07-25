@@ -59,8 +59,9 @@ charged.
   for building projects with an AI agent.
 - [`AI_USAGE/SKILLS_USED.md`](AI_USAGE/SKILLS_USED.md) — which agent skills were
   used here and what each contributed.
-- [`FOR_CLAUDE.md`](FOR_CLAUDE.md) — **read this first when continuing this project
-  in a new AI session**: conventions, decisions, structure rules, open tasks.
+- [`FOR_AI/`](FOR_AI/PROJECT_MEMORY.md) — **read this first when continuing this
+  project in a new AI session**: `AI_INSTRUCTIONS.md` (how to work with the owner),
+  `PROJECT_MEMORY.md` (everything about this project) and `PLAN.md` (the live plan).
 
 ## Honesty about data
 
