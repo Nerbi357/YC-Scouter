@@ -14,7 +14,7 @@ went in and what was postponed · the owner's explicit approval.
 
 ## Phases 1–3 — pipeline, dashboard, robustness — **done**
 
-Summarised in `PROJECT_MEMORY.md` §9: the two buttons, 4040 companies with 100% AI
+Summarised in `PROJECT_MEMORY.md` §9: the two buttons, the full dataset with 100% AI
 coverage, the deployed dashboard, all confirmed critical audit findings closed, the
 preflight before spending, 161 tests.
 

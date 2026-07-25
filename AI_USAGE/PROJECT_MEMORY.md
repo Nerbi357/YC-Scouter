@@ -23,7 +23,9 @@ Y Combinator startups **from 2020 to the present**.
 - Repository: **`Nerbi357/YC-Scouter`** (public; formerly `VC-Tracking` — the git
   remote inside the agent sandbox may still show the old path, GitHub redirects).
 - Live dashboard: **https://nerbi357-yc-scouter.streamlit.app/**
-- Data: **4040 companies** (batches 2020–2026), all with an AI description and risks.
+- Data: **several thousand companies** (batches 2020–2026), all with an AI description
+  and risks. Exact counts are deliberately kept out of the documents — they drift with
+  every rebuild; the dashboard shows the number of the dataset it is reading.
 
 It consists of two notebooks (collect → AI-enrich), dated datasets in `data/`, a
 Streamlit dashboard and documentation.
@@ -238,10 +240,13 @@ re-run to collect new companies; no service files beyond the agreed ones.
   project. `README.ru.md` is the Russian version of the README. Conversation with
   the owner stays in Russian.
 - Visitor-facing folders are named in CAPS (`DOCS/`, `AI_USAGE/`).
+- **No exact company counts in any description** (2026-07-25): they drift with every
+  rebuild and had already disagreed across files (4037 vs 4040). Documents say
+  "several thousand"; the dashboard shows the real number of the dataset it reads.
 
 ## 9. What is done (state as of the last session)
 
-- ✅ Pipeline, a 4040-company dataset with AI, both Actions buttons working.
+- ✅ Pipeline, the full dataset with AI, both Actions buttons working.
 - ✅ Dashboard deployed: 4 tabs, filters, charts, comparison, notes.
 - ✅ Owner's notes in a Google Sheet; visitors get an isolated session.
 - ✅ Safety net: any uncaught error shows the reason plus a reset button.
@@ -257,7 +262,7 @@ re-run to collect new companies; no service files beyond the agreed ones.
   `@st.fragment` (`table_and_card`). Measured with Playwright on the real dataset.
 - ✅ **All confirmed critical findings of the adversarial audit are closed**
   (2026-07-25, 4 atomic commits, +25 tests):
-  1. Searching for `[` or `'` returned all 4037 companies — parquet returns `tags`
+  1. Searching for `[` or `'` returned every company in the dataset — parquet returns `tags`
      as a `numpy.ndarray` and the search matched the array's repr
      (`filters.is_sequence`).
   2. An empty `team_size` counted as zero and passed an explicit "up to N" filter —
@@ -289,7 +294,7 @@ re-run to collect new companies; no service files beyond the agreed ones.
   (`year_bar`), so no more "2020.5"; saving a note shows a green "Saved ✅" (a flag
   in session state survives `st.rerun`) plus a toast.
 - ✅ **The owner's update routine was rehearsed end to end** (2026-07-25): both
-  Actions buttons ran, the 2026-07-25 dataset has **4040 companies** (3 new), 100%
+  Actions buttons ran, the 2026-07-25 dataset added 3 new companies at 100%
   AI coverage, a single model, cost ≈ $0.005 (the cache paid only for the new
   ones). The dashboard picked up `yc_dataset_ai_2026-07-25.parquet` by itself.
   ⚠️ Diagnostic note: two File 1 runs at 12:33 and 12:36 failed with
@@ -301,8 +306,8 @@ re-run to collect new companies; no service files beyond the agreed ones.
   methodology + skills description), `DEPLOY.md` → `HOW_TO_DEPLOY_DASHBOARD.md`
   (rewritten step by step), `HOW_IT_WORKS.md` expanded, `Archive/` deleted (the
   brief absorbed here), `requirements.in` → `pyproject.toml`, `.env.example`
-  deleted. Verified after the move: 154 tests, ruff, a browser check on 4040
-  companies, and **a File 1 Actions run on the new structure succeeded** (so
+  deleted. Verified after the move: the whole suite, ruff, a browser check on the real
+  dataset, and **a File 1 Actions run on the new structure succeeded** (so
   `pip install -e .` and papermill still work).
 - ✅ **Preflight before spending** (2026-07-25, `src/yc_scouter/preflight.py`, 7
   tests): File 2 verifies the key, the credit balance and the model id before the

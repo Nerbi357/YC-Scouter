@@ -18,8 +18,8 @@ Format: `[status] Idea — value · cost · origin`, where status is
   and fail the workflow if they break. *Value: the only thing that catches **silent**
   breakage (a renamed source field, a half-empty rebuild). Cost: ~1 hour. Origin:
   the failure-alerting discussion; the owner chose the preflight only for now.*
-- **[open] A data-health line in the dashboard.** `Data: 2026-07-25 · 4040
-  companies · AI 100% · model claude-haiku-4-5`, written by the run into
+- **[open] A data-health line in the dashboard.** `Data: <date> · <n>
+  companies · AI 100% · model <id>`, written by the run into
   `data/last_run.json`, plus a gentle warning when the data is older than N months.
   *Value: the state is visible where the owner actually looks. Cost: ~1 hour.*
 - **[open] Check-only scheduled workflow.** Weekly, changes nothing and spends

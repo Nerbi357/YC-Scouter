@@ -9,7 +9,7 @@ Storage for your personal notes/tags/stage is chosen automatically:
   required for hosting on Streamlit Community Cloud, whose disk is ephemeral);
 * a local **CSV** otherwise (Colab / local use).
 
-Performance note: with ~4k companies, anything built eagerly on every rerun
+Performance note: with a few thousand companies, anything built eagerly on every rerun
 (exports, per-row Python loops) blows the free-tier resource limits. Exports are
 therefore generated only on demand, and the card list is paginated.
 
@@ -468,7 +468,8 @@ def export_bytes(df: pd.DataFrame, fmt: str) -> bytes:
 
 def export_panel(df: pd.DataFrame, key: str) -> None:
     """Compact export control (top-right). Files are built only on request —
-    doing it on every rerun costs seconds of CPU and hundreds of MB on 4k rows."""
+    doing it on every rerun costs seconds of CPU and hundreds of MB on the full
+    dataset."""
     with st.popover("⬇️ Export", width="stretch"):
         st.caption(f"Filtered: **{len(df)}** companies")
         fmt = st.radio("Format", list(EXPORT_FORMATS), horizontal=True, key=f"fmt_{key}")
@@ -1160,7 +1161,7 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         for c in ["id", "name", "watchlist", "my_stage", "my_tags", "my_notes"]
         if c in filtered.columns
     ]
-    # Deliberately NOT paginated: measured on the real 4040 rows, paging this editor
+    # Deliberately NOT paginated: measured on the real dataset, paging this editor
     # changed a filter change by 1.06 s -> 1.12 s (i.e. nothing), while it would cost
     # the ability to edit many companies in one pass. The rerun cost lives elsewhere
     # (chart building and widget serialisation) — see AI_USAGE/PROJECT_MEMORY.md.
