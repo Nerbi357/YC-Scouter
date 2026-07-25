@@ -9,8 +9,8 @@ annotate.
 > 🔗 **Live dashboard — [nerbi357-yc-scouter.streamlit.app](https://nerbi357-yc-scouter.streamlit.app/)**
 > · 🇷🇺 [Русская версия этого файла](README.ru.md)
 
-**4040 companies** · batches 2020–2026 · 100% covered by AI description and risks ·
-rebuilt on demand by pressing two buttons.
+**Several thousand companies** · batches 2020–2026 · every one of them carrying an AI
+description and risks · rebuilt on demand by pressing two buttons.
 
 ---
 

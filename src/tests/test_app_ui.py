@@ -43,6 +43,8 @@ def test_sort_options_map_to_real_columns():
 
 
 def test_page_size_paginates_full_dataset():
+    # An arbitrary dataset size, not a claim about the real one — the point is that
+    # the arithmetic reaches every row whatever the count happens to be.
     n = 4037
     pages = max(1, -(-n // app.PAGE_SIZE))
     assert app.PAGE_SIZE == 50

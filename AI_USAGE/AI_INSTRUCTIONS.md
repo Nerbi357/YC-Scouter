@@ -203,7 +203,7 @@ find him.**
 For internal utilities, tests alone are enough. This standard holds even when it
 triples the time.
 
-**Proof, not assertion.** "154 tests green", "1.06 s → 0.40 s on 4040 rows", "the
+**Proof, not assertion.** "the whole suite is green", "1.06 s → 0.40 s on the real dataset", "the
 note reached storage" — those are evidence. "I checked it" is not. Screenshots are
 not required.
 
@@ -298,6 +298,10 @@ Beyond that:
   the platform (CI workflow directories, host configuration directories, the
   dependency file) and moving them silently breaks deployment.
 - **One document per job.** If two documents answer the same question, merge them.
+- **Keep drifting numbers out of prose.** Counts that change with every rebuild —
+  rows in a dataset, number of tests, sizes — do not belong in descriptions: they go
+  stale silently and end up contradicting each other across files. Say "several
+  thousand" and let the running system report the exact figure.
 - **Folders that a human is meant to open are named in CAPS** (`DOCS/`,
   `AI_USAGE/`); service folders stay lowercase or dot-prefixed.
 - **Never delete produced data.** Dated outputs are an archive.

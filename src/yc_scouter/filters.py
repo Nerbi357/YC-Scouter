@@ -41,9 +41,9 @@ def _row_text(row: pd.Series) -> str:
 def _search_mask(df: pd.DataFrame, needle: str) -> pd.Series:
     """Vectorized case-insensitive search across the searchable columns.
 
-    Row-wise ``apply`` is O(rows) Python calls and takes ~1s on 4k companies —
-    noticeable on every keystroke in the dashboard. Concatenating the columns with
-    pandas string ops does the same work an order of magnitude faster.
+    Row-wise ``apply`` is O(rows) Python calls and takes ~1s on a few thousand
+    companies — noticeable on every keystroke in the dashboard. Concatenating the
+    columns with pandas string ops does the same work an order of magnitude faster.
     """
     text = pd.Series("", index=df.index, dtype="object")
     for field in _SEARCH_FIELDS:
