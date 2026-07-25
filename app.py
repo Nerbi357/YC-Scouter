@@ -480,8 +480,10 @@ def selectable_table(df: pd.DataFrame, cols: list[str], key: str) -> None:
         if 0 <= pos < len(df):
             new_id = _row_id(df.iloc[pos])
             if new_id is not None and new_id != selected_id():
+                # No st.rerun() here on purpose: ``on_select="rerun"`` already reran us,
+                # and the card is drawn further down in this very pass. Re-running again
+                # made every row click cost two full renders.
                 select_company(new_id)
-                st.rerun()
 
 
 def card_text(row: pd.Series) -> str:
@@ -605,7 +607,11 @@ def company_body(row: pd.Series) -> None:
 
 
 def detail_card(df: pd.DataFrame, place: str) -> None:
-    """Full card for the company selected in the table."""
+    """Full card for the company selected in the table.
+
+    Rendered inside :func:`table_and_card`'s fragment, hence the fragment-scoped
+    reruns: closing the card must repaint this block only.
+    """
     cid = selected_id()
     if cid is None:
         return
@@ -614,7 +620,7 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
         st.info("Выбранная компания не проходит текущие фильтры.")
         if st.button("Сбросить выбор", key=f"clear_sel_{place}"):
             select_company(None)
-            st.rerun()
+            st.rerun(scope="fragment")
         return
     row = match.iloc[0]
 
@@ -628,7 +634,7 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
             st.code(card_text(row), language=None)
         if close.button("✕", key=f"close_{place}", help="Закрыть карточку"):
             select_company(None)
-            st.rerun()
+            st.rerun(scope="fragment")
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Score", f"{row.get('score', '')}")
@@ -638,6 +644,35 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
 
         company_body(row)
         note_section(row, place=f"{place}_detail")
+
+
+#: Columns shown in the selectable table, in order.
+TABLE_COLUMNS = [
+    "name",
+    "batch",
+    "industry",
+    "subindustry",
+    "status",
+    "investability",
+    "my_stage",
+    "team_size",
+    "score",
+    "one_liner",
+    "website",
+    "yc_url",
+]
+
+
+@st.fragment
+def table_and_card(df: pd.DataFrame, key: str, place: str) -> None:
+    """Table + detail card as one fragment — the fast path for "open a company".
+
+    Picking a row is the most-used interaction on the page, so it must not repaint
+    everything: inside a fragment Streamlit reruns only this block, skipping the six
+    charts of "Обзор", the 50 expanders below and the bulk notes editor.
+    """
+    selectable_table(df.reset_index(drop=True), TABLE_COLUMNS, key=key)
+    detail_card(df, place=place)
 
 
 # --------------------------------------------------------------------------- tabs
@@ -764,25 +799,7 @@ def tab_companies(filtered: pd.DataFrame) -> None:
         return
     st.markdown("👁 **Показать карточку** — отметьте компанию в первом столбце")
 
-    selectable_table(
-        filtered.reset_index(drop=True),
-        [
-            "name",
-            "batch",
-            "industry",
-            "subindustry",
-            "status",
-            "investability",
-            "my_stage",
-            "team_size",
-            "score",
-            "one_liner",
-            "website",
-            "yc_url",
-        ],
-        key="table_all",
-    )
-    detail_card(filtered, place="companies")
+    table_and_card(filtered, key="table_all", place="companies")
 
     st.divider()
     st.subheader("Карточки компаний")

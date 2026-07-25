@@ -75,3 +75,36 @@ def test_open_upper_bound_means_no_limit(sample_records):
     # "from" only: no upper bound applied
     lower_only = filters.apply_filters(df, min_score=0, max_score=None)
     assert len(lower_only) == len(df)
+
+
+def test_row_click_selects_without_a_second_rerun(monkeypatch):
+    """A row click must cost one rerun, not two.
+
+    ``st.dataframe(on_select="rerun")`` has already rerun the script by the time we
+    read the event, and the card is drawn later in the same pass — so calling
+    ``st.rerun()`` here would double the work of the most-used interaction.
+    """
+    from types import SimpleNamespace
+
+    import streamlit as st
+
+    st.session_state.clear()
+    df = pd.DataFrame([{"id": 11, "name": "A"}, {"id": 22, "name": "B"}])
+    monkeypatch.setattr(
+        app.st, "dataframe", lambda *a, **k: SimpleNamespace(selection=SimpleNamespace(rows=[1]))
+    )
+    reruns = []
+    monkeypatch.setattr(app.st, "rerun", lambda *a, **k: reruns.append(k))
+
+    app.selectable_table(df, ["name"], key="t_test")
+
+    assert app.selected_id() == 22, "the clicked company must be the selected one"
+    assert reruns == [], "selectable_table must not trigger an extra rerun"
+    st.session_state.clear()
+
+
+def test_table_and_card_is_a_fragment():
+    """Selection repaints only the table+card block, not the whole page."""
+    assert hasattr(app.table_and_card, "__wrapped__"), "table_and_card must be @st.fragment"
+    assert "id" not in app.TABLE_COLUMNS  # the join key stays out of the visible table
+    assert app.TABLE_COLUMNS[0] == "name"
