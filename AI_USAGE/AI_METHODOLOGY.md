@@ -43,7 +43,7 @@ pyproject.toml       packaging + tool config — must be in the root
 src/                 all the logic … and the tests (src/tests): service code
 notebooks/           the runnable units, thin
 data/                dated outputs; an archive, never pruned silently
-docs/                for humans: how it works / how to deploy / how to maintain
+DOCS/                for humans: how it works / how to deploy / how to maintain
 AI_USAGE/            for other people's agents: portable methodology
 .<agent>/            for your agent: skills, hooks, session setup
 ```

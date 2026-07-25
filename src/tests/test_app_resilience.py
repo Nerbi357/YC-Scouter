@@ -33,7 +33,7 @@ def test_duplicate_ids_are_collapsed_with_a_warning():
         _df([{"id": 1, "name": "A"}, {"id": 1, "name": "A (dup)"}, {"id": 2, "name": "B"}])
     )
     assert df["id"].tolist() == [1, 2], "duplicate ids would collide as widget keys"
-    assert any("дубл" in n.lower() for n in notes), notes
+    assert any("duplicate" in n.lower() for n in notes), notes
 
 
 def test_rows_without_a_usable_id_are_dropped():
@@ -47,7 +47,7 @@ def test_missing_optional_columns_are_filled_not_fatal():
     for col in ("industry", "subindustry", "status", "batch", "score", "team_size", "ai_risks"):
         assert col in df.columns, col
     assert app.sidebar_filters is not None  # the filters read exactly these columns
-    assert any("колон" in n.lower() for n in notes), notes
+    assert any("column" in n.lower() for n in notes), notes
 
 
 def test_a_dataset_without_id_or_name_is_reported_not_crashed():

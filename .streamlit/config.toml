@@ -1,5 +1,5 @@
 # Dashboard configuration (committed). Secrets go in .streamlit/secrets.toml
-# (gitignored) or the Streamlit Cloud Secrets UI — see docs/DEPLOY.md.
+# (gitignored) or the Streamlit Cloud Secrets UI — see DOCS/DEPLOY.md.
 
 [server]
 headless = true

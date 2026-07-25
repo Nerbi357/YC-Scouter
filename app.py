@@ -1,4 +1,4 @@
-"""YC Scouter — interactive Streamlit dashboard (Russian UI).
+"""YC Scouter — interactive Streamlit dashboard.
 
 Reads the newest dated Parquet produced by the pipeline (it never re-fetches) and
 lets you filter, chart, compare, and annotate companies.
@@ -54,12 +54,12 @@ USER_DATA_CSV = Path(os.environ.get("YC_SCOUTER_USERDATA", "data/user_data.csv")
 PAGE_SIZE = 50
 
 SORT_OPTIONS = {
-    "Score (по убыванию)": ("score", False),
-    "Score (по возрастанию)": ("score", True),
-    "Год батча (новые первыми)": ("batch_year", False),
-    "Год батча (старые первыми)": ("batch_year", True),
-    "Название (А→Я)": ("name", True),
-    "Название (Я→А)": ("name", False),
+    "Score (high to low)": ("score", False),
+    "Score (low to high)": ("score", True),
+    "Batch year (newest first)": ("batch_year", False),
+    "Batch year (oldest first)": ("batch_year", True),
+    "Name (A to Z)": ("name", True),
+    "Name (Z to A)": ("name", False),
 }
 
 #: label -> (file extension, MIME type)
@@ -103,7 +103,7 @@ CSS = """
       color: #6b7280 !important; -webkit-text-fill-color: #6b7280 !important;
   }
 
-  /* Small italic min/max hints under the "От"/"До" inputs. */
+  /* Small italic min/max hints under the "From"/"To" inputs. */
   .range-hint {font-size: 0.76rem; font-style: italic; color: #6b7280; margin-top: -0.55rem;}
 
   /* Export control sits on the tab bar's line, flush right.
@@ -176,8 +176,8 @@ def prepare_data(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
         raise DatasetError(
-            "В датасете нет обязательных колонок: " + ", ".join(missing) + ". "
-            "Пересоберите данные кнопкой File 1 (Base), затем File 2 (AI)."
+            "The dataset is missing required columns: " + ", ".join(missing) + ". "
+            "Rebuild the data with File 1 (Base), then File 2 (AI)."
         )
 
     out = df.copy()
@@ -186,20 +186,20 @@ def prepare_data(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     if bad:
         out = out[ids.notna()]
         ids = ids[ids.notna()]
-        notes.append(f"Пропущено строк без корректного id: {bad}.")
+        notes.append(f"Skipped rows without a usable id: {bad}.")
     out["id"] = ids.astype("int64")
 
     dupes = int(out["id"].duplicated().sum())
     if dupes:
         # Widget keys are built from the id — two rows with the same id crash the app.
         out = out.drop_duplicates(subset="id", keep="first")
-        notes.append(f"Схлопнуто дублей по id: {dupes}.")
+        notes.append(f"Collapsed duplicate ids: {dupes}.")
 
     added = [c for c in OPTIONAL_DEFAULTS if c not in out.columns]
     for col in added:
         out[col] = OPTIONAL_DEFAULTS[col]
     if added:
-        notes.append("Добавлены пустыми отсутствующие колонки: " + ", ".join(added) + ".")
+        notes.append("Added missing columns as empty: " + ", ".join(added) + ".")
 
     return out.reset_index(drop=True), notes
 
@@ -262,18 +262,18 @@ def owner_gate() -> None:
     if not _owner_key():
         if use_gsheets():
             st.sidebar.error(
-                "🔒 Не задан ключ доступа (`[app] owner_key` в секретах), поэтому "
-                "заметки в общей таблице доступны только на чтение. Добавьте ключ — "
-                "и сможете сохранять (см. docs/DEPLOY.md)."
+                "🔒 No access key is set (`[app] owner_key` in the secrets), so the shared "
+                "notes table is read-only. Add the key to be able to save "
+                "(see DOCS/HOW_TO_DEPLOY_DASHBOARD.md)."
             )
         return
-    with st.sidebar.expander("🔒 Ключ доступа"):
-        entered = st.text_input("Ключ доступа", type="password", key="owner_key_input")
-        if st.button("Войти"):
+    with st.sidebar.expander("🔒 Access key"):
+        entered = st.text_input("Access key", type="password", key="owner_key_input")
+        if st.button("Unlock"):
             if check_owner_key(entered):
                 st.rerun()
             else:
-                st.error("Неверный ключ.")
+                st.error("Wrong key.")
 
 
 def storage_banner() -> None:
@@ -281,24 +281,23 @@ def storage_banner() -> None:
     if is_owner():
         if use_gsheets() and not st.session_state.get("gsheets_error"):
             st.success(
-                "🔓 **Полный доступ.** Ваши заметки сохраняются в постоянное хранилище "
-                "(Google Таблица) — они останутся на месте после обновления страницы, "
-                "перезапуска приложения и обновления данных.",
+                "🔓 **Full access.** Your notes go to permanent storage (a Google Sheet) — "
+                "they survive a page refresh, an app restart and a data rebuild.",
                 icon="✅",
             )
         elif not use_gsheets():
             st.info(
-                "🔓 **Полный доступ.** Заметки сохраняются в локальный файл. "
-                "На хостинге подключите Google Таблицу (docs/DEPLOY.md), иначе они "
-                "пропадут при перезапуске приложения.",
+                "🔓 **Full access.** Notes are saved to a local file. When hosting, connect "
+                "a Google Sheet (DOCS/HOW_TO_DEPLOY_DASHBOARD.md), otherwise they are "
+                "lost on the next restart.",
                 icon="💾",
             )
     else:
         st.info(
-            "👀 **Режим просмотра.** Смотрите и фильтруйте всё без ограничений. "
-            "Заметки, которые вы здесь оставите, видны **только вам** и **исчезнут при "
-            "обновлении страницы** — они не попадают в общее хранилище. Чтобы заметки "
-            "сохранялись навсегда, введите ключ доступа в панели слева.",
+            "👀 **View mode.** Explore and filter everything without limits. Notes you "
+            "make here are **visible only to you** and **disappear when you refresh "
+            "the page** — they never reach the shared storage. To keep notes for good, "
+            "enter the access key in the sidebar.",
             icon="👀",
         )
 
@@ -355,20 +354,20 @@ def gsheets_error_banner() -> None:
         return
     if "invalid_grant" in err or "account not found" in err:
         st.warning(
-            "⚠️ **Google Таблица не подключена** — заметки сейчас сохраняются только "
-            "на время сессии.\n\n"
-            "Google отклонил ключ сервисного аккаунта: такого аккаунта больше нет либо "
-            "ключ устарел. Как починить:\n"
-            "1. Google Cloud Console → **IAM & Admin → Service Accounts** — проверьте, "
-            "что аккаунт из `client_email` существует (если нет — создайте заново).\n"
-            "2. У этого аккаунта → **Keys → Add key → JSON** — скачайте **новый** ключ.\n"
-            "3. Streamlit → **Settings → Secrets** — замените `private_key`, "
-            "`private_key_id`, `client_email` значениями из нового файла "
-            "(`private_key` копируйте целиком, вместе с символами `\\n`).\n"
-            "4. Не забудьте открыть доступ к таблице для `client_email` (роль «Редактор»)."
+            "⚠️ **The Google Sheet is not connected** — notes are currently kept for "
+            "this session only.\n\n"
+            "Google rejected the service-account key: the account no longer exists or "
+            "the key is stale. How to fix it:\n"
+            "1. Google Cloud Console → **IAM & Admin → Service Accounts** — check that "
+            "the account from `client_email` still exists (recreate it if not).\n"
+            "2. On that account → **Keys → Add key → JSON** — download a **new** key.\n"
+            "3. Streamlit → **Settings → Secrets** — replace `private_key`, "
+            "`private_key_id` and `client_email` with the values from the new file "
+            "(copy `private_key` whole, including the `\\n` sequences).\n"
+            "4. Remember to share the sheet with `client_email` as **Editor**."
         )
     else:
-        st.warning(f"⚠️ Google Таблица недоступна — заметки не сохраняются. Причина: {err}")
+        st.warning(f"⚠️ The Google Sheet is unavailable — notes are not saved. Reason: {err}")
 
 
 def save_annotations(df: pd.DataFrame) -> None:
@@ -383,8 +382,8 @@ def save_annotations(df: pd.DataFrame) -> None:
     if use_gsheets():
         if st.session_state.get(SHEETS_BLOCKED):
             raise RuntimeError(
-                "Google Таблица недоступна — сохранение отключено, чтобы не стереть "
-                "уже сохранённые заметки. Почините доступ и нажмите «Обновить из таблицы»."
+                "The Google Sheet is unreadable — saving is disabled so your existing notes "
+                'are not erased. Fix the access, then press "Reload from the sheet".'
             )
         gsheets.save(_secrets(), df)
         st.session_state[SHEETS_CACHE] = user_data._ensure_columns(df)
@@ -419,7 +418,7 @@ def mark_saved(cid: object) -> None:
     """Remember that ``cid`` was just saved (and pop a toast about it)."""
     st.session_state[SAVED_FLASH] = (cid, time.time())
     try:
-        st.toast("Сохранено ✅", icon="✅")
+        st.toast("Saved ✅", icon="✅")
     except Exception:  # pragma: no cover - toast needs a live runtime
         pass
 
@@ -470,12 +469,12 @@ def export_bytes(df: pd.DataFrame, fmt: str) -> bytes:
 def export_panel(df: pd.DataFrame, key: str) -> None:
     """Compact export control (top-right). Files are built only on request —
     doing it on every rerun costs seconds of CPU and hundreds of MB on 4k rows."""
-    with st.popover("⬇️ Экспорт", width="stretch"):
-        st.caption(f"Отфильтровано: **{len(df)}** компаний")
-        fmt = st.radio("Формат", list(EXPORT_FORMATS), horizontal=True, key=f"fmt_{key}")
+    with st.popover("⬇️ Export", width="stretch"):
+        st.caption(f"Filtered: **{len(df)}** companies")
+        fmt = st.radio("Format", list(EXPORT_FORMATS), horizontal=True, key=f"fmt_{key}")
         state_key = f"export_{key}"
-        if st.button("Подготовить файл", key=f"prep_{key}", width="stretch"):
-            with st.spinner(f"Готовлю {fmt}…"):
+        if st.button("Prepare the file", key=f"prep_{key}", width="stretch"):
+            with st.spinner(f"Building {fmt}…"):
                 st.session_state[state_key] = {
                     "fmt": fmt,
                     "n": len(df),
@@ -485,7 +484,7 @@ def export_panel(df: pd.DataFrame, key: str) -> None:
         if ready:
             ext, mime = EXPORT_FORMATS[ready["fmt"]]
             st.download_button(
-                f"⬇️ Скачать {ready['fmt']} ({ready['n']} компаний)",
+                f"⬇️ Download {ready['fmt']} ({ready['n']} companies)",
                 ready["data"],
                 f"yc_scouter.{ext}",
                 mime,
@@ -493,7 +492,7 @@ def export_panel(df: pd.DataFrame, key: str) -> None:
                 key=f"dl_{key}",
             )
             if ready["n"] != len(df) or ready["fmt"] != fmt:
-                st.caption("⚠️ Выбор изменился — нажмите «Подготовить файл» ещё раз.")
+                st.caption('⚠️ The selection changed — press "Prepare the file" again.')
 
 
 # ------------------------------------------------------------------------ sidebar
@@ -503,7 +502,7 @@ def keep_valid(selected: object, options: list) -> list:
 
 
 def _int_range(label: str, key: str, series: pd.Series) -> tuple[int | None, int | None]:
-    """Two integer inputs (От / До) with the data's own min/max as hints.
+    """Two integer inputs (From / To) with the data's own min/max as hints.
 
     Leaving a field empty removes that bound entirely.
     """
@@ -514,34 +513,34 @@ def _int_range(label: str, key: str, series: pd.Series) -> tuple[int | None, int
     hi_hint = int(values.max()) if len(values) else 0
 
     lo = c1.number_input(
-        "От",
+        "From",
         min_value=0,
         value=None,
         step=1,
         format="%d",
         key=f"{key}_lo",
-        help="Пусто — без нижней границы",
+        help="Empty = no lower bound",
     )
-    c1.markdown(f"<div class='range-hint'>мин. {lo_hint}</div>", unsafe_allow_html=True)
+    c1.markdown(f"<div class='range-hint'>min {lo_hint}</div>", unsafe_allow_html=True)
     hi = c2.number_input(
-        "До",
+        "To",
         min_value=0,
         value=None,
         step=1,
         format="%d",
         key=f"{key}_hi",
-        help="Пусто — без верхней границы",
+        help="Empty = no upper bound",
     )
-    c2.markdown(f"<div class='range-hint'>макс. {hi_hint}</div>", unsafe_allow_html=True)
+    c2.markdown(f"<div class='range-hint'>max {hi_hint}</div>", unsafe_allow_html=True)
     return (int(lo) if lo is not None else None, int(hi) if hi is not None else None)
 
 
 def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
-    st.sidebar.header("🔍 Фильтры")
-    st.sidebar.caption("Пустое поле «От» или «До» = без ограничения с этой стороны.")
-    query = st.sidebar.text_input("Поиск (имя / идея / теги / заметки)")
+    st.sidebar.header("🔍 Filters")
+    st.sidebar.caption('An empty "From" or "To" means no bound on that side.')
+    query = st.sidebar.text_input("Search (name / idea / tags / notes)")
 
-    industries = st.sidebar.multiselect("Индустрия", sorted(df["industry"].dropna().unique()))
+    industries = st.sidebar.multiselect("Industry", sorted(df["industry"].dropna().unique()))
 
     subindustries = []
     if "subindustry" in df.columns:
@@ -550,9 +549,9 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
         # Picking an industry rewrites these options, and Streamlit drops the whole
         # selection when options change — keep the part that is still valid.
         st.session_state["sub_pick"] = keep_valid(st.session_state.get("sub_pick"), sub_opts)
-        subindustries = st.sidebar.multiselect("Подиндустрия", sub_opts, key="sub_pick")
+        subindustries = st.sidebar.multiselect("Subindustry", sub_opts, key="sub_pick")
 
-    statuses = st.sidebar.multiselect("Статус (YC)", sorted(df["status"].dropna().unique()))
+    statuses = st.sidebar.multiselect("Status (YC)", sorted(df["status"].dropna().unique()))
 
     investabilities = []
     if "investability" in df.columns:
@@ -560,18 +559,18 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
             "Investability", sorted(df["investability"].dropna().unique())
         )
 
-    stages = st.sidebar.multiselect("Стадия воронки", list(user_data.STAGES))
+    stages = st.sidebar.multiselect("Funnel stage", list(user_data.STAGES))
 
     tag_opts = filters.all_tags(df)
-    tags = st.sidebar.multiselect("Мои теги / лейблы", tag_opts) if tag_opts else []
+    tags = st.sidebar.multiselect("My tags / labels", tag_opts) if tag_opts else []
 
-    watchlist_only = st.sidebar.toggle("⭐ Только избранные", value=False)
+    watchlist_only = st.sidebar.toggle("⭐ Favorites only", value=False)
 
     years = sorted(int(y) for y in df["batch_year"].dropna().unique())
-    year_sel = st.sidebar.multiselect("Год батча", years)
+    year_sel = st.sidebar.multiselect("Batch year", years)
 
     score_lo, score_hi = _int_range("Score (0–100)", "score", df["score"])
-    team_lo, team_hi = _int_range("Размер команды", "team", df["team_size"])
+    team_lo, team_hi = _int_range("Team size", "team", df["team_size"])
 
     return filters.apply_filters(
         df,
@@ -679,20 +678,20 @@ def card_text(row: pd.Series) -> str:
     """Plain-text version of a company card (for copy/paste into notes or email)."""
     parts = [
         f"{row.get('name', '')} — {row.get('one_liner', '')}",
-        f"Индустрия: {row.get('industry', '')} / {row.get('subindustry', '')}",
-        f"Батч: {row.get('batch', '')} | Статус: {row.get('status', '')} "
-        f"| Команда: {row.get('team_size', '')} | Score: {row.get('score', '')}",
+        f"Industry: {row.get('industry', '')} / {row.get('subindustry', '')}",
+        f"Batch: {row.get('batch', '')} | Status: {row.get('status', '')} "
+        f"| Team: {row.get('team_size', '')} | Score: {row.get('score', '')}",
         f"Investability: {row.get('investability', '')}",
     ]
     if str(row.get("ai_description", "")).strip():
-        parts += ["", f"AI-описание: {row['ai_description']}"]
+        parts += ["", f"AI description: {row['ai_description']}"]
     if str(row.get("ai_risks", "")).strip():
-        parts += ["", f"Риски: {row['ai_risks']}"]
+        parts += ["", f"Risks: {row['ai_risks']}"]
     links = [
         str(row[c]) for c in LINK_COLUMNS if c in row and str(row.get(c, "")).startswith("http")
     ]
     if links:
-        parts += ["", "Ссылки: " + " | ".join(links)]
+        parts += ["", "Links: " + " | ".join(links)]
     return "\n".join(parts)
 
 
@@ -709,7 +708,7 @@ def note_section_lazy(row: pd.Series, place: str) -> None:
         return
     opened = f"notes_open_{place}_{cid}"
     if not st.session_state.get(opened):
-        if st.button("📝 Заметки о компании", key=f"opennotes_{place}_{cid}"):
+        if st.button("📝 Notes on this company", key=f"opennotes_{place}_{cid}"):
             st.session_state[opened] = True
             st.rerun(scope="fragment")
         return
@@ -723,7 +722,7 @@ def note_section(row: pd.Series, place: str) -> None:
     cid = _row_id(row)
     if cid is None:
         return
-    with st.expander("📝 Заметки о компании"):
+    with st.expander("📝 Notes on this company"):
         _note_form(row, place)
 
 
@@ -733,30 +732,30 @@ def _note_form(row: pd.Series, place: str) -> None:
     if cid is None:
         return
     if saved_recently(cid):
-        st.success("Сохранено ✅ — изменения записаны.")
+        st.success("Saved ✅ — your changes were written.")
     if not is_owner():
         st.caption(
-            "👀 Ваши личные заметки: работают полностью, но живут только в этой "
-            "вкладке браузера — они не видны владельцу и пропадут при обновлении "
-            "страницы."
+            "👀 Your personal notes: fully functional, but they live only in this "
+            "browser tab — the owner cannot see them and they disappear when you "
+            "refresh the page."
         )
     c1, c2 = st.columns([1, 2])
-    fav = c1.checkbox("⭐ Избранное", value=bool(row.get("watchlist")), key=f"fav_{place}_{cid}")
+    fav = c1.checkbox("⭐ Favorite", value=bool(row.get("watchlist")), key=f"fav_{place}_{cid}")
     stages = list(user_data.STAGES)
     cur_stage = row.get("my_stage", user_data.DEFAULT_STAGE)
     stage = c2.selectbox(
-        "Стадия воронки",
+        "Funnel stage",
         stages,
         index=stages.index(cur_stage) if cur_stage in stages else 0,
         key=f"stage_{place}_{cid}",
     )
     tags = st.text_input(
-        "Теги (через запятую)", value=str(row.get("my_tags", "")), key=f"tags_{place}_{cid}"
+        "Tags (comma-separated)", value=str(row.get("my_tags", "")), key=f"tags_{place}_{cid}"
     )
     notes = st.text_area(
-        "Заметка", value=str(row.get("my_notes", "")), key=f"notes_{place}_{cid}", height=110
+        "Note", value=str(row.get("my_notes", "")), key=f"notes_{place}_{cid}", height=110
     )
-    if st.button("💾 Сохранить", type="primary", key=f"save_{place}_{cid}"):
+    if st.button("💾 Save", type="primary", key=f"save_{place}_{cid}"):
         try:
             save_one(
                 cid,
@@ -770,32 +769,32 @@ def _note_form(row: pd.Series, place: str) -> None:
             mark_saved(cid)
             st.rerun(scope="app")  # refresh stars, counters and the table
         except Exception as exc:
-            st.error(f"Не удалось сохранить: {exc}")
+            st.error(f"Could not save: {exc}")
 
 
 def company_body(row: pd.Series) -> None:
     """Shared company details (used by the detail card and the card list)."""
     sub = f" / {row['subindustry']}" if str(row.get("subindustry", "")).strip() else ""
     st.markdown(
-        f"**Индустрия:** {row.get('industry', '')}{sub}  \n"
-        f"**Батч:** {row.get('batch', '')}  \n"
-        f"**Статус:** {row.get('status', '')} — {row.get('investability', '')}  \n"
-        f"**Стадия воронки:** {row.get('my_stage', '')}  \n"
-        f"**Команда:** {row.get('team_size', '')}"
+        f"**Industry:** {row.get('industry', '')}{sub}  \n"
+        f"**Batch:** {row.get('batch', '')}  \n"
+        f"**Status:** {row.get('status', '')} — {row.get('investability', '')}  \n"
+        f"**Funnel stage:** {row.get('my_stage', '')}  \n"
+        f"**Team:** {row.get('team_size', '')}"
     )
     if str(row.get("my_tags", "")).strip():
-        st.markdown(f"**Мои теги:** {row['my_tags']}")
+        st.markdown(f"**My tags:** {row['my_tags']}")
     if str(row.get("ai_description", "")).strip():
-        st.markdown(f"**AI-описание:** {row['ai_description']}")
+        st.markdown(f"**AI description:** {row['ai_description']}")
     if str(row.get("ai_risks", "")).strip():
-        st.markdown(f"**Риски к проверке:** {row['ai_risks']}")
+        st.markdown(f"**Risks to check:** {row['ai_risks']}")
     links = [
         f"[{c.replace('_url', '').replace('_', ' ').title() or 'Website'}]({row[c]})"
         for c in LINK_COLUMNS
         if c in row and str(row.get(c, "")).startswith("http")
     ]
     if links:
-        st.markdown("**Ссылки:** " + " · ".join(links))
+        st.markdown("**Links:** " + " · ".join(links))
 
 
 def detail_card(df: pd.DataFrame, place: str) -> None:
@@ -809,8 +808,8 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
         return
     match = df[df["id"] == cid]
     if match.empty:
-        st.info("Выбранная компания не проходит текущие фильтры.")
-        if st.button("Сбросить выбор", key=f"clear_sel_{place}"):
+        st.info("The selected company does not match the current filters.")
+        if st.button("Clear the selection", key=f"clear_sel_{place}"):
             select_company(None)
             st.rerun(scope="fragment")
         return
@@ -821,18 +820,18 @@ def detail_card(df: pd.DataFrame, place: str) -> None:
         star = "⭐ " if bool(row.get("watchlist")) else ""
         head.markdown(f"### {star}{row['name']}")
         head.caption(row.get("one_liner", ""))
-        with copy_col.popover("📋 Скопировать", width="stretch"):
-            st.caption("Скопировать карточку")
+        with copy_col.popover("📋 Copy", width="stretch"):
+            st.caption("Copy the card")
             st.code(card_text(row), language=None)
-        if close.button("✕", key=f"close_{place}", help="Закрыть карточку"):
+        if close.button("✕", key=f"close_{place}", help="Close the card"):
             select_company(None)
             st.rerun(scope="fragment")
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Score", f"{row.get('score', '')}")
-        m2.metric("Команда", f"{row.get('team_size', '')}")
-        m3.metric("Батч", f"{row.get('batch', '')}")
-        m4.metric("Статус", f"{row.get('status', '')}")
+        m2.metric("Team", f"{row.get('team_size', '')}")
+        m3.metric("Batch", f"{row.get('batch', '')}")
+        m4.metric("Status", f"{row.get('status', '')}")
 
         company_body(row)
         note_section(row, place=f"{place}_detail")
@@ -861,7 +860,7 @@ def table_and_card(df: pd.DataFrame, key: str, place: str) -> None:
 
     Picking a row is the most-used interaction on the page, so it must not repaint
     everything: inside a fragment Streamlit reruns only this block, skipping the six
-    charts of "Обзор", the 50 expanders below and the bulk notes editor.
+    charts of the Overview tab, the 50 expanders below and the bulk notes editor.
     """
     selectable_table(df.reset_index(drop=True), TABLE_COLUMNS, key=_selection_key(key, df))
     detail_card(df, place=place)
@@ -882,7 +881,7 @@ def _bar_count(
         x=counts.values,
         y=counts.index.astype(str),
         orientation="h",
-        labels={"x": "Компаний", "y": ""},
+        labels={"x": "Companies", "y": ""},
         title=title,
     )
     fig.update_layout(yaxis={"categoryorder": "total ascending"}, height=380)
@@ -906,8 +905,8 @@ def year_bar(df: pd.DataFrame):
     fig = px.bar(
         x=counts.index.astype(str),
         y=counts.values,
-        labels={"x": "Год батча", "y": "Компаний"},
-        title="Компании по годам батча",
+        labels={"x": "Batch year", "y": "Companies"},
+        title="Companies by batch year",
     )
     fig.update_traces(marker_color="#4C9BE8")
     fig.update_xaxes(type="category")
@@ -923,33 +922,33 @@ def _pie(df: pd.DataFrame, col: str, title: str) -> None:
 
 
 def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> None:
-    st.caption(f"Показано **{len(filtered)}** из {total} компаний")
+    st.caption(f"Showing **{len(filtered)}** of {total} companies")
     if filtered.empty:
-        st.info("Под текущие фильтры не попала ни одна компания — ослабьте условия слева.")
+        st.info("No company matches the current filters — relax them in the sidebar.")
         return
 
     fav_total = int(all_df.get("watchlist", pd.Series(dtype=bool)).sum())
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Компаний", len(filtered))
+    c1.metric("Companies", len(filtered))
     c2.metric(
-        "⭐ В избранном",
+        "⭐ Favorites",
         int(filtered.get("watchlist", pd.Series(dtype=bool)).sum()),
-        help=f"Всего в избранном (без учёта фильтров): {fav_total}",
+        help=f"Favorites in total, ignoring filters: {fav_total}",
     )
-    c3.metric("Средний score", f"{filtered['score'].mean():.0f}" if len(filtered) else "—")
-    c4.metric("Индустрий", filtered["industry"].nunique())
+    c3.metric("Average score", f"{filtered['score'].mean():.0f}" if len(filtered) else "—")
+    c4.metric("Industries", filtered["industry"].nunique())
 
     st.divider()
 
     if px is None:
-        st.info("Установи `plotly`, чтобы видеть графики.")
+        st.info("Install `plotly` to see the charts.")
     else:
         r1c1, r1c2 = st.columns(2)
         with r1c1:
-            _bar_count(filtered, "industry", "Компании по индустриям", top=15)
+            _bar_count(filtered, "industry", "Companies by industry", top=15)
         with r1c2:
             if "subindustry" in filtered.columns:
-                _bar_count(filtered, "subindustry", "Компании по подиндустриям", top=15)
+                _bar_count(filtered, "subindustry", "Companies by subindustry", top=15)
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
@@ -957,22 +956,22 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
             if year_fig is not None:
                 st.plotly_chart(year_fig, width="stretch")
         with r2c2:
-            fig = px.histogram(filtered, x="score", nbins=20, title="Распределение score")
+            fig = px.histogram(filtered, x="score", nbins=20, title="Score distribution")
             fig.update_traces(marker_color="#7C5CFC")
             st.plotly_chart(fig, width="stretch")
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
-            _pie(filtered, "status", "Разбивка по статусам (YC)")
+            _pie(filtered, "status", "Status breakdown (YC)")
         with r3c2:
             if "my_stage" in filtered.columns:
-                _bar_count(filtered, "my_stage", "Моя воронка (стадии)", order=user_data.STAGES)
+                _bar_count(filtered, "my_stage", "My funnel (stages)", order=user_data.STAGES)
 
     st.divider()
-    st.subheader("🏆 Топ по score")
-    n = st.slider("Сколько показать", 5, 50, 10, key="topn")
+    st.subheader("🏆 Top by score")
+    n = st.slider("How many to show", 5, 50, 10, key="topn")
     top_df = filtered.sort_values("score", ascending=False).head(n).reset_index(drop=True)
-    st.markdown("👁 **Показать карточку** — отметьте компанию в первом столбце")
+    st.markdown("👁 **Open a card** — tick a company in the first column")
     selectable_table(
         top_df,
         ["name", "industry", "subindustry", "status", "score", "team_size", "one_liner"],
@@ -1005,7 +1004,7 @@ def _page_number(pages: int, key: str = "card_page") -> int:
 
     The step runs as an ``on_click`` **callback**: Streamlit executes it before the
     script reruns, so the buttons are drawn from the page we are actually on.
-    Updating the page after drawing them left "Вперёд →" clickable on the last page.
+    Updating the page after drawing them left "Next →" clickable on the last page.
 
     ``key`` keeps several pagers (cards, notes) independent of each other.
     """
@@ -1013,7 +1012,7 @@ def _page_number(pages: int, key: str = "card_page") -> int:
     st.session_state[key] = page
     prev_col, label_col, next_col = st.columns([1, 3, 1])
     prev_col.button(
-        "← Назад",
+        "← Back",
         width="stretch",
         disabled=page <= 1,
         key=f"{key}_prev",
@@ -1021,7 +1020,7 @@ def _page_number(pages: int, key: str = "card_page") -> int:
         args=(-1, pages, key),
     )
     next_col.button(
-        "Вперёд →",
+        "Next →",
         width="stretch",
         disabled=page >= pages,
         key=f"{key}_next",
@@ -1029,8 +1028,7 @@ def _page_number(pages: int, key: str = "card_page") -> int:
         args=(1, pages, key),
     )
     label_col.markdown(
-        f"<div style='text-align:center;padding-top:0.45rem'>Страница <b>{page}</b> из {pages}"
-        "</div>",
+        f"<div style='text-align:center;padding-top:0.45rem'>Page <b>{page}</b> of {pages}</div>",
         unsafe_allow_html=True,
     )
     return page
@@ -1038,21 +1036,21 @@ def _page_number(pages: int, key: str = "card_page") -> int:
 
 def tab_companies(filtered: pd.DataFrame) -> None:
     if filtered.empty:
-        st.info("Под текущие фильтры не попала ни одна компания — ослабьте условия слева.")
+        st.info("No company matches the current filters — relax them in the sidebar.")
         return
-    st.markdown("👁 **Показать карточку** — отметьте компанию в первом столбце")
+    st.markdown("👁 **Open a card** — tick a company in the first column")
 
     table_and_card(filtered, key="table_all", place="companies")
 
     st.divider()
-    st.subheader("Карточки компаний")
+    st.subheader("Company cards")
 
-    sort_label = st.selectbox("Сортировка", list(SORT_OPTIONS), key="card_sort")
+    sort_label = st.selectbox("Sort by", list(SORT_OPTIONS), key="card_sort")
     sort_col, ascending = SORT_OPTIONS[sort_label]
     ranked = filtered.sort_values(sort_col, ascending=ascending, na_position="last")
 
     chunk, start, pages = paginate(ranked, _page_number(pages_of(ranked)))
-    st.caption(f"Компании {start + 1}–{start + len(chunk)} из {len(ranked)}")
+    st.caption(f"Companies {start + 1}–{start + len(chunk)} of {len(ranked)}")
 
     for _, row in chunk.iterrows():
         star = "⭐ " if bool(row.get("watchlist")) else ""
@@ -1094,12 +1092,12 @@ def comparison_frame(
 
 
 def tab_compare(filtered: pd.DataFrame) -> None:
-    st.subheader("⚖️ Сравнение компаний")
-    st.caption("Выбери до 5 компаний — сравнение колонками бок о бок.")
+    st.subheader("⚖️ Compare companies")
+    st.caption("Pick up to 5 companies — they are compared side by side.")
     labels = compare_labels(filtered)
-    picked = st.multiselect("Компании", list(labels), max_selections=5, key="compare_pick")
+    picked = st.multiselect("Companies", list(labels), max_selections=5, key="compare_pick")
     if not picked:
-        st.info("Выбери компании выше.")
+        st.info("Pick companies above.")
         return
     rows = filtered[filtered["id"].isin([labels[p] for p in picked])]
     fields = [
@@ -1126,34 +1124,34 @@ def tab_compare(filtered: pd.DataFrame) -> None:
 
 
 def tab_notes(filtered: pd.DataFrame) -> None:
-    st.subheader("📝 Заметки, теги и воронка")
+    st.subheader("📝 Notes, tags and funnel")
     if saved_recently(BULK_FLASH_ID):
-        st.success("Сохранено ✅ — изменения записаны.")
+        st.success("Saved ✅ — your changes were written.")
     if filtered.empty:
-        st.info("Под текущие фильтры не попала ни одна компания.")
+        st.info("No company matches the current filters.")
         return
     owner = is_owner()
 
     if owner:
         where = (
-            "Google Таблица ✅"
+            "Google Sheet ✅"
             if use_gsheets() and not st.session_state.get("gsheets_error")
-            else "локальный файл ⚠️ (не переживёт перезапуск на хостинге)"
+            else "a local file ⚠️ (will not survive a restart when hosted)"
         )
         st.caption(
-            f"Массовое редактирование. Хранилище: **{where}**. Ключ — id компании "
-            "(переживает переименования). Для одной компании удобнее её карточка."
+            f"Bulk editing. Storage: **{where}**. The key is the company id (it survives "
+            "renames). For a single company its card is easier."
         )
-        if use_gsheets() and st.button("🔄 Обновить из таблицы", key="reload_sheet"):
+        if use_gsheets() and st.button("🔄 Reload from the sheet", key="reload_sheet"):
             # The sheet is cached per session; press this after editing it directly
             # in Google Sheets, or once a broken connection is fixed.
             refresh_annotations()
             st.rerun()
     else:
         st.info(
-            "👀 **Ваши личные заметки.** Редактируйте и сохраняйте как угодно — они "
-            "живут в этой вкладке браузера, не видны владельцу и пропадут при "
-            "обновлении страницы.",
+            "👀 **Your personal notes.** Edit and save them freely — they live in this "
+            "browser tab, are invisible to the owner, and disappear when you refresh "
+            "the page.",
             icon="👀",
         )
 
@@ -1172,17 +1170,17 @@ def tab_notes(filtered: pd.DataFrame) -> None:
         hide_index=True,
         disabled=["id", "name"],
         column_config={
-            "watchlist": st.column_config.CheckboxColumn("⭐ Избранное"),
-            "my_stage": st.column_config.SelectboxColumn("Стадия", options=list(user_data.STAGES)),
-            "my_tags": st.column_config.TextColumn("Теги (через запятую)"),
-            "my_notes": st.column_config.TextColumn("Заметки", width="large"),
+            "watchlist": st.column_config.CheckboxColumn("⭐ Favorite"),
+            "my_stage": st.column_config.SelectboxColumn("Stage", options=list(user_data.STAGES)),
+            "my_tags": st.column_config.TextColumn("Tags (comma-separated)"),
+            "my_notes": st.column_config.TextColumn("Notes", width="large"),
         },
         # Keyed by the rows on screen: st.data_editor stores edits by row *position*,
         # so a fixed key would replay them onto whatever a filter change brought in.
         key=_selection_key("annotations_editor", filtered),
     )
 
-    if st.button("💾 Сохранить заметки", type="primary"):
+    if st.button("💾 Save the notes", type="primary"):
         store = user_data._ensure_columns(load_annotations()).set_index("id")
         for _, r in edited.iterrows():
             rid = _row_id(r)
@@ -1199,23 +1197,23 @@ def tab_notes(filtered: pd.DataFrame) -> None:
             mark_saved(BULK_FLASH_ID)
             st.rerun()
         except Exception as exc:
-            st.error(f"Не удалось сохранить: {exc}")
+            st.error(f"Could not save: {exc}")
 
 
 # --------------------------------------------------------------------------- main
 def _render() -> None:
     """The dashboard body. Wrapped by :func:`main` so nothing shows a blank crash."""
     st.markdown(CSS, unsafe_allow_html=True)
-    st.title("🛰️ YC Scouter — 2020–настоящее")
+    st.title("🛰️ YC Scouter — 2020 to now")
 
     path = dataset_path()
     if path is None or not path.exists():
         st.warning(
-            "Датасет не найден. Собери его: сначала File 1 (Base), затем File 2 (AI) — "
-            "они кладут `data/yc_dataset_*.parquet`. На хостинге закоммить файлы в репозиторий."
+            "No dataset found. Build one: File 1 (Base) first, then File 2 (AI) — they "
+            "write `data/yc_dataset_*.parquet`. When hosting, commit those files."
         )
         st.stop()
-    st.caption(f"Источник: `{path.name}`")
+    st.caption(f"Source: `{path.name}`")
 
     owner_gate()
 
@@ -1225,14 +1223,14 @@ def _render() -> None:
         st.error(f"⚠️ {exc}")
         st.stop()
     if data_notes and is_owner():
-        st.warning("Данные пришлось подчистить: " + " ".join(data_notes))
+        st.warning("The data needed cleaning up: " + " ".join(data_notes))
 
     df = user_data.merge_annotations(df, load_annotations())
 
     gsheets_error_banner()
     storage_banner()
     if _owner_key() and is_owner():
-        st.sidebar.success("🔓 Полный доступ — заметки сохраняются.")
+        st.sidebar.success("🔓 Full access — notes are being saved.")
 
     filtered = sidebar_filters(df)
 
@@ -1243,7 +1241,7 @@ def _render() -> None:
             export_panel(filtered, key="global")
 
     overview, companies, compare, notes = st.tabs(
-        ["📊 Обзор", "🔎 Компании", "⚖️ Сравнение", "📝 Заметки"]
+        ["📊 Overview", "🔎 Companies", "⚖️ Compare", "📝 Notes"]
     )
     with overview:
         tab_overview(filtered, total=len(df), all_df=df)
@@ -1269,19 +1267,19 @@ def main() -> None:
         # Streamlit's own control-flow signals must pass through untouched.
         if type(exc).__name__ in {"RerunException", "StopException", "RerunData"}:
             raise
-        st.error(f"⚠️ Что-то пошло не так: {type(exc).__name__}: {exc}")
+        st.error(f"⚠️ Something went wrong: {type(exc).__name__}: {exc}")
         st.caption(
-            "Дашборд не сломан — попробуйте сбросить фильтры и выбор компании. "
-            "Если ошибка повторяется, отправьте текст ниже разработчику."
+            "The dashboard is not broken — try resetting the filters and the selected "
+            "company. If it keeps happening, send the text below to the developer."
         )
-        if st.button("♻️ Сбросить состояние и перезагрузить"):
+        if st.button("♻️ Reset the state and reload"):
             st.session_state.clear()
             try:
                 st.query_params.clear()
             except Exception:
                 pass
             st.rerun()
-        with st.expander("Технические подробности"):
+        with st.expander("Technical details"):
             st.code("".join(traceback.format_exception(exc)), language="text")
 
 

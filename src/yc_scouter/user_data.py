@@ -31,6 +31,8 @@ DEFAULT_STAGE = "New"
 
 
 #: Spellings of "true" that any backend might hand back (Sheets stores text).
+#: The two Cyrillic words are kept on purpose: sheets written by the earlier
+#: Russian-language version of the dashboard still contain them.
 _TRUE_WORDS = {"true", "1", "yes", "y", "да", "истина", "on", "checked", "x", "✓"}
 #: Values that mean "nothing here" once a store has stringified them.
 _BLANK_WORDS = {"", "nan", "none", "null", "na", "<na>"}

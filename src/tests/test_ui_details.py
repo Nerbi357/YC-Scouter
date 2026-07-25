@@ -1,6 +1,6 @@
 """Small UI contracts the owner reported as broken.
 
-* the pager offered "Вперёд →" on the last page (the button's disabled state was
+* the pager offered "Next →" on the last page (the button's disabled state was
   computed *before* the click was applied, so it stayed active for one render);
 * the batch-year chart drew fractional years (2020.5) — Plotly reads numeric-looking
   labels as a continuous axis, which is nonsense for a year, and obvious when a

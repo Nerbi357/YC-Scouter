@@ -19,13 +19,13 @@ def test_first_save_into_a_store_with_empty_columns(tmp_path):
         "watchlist": True,
         "my_stage": "Passed",  # text into a previously all-empty column
         "my_tags": "fav",
-        "my_notes": "первая заметка",
+        "my_notes": "first note",
     }
     user_data.save_user_data(store.reset_index(), path=path)
 
     back = user_data.load_user_data(path).set_index("id")
     assert back.loc[101, "my_stage"] == "Passed"
-    assert back.loc[101, "my_notes"] == "первая заметка"
+    assert back.loc[101, "my_notes"] == "first note"
 
 
 def test_save_into_a_completely_empty_store(tmp_path):
@@ -34,8 +34,8 @@ def test_save_into_a_completely_empty_store(tmp_path):
     store.loc[7] = {
         "watchlist": True,
         "my_stage": "Contacted",
-        "my_tags": "новый",
-        "my_notes": "текст",
+        "my_tags": "new",
+        "my_notes": "text",
     }
     user_data.save_user_data(store.reset_index(), path=path)
 

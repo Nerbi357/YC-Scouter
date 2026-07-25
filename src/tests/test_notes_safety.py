@@ -60,8 +60,8 @@ def _sheet_with_notes() -> FakeWorksheet:
     return FakeWorksheet(
         [
             list(user_data.USER_COLUMNS),
-            ["101", "TRUE", "секрет", "Contacted", "заметка владельца"],
-            ["202", "FALSE", "", "New", "вторая"],
+            ["101", "TRUE", "secret", "Contacted", "owner note"],
+            ["202", "FALSE", "", "New", "second"],
         ]
     )
 
@@ -82,7 +82,7 @@ def test_save_writes_before_clearing_leftovers(monkeypatch):
     ws = _sheet_with_notes()
     monkeypatch.setattr(gsheets, "_open_worksheet", lambda s: ws)
 
-    gsheets.save({}, pd.DataFrame([{"id": 101, "my_notes": "одна"}]))
+    gsheets.save({}, pd.DataFrame([{"id": 101, "my_notes": "one"}]))
 
     assert ws.calls[0] == "update", "the sheet must never be blanked before the write"
     assert "clear" not in ws.calls
@@ -110,7 +110,7 @@ def test_a_failed_read_blocks_saving_instead_of_wiping(monkeypatch):
     monkeypatch.setattr(app.gsheets, "save", lambda s, df, **k: saved.append(df))
 
     assert app.load_annotations().empty  # degrades, does not crash
-    with pytest.raises(RuntimeError, match="недоступна"):
+    with pytest.raises(RuntimeError, match="unreadable"):
         app.save_annotations(user_data.empty_user_frame())
     assert saved == [], "nothing may be written while the store is unreadable"
 

@@ -22,7 +22,7 @@ from . import config
 _ILLEGAL_XLSX_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 
 # Short Russian sheet-tab titles (the only Russian in the data artifacts).
-_SHEET_TITLES = {"base": "Данные YC", "ai": "YC + AI"}
+_SHEET_TITLES = {"base": "YC data", "ai": "YC + AI"}
 
 
 def _clean_cell(value: object) -> object:

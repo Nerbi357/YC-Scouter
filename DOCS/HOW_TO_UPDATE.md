@@ -27,7 +27,7 @@ concrete steps. Keep it open when you do maintenance.
 | **Dependencies drift / break** | install error, or behavior changed after months | Re-lock: `uv pip compile pyproject.toml --generate-hashes -o requirements.txt`, then run `pytest` and commit. This is the reproducibility anchor. |
 | **yc-oss source changed** | File 1 fetch/normalize error | Check `https://yc-oss.github.io/api/companies/all.json` is up and its fields; adjust `src/yc_scouter/normalize.py` if a field was renamed. |
 | **Streamlit app "sleeping"** | first visit is slow (~15 s) | Normal for the free tier after 12 h idle; just click to wake. |
-| **Notes must survive hosting** | notes vanished after a redeploy | Notes must be in **Google Sheets** (see `docs/HOW_TO_DEPLOY_DASHBOARD.md`), not a local CSV. Verify once after setup. |
+| **Notes must survive hosting** | notes vanished after a redeploy | Notes must be in **Google Sheets** (see `DOCS/HOW_TO_DEPLOY_DASHBOARD.md`), not a local CSV. Verify once after setup. |
 
 ## Change the AI prompt (and refresh all descriptions on purpose)
 
@@ -62,5 +62,5 @@ Open the repo in Claude Code and paste one of these:
   tests, and commit. Explain the cost impact of the one-time re-summarization."
 - **Re-lock dependencies:** "Recompile `requirements.txt` from `pyproject.toml`
   with hashes, run `pytest`, and commit if green. List any version bumps."
-- **General checkup:** "Read `docs/HOW_TO_UPDATE.md`. Check for deprecated models,
+- **General checkup:** "Read `DOCS/HOW_TO_UPDATE.md`. Check for deprecated models,
   drifted deps, and yc-oss schema changes. Report what needs my attention."

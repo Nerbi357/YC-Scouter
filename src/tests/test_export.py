@@ -41,7 +41,7 @@ def test_xlsx_styled_hyperlinks_and_russian_title(tmp_path, sample_records):
     ws = wb.active
     assert ws.freeze_panes == "A2"
     assert ws.auto_filter.ref is not None
-    assert ws.title.startswith("Данные YC")  # Russian tab title
+    assert ws.title.startswith("YC data")
 
     header = [c.value for c in ws[1]]
     yc_col = header.index("yc_url") + 1
