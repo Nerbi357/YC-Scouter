@@ -24,10 +24,10 @@ concrete steps. Keep it open when you do maintenance.
 | **Anthropic credits run low** | File 2 fails with `402 insufficient_credits` | Top up at platform.claude.com; File 2 is resumable (re-run continues via cache). Set a usage alert. |
 | **Model retired** (~every 6–12 mo) | `model not found` / 404 | Edit **one line** in `src/yc_scouter/config.py` (`CLAUDE_MODEL` or `GROQ_MODEL`). Note: a new model = new `prompt_version`-independent `model_id`, so those companies re-summarize once. |
 | **Groq key rotated / limit** (if you use Groq) | `401` or `429` | Regenerate the key at console.groq.com, update the `GROQ_API_KEY` Secret. Free tier ~1,000 req/day, so a cold backfill spreads over a few days. |
-| **Dependencies drift / break** | install error, or behavior changed after months | Re-lock: `uv pip compile requirements.in --generate-hashes -o requirements.txt`, then run `pytest` and commit. This is the reproducibility anchor. |
+| **Dependencies drift / break** | install error, or behavior changed after months | Re-lock: `uv pip compile pyproject.toml --generate-hashes -o requirements.txt`, then run `pytest` and commit. This is the reproducibility anchor. |
 | **yc-oss source changed** | File 1 fetch/normalize error | Check `https://yc-oss.github.io/api/companies/all.json` is up and its fields; adjust `src/yc_scouter/normalize.py` if a field was renamed. |
 | **Streamlit app "sleeping"** | first visit is slow (~15 s) | Normal for the free tier after 12 h idle; just click to wake. |
-| **Notes must survive hosting** | notes vanished after a redeploy | Notes must be in **Google Sheets** (see `docs/DEPLOY.md`), not a local CSV. Verify once after setup. |
+| **Notes must survive hosting** | notes vanished after a redeploy | Notes must be in **Google Sheets** (see `docs/HOW_TO_DEPLOY_DASHBOARD.md`), not a local CSV. Verify once after setup. |
 
 ## Change the AI prompt (and refresh all descriptions on purpose)
 
@@ -41,7 +41,7 @@ cache, never overwritten).
 1. Create the new key (platform.claude.com or console.groq.com).
 2. GitHub → repo → **Settings → Secrets and variables → Actions** → update
    `ANTHROPIC_API_KEY` / `GROQ_API_KEY`.
-3. For local/Colab runs, update your `.env` or Colab secret.
+3. For local/Colab runs, set the key as a Colab secret / shell variable.
 4. Re-run File 2. Done — no code change needed (keys are never in code).
 
 ## Migrate old notes (one-off, if you had slug-keyed notes)
@@ -60,7 +60,7 @@ Open the repo in Claude Code and paste one of these:
 - **Refresh model after a deprecation:** "The model `<old-id>` is deprecated.
   Update the model constant in `src/yc_scouter/config.py` to `<new-id>`, run the
   tests, and commit. Explain the cost impact of the one-time re-summarization."
-- **Re-lock dependencies:** "Recompile `requirements.txt` from `requirements.in`
+- **Re-lock dependencies:** "Recompile `requirements.txt` from `pyproject.toml`
   with hashes, run `pytest`, and commit if green. List any version bumps."
 - **General checkup:** "Read `docs/HOW_TO_UPDATE.md`. Check for deprecated models,
   drifted deps, and yc-oss schema changes. Report what needs my attention."

@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/session_start.sh"
+            "command": "bash .claude/session_start.sh"
           }
         ]
       }

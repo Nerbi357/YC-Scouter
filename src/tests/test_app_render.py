@@ -12,7 +12,7 @@ from streamlit.testing.v1 import AppTest  # noqa: E402
 
 from yc_scouter import pipeline  # noqa: E402
 
-APP = Path(__file__).resolve().parents[1] / "app.py"
+APP = Path(__file__).resolve().parents[2] / "app.py"  # repo root (src/tests/..)
 
 
 def test_dashboard_renders_without_exception(tmp_path, sample_records, monkeypatch):
