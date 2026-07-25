@@ -8,6 +8,11 @@ Format: `[status] Idea — value · cost · origin`, where status is
 `open` (waiting for a decision), `declined` (decided against, with the reason) or
 `done`.
 
+**Status at project close (2026-07-25):** the owner decided to build nothing further
+from this list for now. Everything still marked `open` stays here as a menu for a
+later session — the estimates were made against the code as it stands today, so
+re-measure before promising any of them.
+
 ---
 
 ## Reliability
@@ -60,11 +65,13 @@ Format: `[status] Idea — value · cost · origin`, where status is
   improvements pushed back to it — keeps a single history. *Value: the file
   actually accumulates instead of forking. Cost: ~20 minutes once. **Declined by the
   owner (2026-07-25):** the file travels with the project instead.*
-- **[open] A session-start sanity check.** When a session begins in an existing
+- **[declined] A session-start sanity check.** When a session begins in an existing
   project, verify the ground before building on it: branch synced with the remote,
   working tree clean, test suite green. *Value: no work is built on a broken base
   after a restart or a crash. Cost: ~30 minutes, and it belongs in the agent folder
-  so every project inherits it.*
+  so every project inherits it. **Declined by the owner (2026-07-25)** when the
+  project was closed: the project is finished, and `pull → tests → push` is already
+  written down in `PROJECT_MEMORY.md` §5 as a habit rather than a script.*
 
 ## Beyond this project
 
