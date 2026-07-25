@@ -466,6 +466,11 @@ def export_panel(df: pd.DataFrame, key: str) -> None:
 
 
 # ------------------------------------------------------------------------ sidebar
+def keep_valid(selected: object, options: list) -> list:
+    """The part of a previous selection that still exists in ``options``."""
+    return [s for s in (selected or []) if s in options]
+
+
 def _int_range(label: str, key: str, series: pd.Series) -> tuple[int | None, int | None]:
     """Two integer inputs (От / До) with the data's own min/max as hints.
 
@@ -510,9 +515,11 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     subindustries = []
     if "subindustry" in df.columns:
         pool = df[df["industry"].isin(industries)] if industries else df
-        subindustries = st.sidebar.multiselect(
-            "Подиндустрия", sorted(pool["subindustry"].dropna().unique())
-        )
+        sub_opts = sorted(pool["subindustry"].dropna().unique())
+        # Picking an industry rewrites these options, and Streamlit drops the whole
+        # selection when options change — keep the part that is still valid.
+        st.session_state["sub_pick"] = keep_valid(st.session_state.get("sub_pick"), sub_opts)
+        subindustries = st.sidebar.multiselect("Подиндустрия", sub_opts, key="sub_pick")
 
     statuses = st.sidebar.multiselect("Статус (YC)", sorted(df["status"].dropna().unique()))
 
@@ -974,16 +981,45 @@ def tab_companies(filtered: pd.DataFrame) -> None:
             note_section_lazy(row, place="list")
 
 
+def compare_labels(df: pd.DataFrame) -> dict[str, int]:
+    """Picker label → company ``id``, guaranteed unique.
+
+    A name is not a key: dozens of YC companies share one. Picking "Vera" used to
+    select every Vera and index the comparison by name, producing duplicate columns
+    the renderer refuses. The batch disambiguates; the id settles the rest.
+    """
+    if df.empty:
+        return {}
+    name = df["name"].fillna("—").astype(str)
+    batch = df["batch"].fillna("").astype(str) if "batch" in df.columns else ""
+    label = name if isinstance(batch, str) else name.where(batch == "", name + " · " + batch)
+    ids = pd.to_numeric(df["id"], errors="coerce").astype("Int64")
+    dup = label.duplicated(keep=False)
+    label = label.where(~dup, label + " #" + ids.astype(str))
+    return {str(k): int(v) for k, v in zip(label, ids, strict=False) if pd.notna(v)}
+
+
+def comparison_frame(
+    df: pd.DataFrame, labels: dict[str, int], picked: list[str], fields: list[str]
+) -> pd.DataFrame:
+    """Side-by-side frame: one column per picked company, in the picked order."""
+    ids = [labels[p] for p in picked if p in labels]
+    rows = df[df["id"].isin(ids)].drop_duplicates(subset="id").set_index("id")
+    rows = rows.reindex([i for i in ids if i in rows.index])
+    comp = rows[[f for f in fields if f in rows.columns]].T
+    comp.columns = [p for p in picked if labels.get(p) in rows.index]
+    return comp
+
+
 def tab_compare(filtered: pd.DataFrame) -> None:
     st.subheader("⚖️ Сравнение компаний")
     st.caption("Выбери до 5 компаний — сравнение колонками бок о бок.")
-    names = st.multiselect(
-        "Компании", filtered["name"].tolist(), max_selections=5, key="compare_pick"
-    )
-    if not names:
+    labels = compare_labels(filtered)
+    picked = st.multiselect("Компании", list(labels), max_selections=5, key="compare_pick")
+    if not picked:
         st.info("Выбери компании выше.")
         return
-    rows = filtered[filtered["name"].isin(names)]
+    rows = filtered[filtered["id"].isin([labels[p] for p in picked])]
     fields = [
         c
         for c in [
@@ -1003,8 +1039,7 @@ def tab_compare(filtered: pd.DataFrame) -> None:
         ]
         if c in rows.columns
     ]
-    comp = rows.set_index("name")[fields].T
-    comp = comp.map(_clean_cell)
+    comp = comparison_frame(filtered, labels, picked, fields).map(_clean_cell)
     st.dataframe(comp, width="stretch")
 
 
