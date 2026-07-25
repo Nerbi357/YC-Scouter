@@ -18,6 +18,7 @@ Run locally:  ``streamlit run app.py``
 
 from __future__ import annotations
 
+import hmac
 import io
 import os
 import re
@@ -146,34 +147,61 @@ def use_gsheets() -> bool:
 
 
 def _owner_key():
-    """The owner password from secrets (``[app] owner_key``), or None."""
+    """The owner password from secrets (``[app] owner_key``), or None.
+
+    A blank / whitespace-only value counts as *not configured* — an accidentally
+    empty secret must not become a password anyone can guess by pressing space.
+    """
     s = _secrets()
     try:
         app = s.get("app") if hasattr(s, "get") else None
-        return app.get("owner_key") if app else None
+        key = app.get("owner_key") if app else None
     except Exception:
         return None
+    return key if str(key or "").strip() else None
 
 
 def is_owner() -> bool:
-    """True for the owner. With no owner_key configured (local/Colab), always
-    True — single-user mode. On a shared deployment, only unlocked sessions."""
+    """True for the owner.
+
+    With no ``owner_key`` configured this is single-user mode (local/Colab) and
+    everyone is the owner. But when the notes go to a **shared Google Sheet**, a
+    missing or misspelled key would hand every visitor write access to them — so
+    there the gate fails *closed* and nobody is the owner until a key is set.
+    """
     if not _owner_key():
-        return True
+        return not use_gsheets()
     return bool(st.session_state.get("is_owner", False))
+
+
+def check_owner_key(entered: str | None) -> bool:
+    """Unlock the session if ``entered`` matches the configured key."""
+    key = _owner_key()
+    if not key:
+        return False
+    if hmac.compare_digest(str(entered or "").strip(), str(key).strip()):
+        st.session_state["is_owner"] = True
+        return True
+    return False
 
 
 def owner_gate() -> None:
     """Sidebar unlock: turns a visitor session into the owner when an
     ``owner_key`` is configured and entered correctly."""
-    key = _owner_key()
-    if not key or st.session_state.get("is_owner"):
+    if st.session_state.get("is_owner"):
+        return
+    if not _owner_key():
+        if use_gsheets():
+            st.sidebar.error(
+                "🔒 Не задан ключ доступа (`[app] owner_key` в секретах), поэтому "
+                "заметки в общей таблице доступны только на чтение. Добавьте ключ — "
+                "и сможете сохранять (см. docs/DEPLOY.md)."
+            )
         return
     with st.sidebar.expander("🔒 Ключ доступа"):
         entered = st.text_input("Ключ доступа", type="password", key="owner_key_input")
         if st.button("Войти"):
-            if entered == key:
-                st.session_state["is_owner"] = True
+            if check_owner_key(entered):
                 st.rerun()
             else:
                 st.error("Неверный ключ.")
@@ -208,6 +236,17 @@ def storage_banner() -> None:
 
 #: Where a visitor's own notes live for the duration of their browser session.
 VISITOR_STORE = "visitor_notes"
+#: The shared store, read once per session instead of once per rerun.
+SHEETS_CACHE = "gsheets_cache"
+#: Set when the sheet could not be read — writing then would destroy what is in it.
+SHEETS_BLOCKED = "gsheets_readonly"
+
+
+def refresh_annotations() -> None:
+    """Forget the cached copy of the shared store (the "reload" button)."""
+    st.session_state.pop(SHEETS_CACHE, None)
+    st.session_state.pop(SHEETS_BLOCKED, None)
+    st.session_state.pop("gsheets_error", None)
 
 
 def load_annotations() -> pd.DataFrame:
@@ -217,15 +256,26 @@ def load_annotations() -> pd.DataFrame:
     notes nor write into them. The owner gets the shared store (Google Sheets or
     local CSV), degrading gracefully if Sheets is unreachable so a credentials
     problem can never take the dashboard down.
+
+    The sheet is read **once per session** and then kept in session state: it was
+    a network round-trip on every rerun, i.e. on every keystroke in the filters.
     """
     if not is_owner():
         return st.session_state.get(VISITOR_STORE, user_data.empty_user_frame())
     if use_gsheets():
+        cached = st.session_state.get(SHEETS_CACHE)
+        if cached is not None:
+            return cached
         try:
-            return gsheets.load(_secrets())
+            loaded = user_data._ensure_columns(gsheets.load(_secrets()))
         except Exception as exc:  # pragma: no cover - network/credentials
             st.session_state["gsheets_error"] = str(exc)
+            st.session_state[SHEETS_BLOCKED] = True
             return user_data.empty_user_frame()
+        st.session_state[SHEETS_CACHE] = loaded
+        st.session_state.pop(SHEETS_BLOCKED, None)
+        st.session_state.pop("gsheets_error", None)
+        return loaded
     return user_data.load_user_data(USER_DATA_CSV)
 
 
@@ -253,12 +303,22 @@ def gsheets_error_banner() -> None:
 
 
 def save_annotations(df: pd.DataFrame) -> None:
-    """Persist notes for the current viewer (session-only for visitors)."""
+    """Persist notes for the current viewer (session-only for visitors).
+
+    Refuses to write to Sheets while the last read failed: the in-memory table
+    would then be *empty*, and saving it would wipe every note in the sheet.
+    """
     if not is_owner():
         st.session_state[VISITOR_STORE] = user_data._ensure_columns(df)
         return
     if use_gsheets():
+        if st.session_state.get(SHEETS_BLOCKED):
+            raise RuntimeError(
+                "Google Таблица недоступна — сохранение отключено, чтобы не стереть "
+                "уже сохранённые заметки. Почините доступ и нажмите «Обновить из таблицы»."
+            )
         gsheets.save(_secrets(), df)
+        st.session_state[SHEETS_CACHE] = user_data._ensure_columns(df)
     else:
         user_data.save_user_data(df, path=USER_DATA_CSV)
 
@@ -874,6 +934,11 @@ def tab_notes(filtered: pd.DataFrame) -> None:
             f"Массовое редактирование. Хранилище: **{where}**. Ключ — id компании "
             "(переживает переименования). Для одной компании удобнее её карточка."
         )
+        if use_gsheets() and st.button("🔄 Обновить из таблицы", key="reload_sheet"):
+            # The sheet is cached per session; press this after editing it directly
+            # in Google Sheets, or once a broken connection is fixed.
+            refresh_annotations()
+            st.rerun()
     else:
         st.info(
             "👀 **Ваши личные заметки.** Редактируйте и сохраняйте как угодно — они "
