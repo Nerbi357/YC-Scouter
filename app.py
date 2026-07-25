@@ -103,9 +103,15 @@ CSS = """
   /* Small italic min/max hints under the "От"/"До" inputs. */
   .range-hint {font-size: 0.76rem; font-style: italic; color: #6b7280; margin-top: -0.55rem;}
 
-  /* Export control sits on the tab bar's line, flush right, above the divider. */
-  .st-key-export_row {margin-bottom: -3.35rem; position: relative; z-index: 10;}
+  /* Export control sits on the tab bar's line, flush right.
+     The row is collapsed to zero height (the button overflows visibly) so it
+     occupies no hit area at all — a full-width row here would swallow every tab
+     click, which is exactly how the tab bar once became unusable. */
+  .st-key-export_row {height: 0; overflow: visible; position: relative; z-index: 10;
+      pointer-events: none;}
   .st-key-export_row div[data-testid="stPopover"] {display: flex; justify-content: flex-end;}
+  .st-key-export_row button, .st-key-export_row [data-testid="stPopoverBody"] {
+      pointer-events: auto;}
 </style>
 """
 
