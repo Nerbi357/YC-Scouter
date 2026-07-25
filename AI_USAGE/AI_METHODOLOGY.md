@@ -29,6 +29,31 @@ something working:
 Two file formats per run: a machine format (Parquet — typed, compact) and a
 human format (Excel — openable by the owner without any tooling).
 
+### Lay the repository out for the reader, not for the machine
+
+The landing page of the repository is documentation. Keep it to **blocks plus the
+few files that must be at the root**, and give every block one job:
+
+```
+README.md            what this is (a stranger reads this first)
+<CONTINUITY>.md      how to work on THIS project with an agent
+app.py               the entry point
+requirements.txt     the lock — most hosts only look in the root
+pyproject.toml       packaging + tool config — must be in the root
+src/                 all the logic … and the tests (src/tests): service code
+notebooks/           the runnable units, thin
+data/                dated outputs; an archive, never pruned silently
+docs/                for humans: how it works / how to deploy / how to maintain
+AI_USAGE/            for other people's agents: portable methodology
+.<agent>/            for your agent: skills, hooks, session setup
+```
+
+Two rules make this stick: **one document per job** (if two files answer the same
+question, merge them), and **a new file goes into a block, never into the root**.
+Check before moving anything: some paths are dictated by the platform (CI
+workflow directories, host config directories, the dependency file) and moving
+them silently breaks deployment.
+
 ## 2. Principles that survived contact with reality
 
 **A stable key or nothing.** Everything the user creates (notes, tags, statuses)
