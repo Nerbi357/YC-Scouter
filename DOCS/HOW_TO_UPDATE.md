@@ -19,16 +19,23 @@ concrete steps. Keep it open when you do maintenance.
 
 ## The preflight: File 2 tells you what is wrong before it spends
 
-File 2 checks the AI provider **before** the loop over companies starts: is the key
-present, is it still valid, is there credit left, and is the configured model still
-offered. The check costs one token and turns the four classic failures into a named
-message on the first line of the log, for example:
+File 2 checks the AI provider **before** the loop over companies starts, with a
+single one-token request: is the key present, is it accepted, is there credit left,
+and does the configured model still answer. That one call is deliberately the whole
+test — it exercises exactly what the run will. The four classic failures become a
+named message on the first line of the log, for example:
 
 ```
-Preflight failed: the model 'claude-haiku-4-5' is not in the account's model list.
-Available now: claude-haiku-5, claude-opus-5, ... Change the model constant in
-src/yc_scouter/config.py.
+Preflight failed: the model 'claude-haiku-4-5' is not available any more. Pick a
+current one and change the model constant in src/yc_scouter/config.py.
+Available now: claude-opus-5, claude-sonnet-4-5-20250929, ...
 ```
+
+> The provider's *model listing* is **not** used as the gate. Aliases such as
+> `claude-haiku-4-5` are valid for calls but need not appear in the listing, which
+> carries the dated snapshots (`claude-haiku-4-5-20251001`). Gating on the listing
+> once blocked a run that would have worked; the listing is now only used to enrich
+> the message when a model really is gone.
 
 So a broken run stops in ~10 seconds with an instruction instead of dying halfway
 through a few thousand companies. A network blip is only a warning and never blocks

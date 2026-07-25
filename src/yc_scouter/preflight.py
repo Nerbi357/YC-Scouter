@@ -65,6 +65,14 @@ def _classify(exc: Exception, provider: str, model: str) -> str | None:
     return None
 
 
+def _listed_models(client) -> list[str]:
+    """Model ids the account can see, or ``[]`` when the listing is unavailable."""
+    try:
+        return [m.id for m in client.models.list(limit=100).data]
+    except Exception:
+        return []
+
+
 def check_claude(
     *,
     model: str = config.CLAUDE_MODEL,
@@ -72,7 +80,14 @@ def check_claude(
     client: object | None = None,
     strict: bool = True,
 ) -> Report:
-    """Verify the key, the credits and the model id for Claude.
+    """Verify the key, the credits and the model with **one real call**.
+
+    The single one-token request is the ground truth: it exercises the key, the
+    balance and the model together, exactly as the run will. A model *listing* is
+    deliberately not used as the gate — aliases like ``claude-haiku-4-5`` are valid
+    for calls but need not appear in the listing, which is only the dated snapshots.
+    Gating on the listing once blocked a run that would have worked perfectly; the
+    listing is now used only to enrich the message when a model really is gone.
 
     ``strict`` makes an *undiagnosable* failure (e.g. a timeout) a warning instead
     of an error, so a flaky network never blocks a run.
@@ -88,25 +103,6 @@ def check_claude(
 
         client = anthropic.Anthropic(api_key=key)
 
-    # 1. Is the configured model still offered? Free, and the most common breakage.
-    try:
-        available = [m.id for m in client.models.list(limit=100).data]
-    except Exception as exc:
-        hint = _classify(exc, "claude", model)
-        if hint:
-            raise PreflightError(f"Preflight failed: {hint}") from exc
-        if strict:
-            raise PreflightError(f"Preflight could not reach the Claude API: {exc}") from exc
-        return Report(False, "claude", model, warning=str(exc))
-
-    if available and model not in available:
-        raise PreflightError(
-            f"Preflight failed: the model '{model}' is not in the account's model list. "
-            f"Available now: {', '.join(sorted(available)[:8])}. "
-            "Change the model constant in src/yc_scouter/config.py."
-        )
-
-    # 2. Does the key actually work and is there credit? One token, ~$0.000003.
     try:
         client.messages.create(
             model=model,
@@ -116,7 +112,9 @@ def check_claude(
     except Exception as exc:
         hint = _classify(exc, "claude", model)
         if hint:
-            raise PreflightError(f"Preflight failed: {hint}") from exc
+            available = _listed_models(client) if "model" in hint else []
+            extra = f" Available now: {', '.join(sorted(available)[:8])}." if available else ""
+            raise PreflightError(f"Preflight failed: {hint}{extra}") from exc
         if strict:
             raise PreflightError(f"Preflight call failed: {exc}") from exc
         return Report(False, "claude", model, warning=str(exc))
@@ -131,7 +129,7 @@ def check_groq(
     client: object | None = None,
     strict: bool = True,
 ) -> Report:
-    """The same three questions for Groq (key present, key valid, model offered)."""
+    """The same question for Groq, asked the same way: one real one-token call."""
     key = api_key or os.environ.get("GROQ_API_KEY")
     if client is None and not key:
         raise PreflightError(
@@ -143,22 +141,21 @@ def check_groq(
         client = Groq(api_key=key)
 
     try:
-        listing = client.models.list()
-        available = [m.id for m in getattr(listing, "data", [])]
+        client.chat.completions.create(
+            model=model,
+            max_tokens=1,
+            messages=[{"role": "user", "content": "ping"}],
+        )
     except Exception as exc:
         hint = _classify(exc, "groq", model)
         if hint:
-            raise PreflightError(f"Preflight failed: {hint}") from exc
+            available = _listed_models(client) if "model" in hint else []
+            extra = f" Available now: {', '.join(sorted(available)[:8])}." if available else ""
+            raise PreflightError(f"Preflight failed: {hint}{extra}") from exc
         if strict:
-            raise PreflightError(f"Preflight could not reach the Groq API: {exc}") from exc
+            raise PreflightError(f"Preflight call failed: {exc}") from exc
         return Report(False, "groq", model, warning=str(exc))
 
-    if available and model not in available:
-        raise PreflightError(
-            f"Preflight failed: the model '{model}' is not offered by Groq any more. "
-            f"Available now: {', '.join(sorted(available)[:8])}. "
-            "Change the model constant in src/yc_scouter/config.py."
-        )
     return Report(True, "groq", model)
 
 
