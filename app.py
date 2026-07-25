@@ -18,6 +18,7 @@ Run locally:  ``streamlit run app.py``
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import io
 import os
@@ -133,6 +134,73 @@ def dataset_path() -> Path | None:
 @st.cache_data(show_spinner=False)
 def load_data(path: str, mtime: float) -> pd.DataFrame:
     return pd.read_parquet(path)
+
+
+class DatasetError(Exception):
+    """The dataset lacks something the dashboard cannot work without."""
+
+
+#: Without these there is no dashboard: ``id`` keys the notes, ``name`` labels rows.
+REQUIRED_COLUMNS = ("id", "name")
+
+#: Everything else the UI touches, with the value used when a rebuild drops it.
+#: Filling them in beats a KeyError deep inside a chart on a live dashboard.
+OPTIONAL_DEFAULTS: dict[str, object] = {
+    "batch": "",
+    "batch_year": pd.NA,
+    "industry": "",
+    "subindustry": "",
+    "status": "",
+    "investability": "",
+    "one_liner": "",
+    "long_description": "",
+    "tags": "",
+    "team_size": pd.NA,
+    "score": pd.NA,
+    "ai_description": "",
+    "ai_risks": "",
+    "website": "",
+    "yc_url": "",
+}
+
+
+def prepare_data(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """Make any dataset the pipeline produced safe to render.
+
+    Returns the cleaned frame plus human-readable notes about what had to be
+    repaired (shown to the owner, so a broken rebuild is visible rather than
+    silent). Raises :class:`DatasetError` only when nothing sensible can be shown.
+    """
+    notes: list[str] = []
+    missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
+    if missing:
+        raise DatasetError(
+            "В датасете нет обязательных колонок: " + ", ".join(missing) + ". "
+            "Пересоберите данные кнопкой File 1 (Base), затем File 2 (AI)."
+        )
+
+    out = df.copy()
+    ids = pd.to_numeric(out["id"], errors="coerce")
+    bad = ids.isna().sum()
+    if bad:
+        out = out[ids.notna()]
+        ids = ids[ids.notna()]
+        notes.append(f"Пропущено строк без корректного id: {bad}.")
+    out["id"] = ids.astype("int64")
+
+    dupes = int(out["id"].duplicated().sum())
+    if dupes:
+        # Widget keys are built from the id — two rows with the same id crash the app.
+        out = out.drop_duplicates(subset="id", keep="first")
+        notes.append(f"Схлопнуто дублей по id: {dupes}.")
+
+    added = [c for c in OPTIONAL_DEFAULTS if c not in out.columns]
+    for col in added:
+        out[col] = OPTIONAL_DEFAULTS[col]
+    if added:
+        notes.append("Добавлены пустыми отсутствующие колонки: " + ", ".join(added) + ".")
+
+    return out.reset_index(drop=True), notes
 
 
 def _secrets():
@@ -521,6 +589,29 @@ def _row_id(row: pd.Series) -> int | None:
         return None
 
 
+def _selection_key(base: str, df: pd.DataFrame) -> str:
+    """Widget key tied to the current result set.
+
+    ``st.dataframe`` remembers the selected **row position**, not the company. Keep
+    one key across a filter change and position 3 of the old list silently becomes
+    position 3 of the new one — the card opens a company the user never clicked.
+    A key derived from the visible ids resets the selection instead; state left by
+    previous result sets is dropped so session state cannot grow without bound.
+    """
+    ids = pd.to_numeric(df["id"], errors="coerce").dropna().astype("int64") if "id" in df else []
+    digest = hashlib.blake2s(
+        pd.Series(ids, dtype="int64").to_numpy().tobytes(), digest_size=8
+    ).hexdigest()
+    key = f"{base}_{digest}"
+    for stale in [
+        k
+        for k in list(st.session_state)
+        if isinstance(k, str) and k.startswith(f"{base}_") and k != key
+    ]:
+        st.session_state.pop(stale, None)
+    return key
+
+
 def selectable_table(df: pd.DataFrame, cols: list[str], key: str) -> None:
     """Table whose first column (checkbox) opens the company's detail card."""
     cols = [c for c in cols if c in df.columns]
@@ -731,7 +822,7 @@ def table_and_card(df: pd.DataFrame, key: str, place: str) -> None:
     everything: inside a fragment Streamlit reruns only this block, skipping the six
     charts of "Обзор", the 50 expanders below and the bulk notes editor.
     """
-    selectable_table(df.reset_index(drop=True), TABLE_COLUMNS, key=key)
+    selectable_table(df.reset_index(drop=True), TABLE_COLUMNS, key=_selection_key(key, df))
     detail_card(df, place=place)
 
 
@@ -1003,7 +1094,14 @@ def _render() -> None:
 
     owner_gate()
 
-    df = load_data(str(path), path.stat().st_mtime)
+    try:
+        df, data_notes = prepare_data(load_data(str(path), path.stat().st_mtime))
+    except DatasetError as exc:
+        st.error(f"⚠️ {exc}")
+        st.stop()
+    if data_notes and is_owner():
+        st.warning("Данные пришлось подчистить: " + " ".join(data_notes))
+
     df = user_data.merge_annotations(df, load_annotations())
 
     gsheets_error_banner()
