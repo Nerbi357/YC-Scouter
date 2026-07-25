@@ -124,6 +124,11 @@ Commands: `/spec /plan /build /test /review /ship /code-simplify /webperf`
   visitor can see, the browser check as well. Nothing goes to `main` unverified.
 - **For risky or multi-step work, create a temporary branch, merge it, delete it.**
   The rule is "no permanent second branch", not "never branch".
+- **An assistant session cannot delete a remote branch here.** Its git credentials
+  allow pushes but reject ref deletions (`git push --delete` → HTTP 403), so the
+  last step of retiring a branch is the owner's: GitHub → *Branches* → the bin icon.
+  Merge first, delete second — the assistant can prove the branch is fully contained
+  in `main` (`git merge-base --is-ancestor <branch> origin/main`) before it goes.
 - The two Actions buttons commit straight to `main` (dated datasets + the AI cache),
   so pull before starting work — CI may be ahead of you.
 - Do not open pull requests unless explicitly asked.
