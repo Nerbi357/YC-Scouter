@@ -26,7 +26,7 @@ def owner_store(tmp_path, monkeypatch):
     """A shared store that already holds one of the owner's notes."""
     path = tmp_path / "owner_notes.csv"
     user_data.save_user_data(
-        [{"id": 101, "watchlist": True, "my_tags": "секрет", "my_notes": "заметка владельца"}],
+        [{"id": 101, "watchlist": True, "my_tags": "secret", "my_notes": "owner note"}],
         path=path,
     )
     monkeypatch.setattr(app, "USER_DATA_CSV", path)
@@ -46,7 +46,7 @@ def test_visitor_does_not_see_owner_notes(owner_store, monkeypatch):
     _as_visitor(monkeypatch)
     notes = app.load_annotations()
     assert notes.empty, "a visitor must start from a blank slate"
-    assert "заметка владельца" not in notes.to_csv()
+    assert "owner note" not in notes.to_csv()
 
 
 def test_visitor_save_never_touches_the_shared_store(owner_store, monkeypatch):
@@ -54,18 +54,18 @@ def test_visitor_save_never_touches_the_shared_store(owner_store, monkeypatch):
     before = owner_store.read_text()
 
     app.save_one(
-        202, {"watchlist": True, "my_stage": "Contacted", "my_tags": "", "my_notes": "моё"}
+        202, {"watchlist": True, "my_stage": "Contacted", "my_tags": "", "my_notes": "mine"}
     )
 
     assert owner_store.read_text() == before, "visitor wrote into the owner's store"
     session = st.session_state[app.VISITOR_STORE].set_index("id")
-    assert session.loc[202, "my_notes"] == "моё"
+    assert session.loc[202, "my_notes"] == "mine"
     assert bool(session.loc[202, "watchlist"]) is True
 
 
 def test_visitor_notes_apply_within_the_session(owner_store, monkeypatch):
     _as_visitor(monkeypatch)
-    app.save_one(202, {"watchlist": True, "my_stage": "Passed", "my_tags": "тег", "my_notes": "x"})
+    app.save_one(202, {"watchlist": True, "my_stage": "Passed", "my_tags": "tag", "my_notes": "x"})
 
     companies = pd.DataFrame([{"id": 101, "name": "A"}, {"id": 202, "name": "B"}])
     merged = user_data.merge_annotations(companies, app.load_annotations()).set_index("id")
@@ -79,21 +79,21 @@ def test_visitor_notes_apply_within_the_session(owner_store, monkeypatch):
 def test_owner_still_reads_and_writes_the_shared_store(owner_store, monkeypatch):
     _as_owner(monkeypatch)
     loaded = app.load_annotations().set_index("id")
-    assert loaded.loc[101, "my_notes"] == "заметка владельца"
+    assert loaded.loc[101, "my_notes"] == "owner note"
 
     app.save_one(
-        101, {"watchlist": False, "my_stage": "Passed", "my_tags": "", "my_notes": "обновил"}
+        101, {"watchlist": False, "my_stage": "Passed", "my_tags": "", "my_notes": "updated"}
     )
 
     on_disk = user_data.load_user_data(owner_store).set_index("id")
-    assert on_disk.loc[101, "my_notes"] == "обновил"
+    assert on_disk.loc[101, "my_notes"] == "updated"
     assert app.VISITOR_STORE not in st.session_state
 
 
 def test_owner_edits_do_not_bleed_into_a_visitor_session(owner_store, monkeypatch):
     _as_owner(monkeypatch)
     app.save_one(
-        101, {"watchlist": True, "my_stage": "Invested", "my_tags": "", "my_notes": "приватно"}
+        101, {"watchlist": True, "my_stage": "Invested", "my_tags": "", "my_notes": "private"}
     )
 
     _as_visitor(monkeypatch)

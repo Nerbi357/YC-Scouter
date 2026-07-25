@@ -37,21 +37,21 @@ def test_string_booleans_from_sheets_do_not_crash():
         ("True", True),
         ("true", True),
         ("TRUE", True),
-        ("да", True),
+        ("да", True),  # legacy Russian spellings still parsed
         ("yes", True),
         ("1", True),
         (1, True),
-        ("ИСТИНА", True),
+        ("ИСТИНА", True),  # ditto, uppercase
         ("False", False),
         ("false", False),
         ("FALSE", False),
-        ("нет", False),
+        ("нет", False),  # Russian "no" — must stay false
         ("0", False),
         (0, False),
         ("", False),
         (None, False),
         (float("nan"), False),
-        ("что-то", False),
+        ("что-то", False),  # arbitrary text is never true
     ],
 )
 def test_to_bool_accepts_every_backend_spelling(raw, expected):
@@ -61,25 +61,25 @@ def test_to_bool_accepts_every_backend_spelling(raw, expected):
 def test_duplicate_ids_do_not_multiply_rows():
     dupes = pd.DataFrame(
         [
-            {"id": 101, "my_notes": "старое"},
-            {"id": 101, "my_notes": "новое"},
+            {"id": 101, "my_notes": "old"},
+            {"id": 101, "my_notes": "new"},
         ]
     )
     out = user_data.merge_annotations(_companies(), dupes)
     assert len(out) == 2  # no row explosion
-    assert out.set_index("id").loc[101, "my_notes"] == "новое"  # last wins
+    assert out.set_index("id").loc[101, "my_notes"] == "new"  # last wins
 
 
 def test_rows_with_unusable_ids_are_dropped():
     junk = pd.DataFrame(
         [
-            {"id": None, "my_notes": "нет id"},
-            {"id": "abc", "my_notes": "мусор"},
-            {"id": "101", "my_notes": "ок"},
+            {"id": None, "my_notes": "no id"},
+            {"id": "abc", "my_notes": "garbage"},
+            {"id": "101", "my_notes": "ok"},
         ]
     )
     out = user_data.merge_annotations(_companies(), junk).set_index("id")
-    assert out.loc[101, "my_notes"] == "ок"
+    assert out.loc[101, "my_notes"] == "ok"
     assert out.loc[102, "my_notes"] == ""
 
 
@@ -94,12 +94,12 @@ def test_missing_columns_and_empty_store_are_fine():
 def test_full_sheets_roundtrip_survives_stringification():
     """Simulate gsheets.save (everything -> str) then gsheets.load."""
     saved = user_data._ensure_columns(
-        pd.DataFrame([{"id": 101, "watchlist": True, "my_notes": "заметка", "my_stage": "Passed"}])
+        pd.DataFrame([{"id": 101, "watchlist": True, "my_notes": "a note", "my_stage": "Passed"}])
     )
     as_text = saved.fillna("").astype(str)  # what lands in the spreadsheet cells
     out = user_data.merge_annotations(_companies(), as_text).set_index("id")
     assert bool(out.loc[101, "watchlist"]) is True
-    assert out.loc[101, "my_notes"] == "заметка"
+    assert out.loc[101, "my_notes"] == "a note"
     assert out.loc[101, "my_stage"] == "Passed"
 
 

@@ -1,338 +1,346 @@
-# FOR_CLAUDE — контекст проекта для продолжения в новом чате
+# FOR_CLAUDE — project memory for continuing in a new session
 
-> **Назначение:** этот файл — «память» проекта. Если чат перезапустился или работа
-> продолжается в другом чате, прочитай его первым — и ты полностью восстановишь,
-> что мы делаем, как и почему, без потери информации.
+> **Purpose.** This file is the project's memory. If the chat restarted or the work
+> continues in another session, read this first and you will recover what we are
+> doing, how and why, without losing anything.
 >
-> **Как пользоваться:** прочитай этот файл → `docs/HOW_IT_WORKS.md` (как устроен код)
-> → `docs/HOW_TO_UPDATE.md` (обслуживание). Раздел «Журнал решений» и «Что дальше»
-> обновляй по ходу работы.
->
-> *(Единственный файл проекта на русском — он для общения с владельцем. Весь код,
-> комментарии и остальные доки — на английском, см. «Язык».)*
+> **How to use it.** Read this file → `DOCS/HOW_IT_WORKS.md` (how the code works)
+> → `DOCS/HOW_TO_UPDATE.md` (maintenance). Keep the decision log and the "what's
+> next" section up to date as you work.
 
 ---
 
-## 1. Что за проект
+## 1. What this project is
 
-**YC Scouter** — личный инструмент владельца (Nerbi357) для поиска и оценки стартапов
-Y Combinator **с 2020 года по настоящее время**.
+**YC Scouter** — a personal tool for the owner (Nerbi357) to find and evaluate
+Y Combinator startups **from 2020 to the present**.
 
-- Репозиторий: **`Nerbi357/YC-Scouter`** (публичный; раньше назывался `VC-Tracking` —
-  git-ремоут в песочнице Claude может показывать старый путь, GitHub редиректит).
-- Живой дашборд: **https://nerbi357-yc-scouter.streamlit.app/**
-- Данные: **4037 компаний** (батчи 2020–2026), у всех есть AI-описание и риски.
+- Repository: **`Nerbi357/YC-Scouter`** (public; formerly `VC-Tracking` — the git
+  remote inside the agent sandbox may still show the old path, GitHub redirects).
+- Live dashboard: **https://nerbi357-yc-scouter.streamlit.app/**
+- Data: **4040 companies** (batches 2020–2026), all with an AI description and risks.
 
-Состоит из двух тетрадей (сбор данных → AI-обогащение), датасетов в `data/`,
-Streamlit-дашборда и документации.
+It consists of two notebooks (collect → AI-enrich), dated datasets in `data/`, a
+Streamlit dashboard and documentation.
 
-## 2. Фазы проекта (термины владельца)
+## 2. Project phases (the owner's vocabulary)
 
-- **Рабочая фаза** — можно создавать любые черновики/служебные файлы, экспериментировать.
-- **Финальная фаза** — в репозитории остаются только согласованные файлы; рутина
-  владельца сводится к «нажать две кнопки раз в несколько месяцев».
+- **Working phase** — drafts, scratch files and experiments are fine.
+- **Final phase** — only agreed files remain; the owner's routine is "press two
+  buttons every few months".
 
-Сейчас проект **в финальной фазе**: собран, задеплоен, идёт доводка UX и надёжности.
+The project is currently **in the final phase**: built, deployed, being polished.
 
-## 3. Как общаться (важно!)
+## 3. How to communicate (important)
 
-- **Язык общения — русский.** Код, комментарии, доки — **английский**.
-  Исключения: **UI дашборда на русском** и этот файл.
-- **Сначала предлагаю варианты — потом пишу код.** Владелец любит выбор из
-  вариантов с рекомендацией. Не начинать большие правки без его «ок».
-- Объяснять **пошагово**, с конкретными действиями («зайди туда, нажми то»).
-- Владелец программирует в **Google Colab**, часто просит «скажи, что делать по шагам».
-- Не спорить по кругу: если владелец подтвердил решение — делаем.
-- **Но обязательно возражать, если владелец не прав** — один раз, с фактами
-  (замер, ограничение платформы), и дальше делаем то, что он решил.
-- **Честность про данные:** никогда не выдумывать cap table, суммы раундов, оценки.
-- **Честность про результат:** если правка не помогла — сказать это с цифрами
-  (так было с пагинацией редактора заметок: 1.06 с → 1.12 с, откатили).
-- Все правки — **атомарными коммитами**, с прогоном тестов и линтеров.
-- Задавать вопросы, когда развилка меняет результат; не выдумывать за владельца.
+- **Talk to the owner in Russian.** Everything written into the repository —
+  code, comments, docs, dashboard UI, this file — is **English**, so that any
+  English speaker can read the whole project.
+- **Options first, code second.** The owner wants 2–4 options with a
+  recommendation. Do not start large edits without their approval.
+- Explain **step by step**, with concrete actions ("open this, click that").
+- The owner works in **Google Colab** and often asks for step-by-step instructions.
+- Do not argue in circles: once the owner confirms a decision, do it.
+- **But do disagree when the owner is wrong** — once, with evidence (a
+  measurement, a platform limitation) — and then do what they decide.
+- **Honesty about data:** never invent cap tables, round sizes or valuations.
+- **Honesty about results:** if a change did not help, say so with numbers (this
+  happened with paginating the notes editor: 1.06 s → 1.12 s, reverted).
+- Every change lands as an **atomic commit** with tests and linters green.
+- Ask questions when a fork in the road changes the outcome; never guess for the
+  owner.
 
-## 3a. Требования владельца к структуре проекта (соблюдать!)
+## 3a. The owner's requirements for project structure (follow these)
 
-Владелец хочет **максимально чистый репозиторий**: на первой странице GitHub —
-только папки-блоки и несколько обязательных файлов, без служебного мусора.
+The owner wants a **maximally clean repository**: the GitHub landing page shows
+only blocks and a few mandatory files, with no service clutter.
 
-**Правила размещения (утверждены 25.07.2026):**
+**Placement rules (agreed 2026-07-25):**
 
-1. **В корне остаётся минимум:** `README.md`, `FOR_CLAUDE.md`, `app.py`,
-   `requirements.txt`, `pyproject.toml`, `LICENSE`, `.gitignore`, `.python-version`.
-   Больше в корень **ничего не класть** — новый файл идёт в подходящую папку.
-2. **Служебное для кода — в `src/`.** Там же и тесты: `src/tests/`
-   (не в корне — это служебная папка, а не блок проекта).
-3. **Служебное для ИИ-агента — в `.claude/`.** Скиллы, команды, агенты,
-   `settings.json`, `session_start.sh`. Всё, что нужно мне для работы и не нужно
-   посетителю, кладём туда.
-4. **`AI_USAGE/` — только для посетителей.** Переносимая методология
-   (`AI_METHODOLOGY.md`) и описание использованных скиллов (`SKILLS_USED.md`).
-   Никаких рабочих конфигов агента здесь.
-5. **`docs/` — документы для людей**, по одному на задачу: как устроено, как
-   развернуть, как обновлять. Дублирующих документов не заводить.
-6. **`data/` ничего не удаляем** — датированные прогоны хранятся как архив.
-7. **Инструкции для ИИ — в одном файле** (`FOR_CLAUDE.md`). Отдельных SPEC/плана/
-   TODO больше нет: всё, что нужно знать для работы над проектом, живёт здесь.
+1. **Keep the root minimal:** `README.md`, `README.ru.md`, `FOR_CLAUDE.md`,
+   `app.py`, `requirements.txt`, `pyproject.toml`, `LICENSE`, `.gitignore`,
+   `.python-version`. Nothing else goes to the root — a new file goes into a block.
+2. **Service code lives in `src/`** — including the tests (`src/tests/`), which are
+   service code rather than a project block.
+3. **Everything the AI agent needs lives in `.claude/`**: skills, commands, agents,
+   `settings.json`, `session_start.sh`.
+4. **`AI_USAGE/` is for visitors only**: the portable methodology
+   (`AI_METHODOLOGY.md`) and the description of the skills used (`SKILLS_USED.md`).
+   No working agent configuration here.
+5. **`DOCS/` holds documents for people**, one per job: how it works, how to
+   deploy, how to update. Never create two documents answering the same question.
+6. **Never delete anything from `data/`** — dated runs are kept as an archive.
+7. **Instructions for the AI live in one file** (`FOR_CLAUDE.md`). There is no
+   separate SPEC / plan / TODO any more.
 
-**Что физически нельзя перенести** (иначе проект сломается — проверено):
-`requirements.txt` (Streamlit Cloud читает только из корня), `pyproject.toml`
-(корень нужен `pip install -e .`, ruff, pytest), `.github/workflows/`
-(GitHub запускает только из этого пути), `.streamlit/` (Streamlit читает конфиг и
-секреты только оттуда), `app.py` (путь прописан в настройках хостинга).
+**What physically cannot be moved** (verified — moving it breaks the project):
+`requirements.txt` (Streamlit Cloud only reads it from the root), `pyproject.toml`
+(the root is required by `pip install -e .`, ruff and pytest),
+`.github/workflows/` (GitHub only runs workflows from that path), `.streamlit/`
+(Streamlit only reads config and secrets from there), `app.py` (the path is set in
+the hosting configuration).
 
-## 4. Методология, скиллы и порядок работы
+## 4. Methodology, skills and the working algorithm
 
-В репозитории вшит форк **`addyosmani/agent-skills`** (папка `.claude/`).
+A fork of **`addyosmani/agent-skills`** is vendored into `.claude/`.
 
-**Алгоритм работы над любой задачей (утверждён владельцем):**
+**The algorithm for any task (agreed with the owner):**
 
-1. **Понять и предложить.** Разобраться в задаче, показать 2–4 варианта с
-   эффектом, минусами и рекомендацией. Дождаться выбора владельца.
-2. **Сначала тест, потом код** (TDD): красный тест → минимальный код → зелёный
-   прогон всего набора → `ruff` → **один атомарный коммит** с объяснением «почему».
-3. **Проверить по-настоящему.** Для UI — реальный браузер (Playwright) на реальном
-   датасете; для скорости — замер до/после, а не ощущения.
-4. **Задеплоить:** merge рабочей ветки в `main` → пуш (Streamlit подхватит сам).
-5. **Записать в `FOR_CLAUDE.md`** решение и результат — в том же заходе.
-6. При поломке — `debugging-and-error-recovery`: сначала корневая причина из
-   трейсбека, потом правка. Не гадать.
+1. **Understand and propose.** Study the task, show 2–4 options with their effect,
+   downsides and a recommendation. Wait for the owner to choose.
+2. **Test first, then code** (TDD): red test → minimal code → whole suite green →
+   `ruff` → **one atomic commit** whose message explains *why*.
+3. **Verify for real.** For UI — a real browser (Playwright) against the real
+   dataset; for speed — a before/after measurement, not a feeling.
+4. **Deploy:** merge the working branch into `main` → push (Streamlit picks it up).
+5. **Write the decision and the result into `FOR_CLAUDE.md`** in the same pass.
+6. On any failure use `debugging-and-error-recovery`: find the root cause in the
+   traceback first, then change code. Never guess.
 
-Команды: `/spec /plan /build /test /review /ship /code-simplify /webperf`
-(`.claude/commands/*`), скиллы — `.claude/skills/*` (24 шт.).
+Commands: `/spec /plan /build /test /review /ship /code-simplify /webperf`
+(`.claude/commands/*`); skills: `.claude/skills/*` (24 of them).
 
-- **Не переносить `.claude/`** — харнесс находит его по пути; там же
-  `session_start.sh` (на него ссылается `.claude/settings.json`).
-- Для сложных задач владелец одобряет **многоагентные прогоны** (Workflow):
-  так делали discovery-исследование и adversarial-аудит дашборда.
+- **Do not move `.claude/`** — the harness finds it by path, and
+  `.claude/settings.json` points at `.claude/session_start.sh`.
+- For hard tasks the owner approves **multi-agent runs** (Workflow): that is how
+  the discovery research and the adversarial audit of the dashboard were done.
 
-## 5. Git и деплой
+## 5. Git and deployment
 
-- Рабочая ветка: **`claude/ycombinator-startups-agent-skills-eyv4ar`**.
-- **`main` = то, что задеплоено** на Streamlit Cloud. После правок: коммит в рабочую
-  ветку → пуш → merge в `main` → пуш. Streamlit передеплоится сам за 2–3 минуты.
-- Коммиты заканчиваются строками `Co-Authored-By: Claude Opus 4.8 …` и `Claude-Session: …`.
-- PR не создавать без явной просьбы.
-- Секреты не коммитить никогда (`.env`, `.streamlit/secrets.toml` — в `.gitignore`).
+- Working branch: **`claude/ycombinator-startups-agent-skills-eyv4ar`**.
+- **`main` is what is deployed** to Streamlit Cloud. After a change: commit to the
+  working branch → push → merge into `main` → push. Streamlit redeploys itself in
+  2–3 minutes.
+- Do not open pull requests unless explicitly asked.
+- Never commit secrets (`.env`, `.streamlit/secrets.toml` are git-ignored).
 
-## 6. Карта репозитория (что где лежит и зачем)
+## 6. Repository map (what lives where, and why)
 
 ```
-README.md                   витрина проекта — для случайного посетителя
-FOR_CLAUDE.md               ЭТОТ файл: всё, что нужно ИИ для работы над проектом
-app.py                      дашборд Streamlit (UI на русском) — самый живой файл
-requirements.txt            зафиксированные версии с хешами (корень обязателен)
-pyproject.toml              зависимости-источник, сборка пакета, настройки ruff/pytest
+README.md                   the shop window — for a first-time visitor (English)
+README.ru.md                the same, in Russian
+FOR_CLAUDE.md               THIS file: everything an AI needs to work on the project
+app.py                      the Streamlit dashboard — the most active file
+requirements.txt            pinned + hashed versions (must stay in the root)
+pyproject.toml              dependency source, packaging, ruff/pytest settings
 LICENSE .gitignore .python-version
 
-src/yc_scouter/             ВСЯ логика (тетради и дашборд импортируют её)
-  config.py                 ЕДИНЫЙ источник правды: модель, токены, цены, пути, даты
-  fetch.py normalize.py     загрузка YC + нормализация (ключ = неизменяемый id)
-  enrich.py score.py        investability, открытые ссылки, score 0–100
-  ai.py                     AI-описание + риски, кэш по (id, model_id, prompt_version)
-  export.py                 датированные parquet/xlsx
-  filters.py                фильтры и поиск дашборда
-  user_data.py              заметки (id, watchlist, my_tags, my_stage, my_notes)
-  gsheets.py                бэкенд Google Sheets для заметок
-  pipeline.py               build_base() / build_ai() — тонкий API для тетрадей
-src/tests/                  154 теста; сеть и LLM замоканы (прогон бесплатный)
+src/yc_scouter/             ALL the logic (notebooks and the dashboard import it)
+  config.py                 THE single source of truth: model, tokens, prices, paths
+  fetch.py normalize.py     download YC data + normalize (key = the immutable id)
+  enrich.py score.py        investability, open links, score 0–100
+  ai.py                     AI description + risks, cache on (id, model, prompt_version)
+  export.py                 dated parquet/xlsx
+  filters.py                dashboard filtering and search
+  user_data.py              notes (id, watchlist, my_tags, my_stage, my_notes)
+  gsheets.py                Google Sheets backend for the notes
+  pipeline.py               build_base() / build_ai() — the thin API for notebooks
+src/tests/                  154 tests; network and LLM mocked (a run costs nothing)
 
-notebooks/01_dataset_base.ipynb   File 1 — сбор всех компаний 2020→сейчас
-notebooks/02_ai_summary.ipynb     File 2 — AI-обогащение (Claude/Groq/mock)
-data/                       датированные датасеты + data/cache/ai_cache.json (архив, не чистим)
+notebooks/01_dataset_base.ipynb   File 1 — collect all companies 2020→now
+notebooks/02_ai_summary.ipynb     File 2 — AI enrichment (Claude/Groq/mock)
+data/                       dated datasets + data/cache/ai_cache.json (archive, never pruned)
 
-docs/HOW_IT_WORKS.md              как всё устроено — подробно, для чтения со стороны
-docs/HOW_TO_DEPLOY_DASHBOARD.md   пошаговый деплой + Google Таблица + шеринг ссылки
-docs/HOW_TO_UPDATE.md             чек-лист обслуживания (кнопки, ключи, модели, lockfile)
+DOCS/HOW_IT_WORKS.md              how everything works — detailed, for outsiders
+DOCS/HOW_TO_DEPLOY_DASHBOARD.md   step-by-step deployment + Google Sheet + sharing
+DOCS/HOW_TO_UPDATE.md             maintenance checklist (buttons, keys, models, lock)
 
-AI_USAGE/AI_METHODOLOGY.md   переносимый «скилл»: принципы для ПОХОЖИХ проектов
-AI_USAGE/SKILLS_USED.md      какие скиллы использованы и что дали (для посетителя)
+AI_USAGE/AI_METHODOLOGY.md   a portable playbook for the owner's other projects
+AI_USAGE/SKILLS_USED.md      which skills were used and what each contributed
 
-.claude/                    служебное для ИИ: скиллы, команды, агенты, settings.json,
-                            session_start.sh (готовит окружение в начале сессии)
-.github/workflows/          две кнопки: build-dataset.yml, build-ai-summary.yml
-.streamlit/                 config.toml + secrets.toml.example (секреты не коммитим)
+.claude/                    agent service files: skills, commands, agents,
+                            settings.json, session_start.sh (prepares the session)
+.github/workflows/          the two buttons: build-dataset.yml, build-ai-summary.yml
+.streamlit/                 config.toml + secrets.toml.example (secrets never committed)
 ```
 
-**Разделение ролей документов** (не смешивать):
-`FOR_CLAUDE.md` — как работать над **этим** проектом (для ИИ);
-`AI_USAGE/AI_METHODOLOGY.md` — как делать **похожие** проекты (для чужого ИИ);
-`docs/*` — для людей: как устроено / как развернуть / как обновлять;
-`README.md` — витрина и навигация.
+**Roles of the documents** (do not mix them):
+`FOR_CLAUDE.md` — how to work on **this** project (for an AI);
+`AI_USAGE/AI_METHODOLOGY.md` — how to build **other** projects (for someone else's AI);
+`DOCS/*` — for people: how it works / how to deploy / how to maintain;
+`README.md` — the shop window and navigation.
 
-## 6a. Исходное ТЗ (вобрано из удалённого `Archive/SPEC.md`)
+## 6a. The original brief (absorbed from the deleted `Archive/SPEC.md`)
 
-Задача, поставленная владельцем в самом начале, — чтобы её не потерять:
+The task as the owner first stated it, so it is not lost:
 
-> Проект «YC Scouter» — личный инструмент + размещённый в интернете дашборд для
-> поиска и анализа компаний Y Combinator **с 2020 года по настоящее время**.
+> "YC Scouter" — a personal tool plus a hosted dashboard for finding and analysing
+> Y Combinator companies **from 2020 to the present**.
 
-Состав, который был согласован (и выполнен):
+The agreed (and delivered) contents:
 
-1. **File 1** — тетрадь, собирающая все компании YC → «YC Dataset Base *дата*»
-   (`.parquet` + `.xlsx`), с переключателем вверху кода: сохранить в Google Drive
-   (папка «Project YC Scouter») или скачать по завершении.
-2. **File 2** — тетрадь, прогоняющая каждую компанию через нейросеть: короткое
-   описание + 2–3 главных риска (с пометкой об авторстве ИИ), с переключателем
-   провайдера (Claude / Groq) → «YC Dataset AI Summary *дата*», те же два формата.
-   *Позже упрощено владельцем:* one-liner берём готовый от YC, остаются два поля.
-3. **Папка с результатами** — по 4 файла на прогон (Base/AI × parquet/xlsx),
-   с датой в имени.
-4. **Документ «Как это работает»** → `docs/HOW_IT_WORKS.md`.
-5. **Документ «AI-промпты и скиллы»** → `AI_USAGE/AI_METHODOLOGY.md` +
-   `SKILLS_USED.md`, промпты — в `docs/HOW_IT_WORKS.md` §5.
-6. **File 5** — «тетрадь, готовящая деплой дашборда» → **не делаем отдельно**:
-   роль выполняют `app.py` и `docs/HOW_TO_DEPLOY_DASHBOARD.md`.
-7. **README** — краткое описание + пометка Claude Code + ссылка на дашборд.
-8. **Дашборд в интернете**, независимый от машины владельца.
+1. **File 1** — a notebook collecting all YC companies → "YC Dataset Base *date*"
+   (`.parquet` + `.xlsx`), with a switch at the top of the code: save to Google
+   Drive (folder "Project YC Scouter") or download when the run finishes.
+2. **File 2** — a notebook running every company through an LLM: a short
+   description + 2–3 main risks (marked as AI-authored), with a provider switch
+   (Claude / Groq) → "YC Dataset AI Summary *date*", same two formats.
+   *Later simplified by the owner:* the one-liner comes from YC, two AI fields stay.
+3. **A results folder** — 4 files per run (Base/AI × parquet/xlsx), dated.
+4. **A "how it works" document** → `DOCS/HOW_IT_WORKS.md`.
+5. **An "AI prompts and skills" document** → `AI_USAGE/AI_METHODOLOGY.md` +
+   `SKILLS_USED.md`; the prompts themselves live in `DOCS/HOW_IT_WORKS.md` §5.
+6. **File 5** — "a notebook preparing the dashboard deployment" → **not built
+   separately**: `app.py` and `DOCS/HOW_TO_DEPLOY_DASHBOARD.md` fill that role.
+7. **README** — a short description + a link to the dashboard.
+8. **A dashboard on the internet**, independent of the owner's machine.
 
-Условия: воспроизводимость **логики кода**, а не данных; проект можно перезапускать
-для сбора новых компаний; никаких лишних служебных файлов сверх согласованных.
+Constraints: reproducibility of **code logic**, not of data; the project can be
+re-run to collect new companies; no service files beyond the agreed ones.
 
-## 7. Ключевые технические решения (не переизобретать)
+## 7. Locked technical decisions (do not reinvent)
 
-1. **Ключ всего — неизменяемый `id`** компании YC (не `slug`: он меняется при
-   переименовании и осиротит заметки).
-2. **Воспроизводимость = логика кода, не данные.** Тетради тонкие, вся логика в
-   `src/`, версии зафиксированы хешированным `requirements.txt` + Python 3.11.
-   Данные между прогонами могут отличаться — это нормально.
-3. **AI:** Claude `claude-haiku-4-5`, два выхода (`ai_description` 6–7 предложений,
-   `ai_risks` 1–2 коротких). `MAX_DESC_CHARS=2200`, `MAX_TOKENS=430`.
-   Полный прогон ≈ **$7–8.5** (цель ≤ $9). Кэш по `(id, model_id, prompt_version)` —
-   платим только за новые. Изменение промпта = новый `prompt_version` = пересчёт всех.
-   Рейтинг 0–5 **удалён** намеренно.
-4. **Обновление — только вручную, двумя кнопками** в GitHub Actions. Никакого cron.
-   Google Drive к Actions не подключаем.
-5. **Заметки:** владелец → Google Таблица (переживает перезапуски);
-   посетитель → своя сессия (`st.session_state`), полностью изолированно в обе стороны.
-6. **Производительность важнее красоты:** на free tier ничего не строить «жадно»
-   на каждый ререндер (экспорт — только по кнопке; поиск векторизован).
+1. **Everything is keyed by the immutable company `id`** (not `slug`: it changes on
+   rename and orphans the notes).
+2. **Reproducibility = code logic, not data.** Thin notebooks, all logic in `src/`,
+   versions pinned by a hashed `requirements.txt` + Python 3.11. Data legitimately
+   differs between runs.
+3. **AI:** Claude `claude-haiku-4-5`, two outputs (`ai_description` 6–7 sentences,
+   `ai_risks` 1–2 short ones). `MAX_DESC_CHARS=2200`, `MAX_TOKENS=430`. A full run
+   is ≈ **$7–8.5** (target ≤ $9). The cache is keyed on
+   `(id, model_id, prompt_version)` — we pay only for new companies. Changing the
+   prompt bumps `prompt_version` and re-summarises everything. The 0–5 rating was
+   **removed** on purpose.
+4. **Updates are manual, two buttons** in GitHub Actions. No cron. Google Drive is
+   never wired into Actions.
+5. **Notes:** the owner → a Google Sheet (survives restarts); a visitor → their own
+   session (`st.session_state`), fully isolated in both directions.
+6. **Performance beats prettiness:** on the free tier nothing is built eagerly on
+   every rerun (exports only on demand; search is vectorised).
 
-## 8. Журнал решений владельца
+## 8. The owner's decision log
 
-- Репозиторий публичный; провайдер AI — Claude; only 3 обязательных AI-поля,
-  затем сокращено до 2 (one-liner берём готовый от YC).
-- Датированные имена `yc_dataset_<base|ai>_<YYYY-MM-DD>.{parquet,xlsx}`.
-- Доки для людей: `HOW_IT_WORKS`, `HOW_TO_DEPLOY_DASHBOARD`, `HOW_TO_UPDATE`.
-- Спека, планы и TODO **растворены в этом файле**, `Archive/` удалён (25.07.2026):
-  инструкции для ИИ живут в одном месте.
-- `AI_METHODOLOGY` переписан как **переносимый скилл** и вынесен в `AI_USAGE/`
-  вместе с `SKILLS_USED.md`; проектные промпты переехали в `docs/HOW_IT_WORKS.md`.
-- Тесты перенесены в `src/tests/`, `session_start.sh` — в `.claude/`,
-  `requirements.in` растворён в `pyproject.toml`, `.env.example` удалён.
-- **File 5 из исходной спеки отдельным файлом не делаем**: его роль выполняют
-  `app.py` (сам дашборд) и `docs/HOW_TO_DEPLOY_DASHBOARD.md`.
-- Фильтры Score/Команда — поля «От»/«До» (не слайдеры); пусто = без границы;
-  под полями курсивом *мин./макс.* по текущим данным.
-- Карточки: пагинация по 50, сортировка, копирование карточки, заметки в каждой карточке.
-- Метрика «Проинвестировано» убрана (есть график воронки).
+- Public repository; AI provider is Claude; originally 3 AI fields, later reduced
+  to 2 (the one-liner comes from YC).
+- Dated names `yc_dataset_<base|ai>_<YYYY-MM-DD>.{parquet,xlsx}`.
+- Documents for people: `HOW_IT_WORKS`, `HOW_TO_DEPLOY_DASHBOARD`, `HOW_TO_UPDATE`.
+- Spec, plans and TODO were **absorbed into this file**; `Archive/` deleted
+  (2026-07-25): instructions for the AI live in one place.
+- `AI_METHODOLOGY` rewritten as a **portable playbook** and moved to `AI_USAGE/`
+  together with `SKILLS_USED.md`; the project's prompts moved into
+  `DOCS/HOW_IT_WORKS.md`.
+- Tests moved to `src/tests/`, `session_start.sh` to `.claude/`, `requirements.in`
+  folded into `pyproject.toml`, `.env.example` deleted.
+- **File 5 of the original brief is not built separately**: `app.py` and
+  `DOCS/HOW_TO_DEPLOY_DASHBOARD.md` fill that role.
+- Score/team filters are "From"/"To" fields (not sliders); empty = no bound; the
+  data's min/max shown in italics underneath.
+- Cards: 50 per page, sorting, copy-card, notes inside every card.
+- The "Invested" metric was removed (the funnel chart covers it).
+- **Language (2026-07-25):** everything in the repository is English — code, docs,
+  the dashboard UI and this file — so an English speaker can read the whole
+  project. `README.ru.md` is the Russian version of the README. Conversation with
+  the owner stays in Russian.
+- Visitor-facing folders are named in CAPS (`DOCS/`, `AI_USAGE/`).
 
-## 9. Что сделано (состояние на последнюю сессию)
+## 9. What is done (state as of the last session)
 
-- ✅ Пайплайн, датасет 4037 компаний с AI, обе кнопки Actions работают.
-- ✅ Дашборд задеплоен, UI на русском, 4 вкладки, фильтры, графики, сравнение, заметки.
-- ✅ Заметки владельца в Google Таблице; посетители — изолированная сессия.
-- ✅ Предохранитель: любая непойманная ошибка показывает причину + кнопку сброса.
-- ✅ Устойчивость к «строковым» булевым из Sheets, дублям id, мусорным id.
-- ✅ Хотфикс: строка экспорта больше не блокирует вкладки.
-- ✅ Ускорены карточки: заметки в списке открываются **по кнопке** (вариант A) —
-  132 интерактивных элемента вместо ~350, рендер вкладки «Компании» **0.8 с**.
-  Размер страницы оставлен 50 карточек по решению владельца.
-- ✅ Ускорен клик по строке таблицы → карточка: **1.1 с → 0.4 с** (закрытие 1.2 → 0.3 с).
-  Две причины были: (1) лишний `st.rerun()` в `selectable_table` — `on_select="rerun"`
-  уже перезапустил скрипт, карточка рисуется ниже в том же проходе; (2) любой клик
-  перерисовывал все 4 вкладки. Теперь таблица + карточка живут в одном
-  `@st.fragment` (`table_and_card`), поэтому выбор компании перерисовывает только
-  этот блок. Замеры — Playwright на реальных 4037 строках.
-- ✅ **Закрыты все подтверждённые критичные находки adversarial-аудита** (25.07.2026,
-  4 атомарных коммита, +25 тестов, всего 137 зелёных):
-  1. Поиск по `[`/`'` возвращал все 4037 компаний — parquet отдаёт `tags` как
-     `numpy.ndarray`, и поиск искал по repr массива (`filters.is_sequence`).
-  2. Пустой `team_size` считался нулём и проходил фильтр «до N» — теперь явная
-     граница требует известного значения.
-  3. Сбой чтения Google Sheets → следующее сохранение стирало все заметки. Теперь:
-     запись блокируется, пока таблица нечитаема; `gsheets.save` отказывается
-     затирать непустую таблицу пустой; пишем сначала, потом чистим «хвост»
-     (раньше был `ws.clear()` до записи).
-  4. Пустой/опечатанный `owner_key` при подключённых Sheets делал владельцем любого
-     → gate «падает закрытым» + подсказка в сайдбаре; сравнение ключа
-     константное по времени, пробелы по краям игнорируются.
-  5. Таблица читалась из Sheets **на каждый ререндер** → теперь один раз за сессию,
-     кнопка «🔄 Обновить из таблицы» во вкладке «Заметки».
-  6. Дубль `id` в датасете → `DuplicateWidgetID` и смерть дашборда; мусорный id →
-     заметки в никуда. `prepare_data()` чистит и показывает, что подчистил.
-  7. Пропажа колонки после пересборки → `KeyError` внутри графика. Опциональные
-     колонки добираются пустыми, фатально только отсутствие `id`/`name`.
-  8. Выбор строки жил **по позиции** → после смены фильтра открывалась чужая
-     компания. Ключ виджета таблицы считается от видимых `id` (`_selection_key`).
-  9. «Сравнение» падало на одноимённых компаниях (108 таких строк) → выбор по
-     `id`, подпись «Имя · Батч» (+ `#id`, если и это совпало).
-  10. Смена индустрии сбрасывала выбранную подиндустрию → валидная часть выбора
-      сохраняется (`keep_valid`).
-- ✅ Мелкие правки по замечаниям владельца (25.07.2026): «Вперёд →» больше не
-  активна на последней странице (шаг вынесен в `on_click`-колбэк — иначе состояние
-  кнопки отставало на один рендер); ось лет батчей сделана категориальной
-  (`year_bar`) — больше нет «2020.5»; после сохранения заметки показывается зелёное
-  «Сохранено ✅» (флаг в session_state переживает `st.rerun`) + тост.
-- ✅ **Полная репетиция рутины владельца пройдена** (25.07.2026): обе кнопки Actions
-  отработали, датасет 2026-07-25 = **4040 компаний** (3 новых), AI у 100%, модель
-  одна, стоимость ≈ $0.005 (кэш заплатил только за новых). Дашборд сам взял свежий
-  `yc_dataset_ai_2026-07-25.parquet`.
-  ⚠️ Диагностика на будущее: два прогона File 1 в 12:33 и 12:36 упали со статусом
-  `startup_failure` и **нулём джобов** — это отказ на стороне GitHub (workflow даже
-  не стартовал), совпал по времени с переименованием репозитория. Повторный запуск
-  того же файла прошёл без единой правки. Лечение: просто перезапустить кнопку.
+- ✅ Pipeline, a 4040-company dataset with AI, both Actions buttons working.
+- ✅ Dashboard deployed: 4 tabs, filters, charts, comparison, notes.
+- ✅ Owner's notes in a Google Sheet; visitors get an isolated session.
+- ✅ Safety net: any uncaught error shows the reason plus a reset button.
+- ✅ Tolerant to "stringified" booleans from Sheets, duplicate ids, garbage ids.
+- ✅ Hotfix: the export row no longer blocks the tab bar.
+- ✅ Card list sped up: notes in the list open **on a button** (option A) — 132
+  interactive elements instead of ~350, the Companies tab renders in **0.8 s**.
+  The page size stays at 50 cards by the owner's decision.
+- ✅ Row click → card sped up: **1.1 s → 0.4 s** (closing 1.2 → 0.3 s). Two causes:
+  (1) a redundant `st.rerun()` in `selectable_table` — `on_select="rerun"` had
+  already rerun the script and the card is drawn later in the same pass; (2) every
+  click repainted all four tabs. The table and the card now live in one
+  `@st.fragment` (`table_and_card`). Measured with Playwright on the real dataset.
+- ✅ **All confirmed critical findings of the adversarial audit are closed**
+  (2026-07-25, 4 atomic commits, +25 tests):
+  1. Searching for `[` or `'` returned all 4037 companies — parquet returns `tags`
+     as a `numpy.ndarray` and the search matched the array's repr
+     (`filters.is_sequence`).
+  2. An empty `team_size` counted as zero and passed an explicit "up to N" filter —
+     an explicit bound now requires a known value.
+  3. A failed Sheets read made the next save erase every note. Now: writing is
+     blocked while the sheet is unreadable; `gsheets.save` refuses to overwrite a
+     populated sheet with an empty one; it writes first and clears leftovers after
+     (it used to `ws.clear()` before writing).
+  4. A blank or misspelled `owner_key` with Sheets configured made everyone an
+     owner → the gate fails closed plus a sidebar hint; the key comparison is
+     constant-time and tolerates stray spaces.
+  5. The sheet was read **on every rerun** → now once per session, with a
+     "🔄 Reload from the sheet" button in the Notes tab.
+  6. A duplicate `id` in the dataset caused `DuplicateWidgetID` and killed the
+     dashboard; a garbage id sent notes nowhere. `prepare_data()` cleans both and
+     reports what it cleaned.
+  7. A column missing after a rebuild was a `KeyError` inside a chart. Optional
+     columns are filled empty; only a missing `id`/`name` is fatal.
+  8. The row selection lived **by position** → after a filter change a different
+     company opened. The table's widget key is derived from the visible ids
+     (`_selection_key`).
+  9. Comparison crashed on companies sharing a name (108 such rows) → selection by
+     `id`, label "Name · Batch" (+ `#id` when even that repeats).
+  10. Choosing an industry reset the chosen subindustry → the still-valid part of
+      the selection is kept (`keep_valid`).
+- ✅ Small fixes from the owner's review (2026-07-25): "Next →" is no longer active
+  on the last page (the step moved into an `on_click` callback — otherwise the
+  button state lagged one render behind); the batch-year axis is categorical
+  (`year_bar`), so no more "2020.5"; saving a note shows a green "Saved ✅" (a flag
+  in session state survives `st.rerun`) plus a toast.
+- ✅ **The owner's update routine was rehearsed end to end** (2026-07-25): both
+  Actions buttons ran, the 2026-07-25 dataset has **4040 companies** (3 new), 100%
+  AI coverage, a single model, cost ≈ $0.005 (the cache paid only for the new
+  ones). The dashboard picked up `yc_dataset_ai_2026-07-25.parquet` by itself.
+  ⚠️ Diagnostic note: two File 1 runs at 12:33 and 12:36 failed with
+  `startup_failure` and **zero jobs** — a failure on GitHub's side (the workflow
+  never started), coinciding with the repository rename. Re-running the same file
+  worked with no change. Cure: just press the button again.
+- ✅ **Repository restructured to the owner's requirements** (2026-07-25): tests →
+  `src/tests/`, `session_start.sh` → `.claude/`, `AI_USAGE/` created (portable
+  methodology + skills description), `DEPLOY.md` → `HOW_TO_DEPLOY_DASHBOARD.md`
+  (rewritten step by step), `HOW_IT_WORKS.md` expanded, `Archive/` deleted (the
+  brief absorbed here), `requirements.in` → `pyproject.toml`, `.env.example`
+  deleted. Verified after the move: 154 tests, ruff, a browser check on 4040
+  companies, and **a File 1 Actions run on the new structure succeeded** (so
+  `pip install -e .` and papermill still work).
+- ✅ **Full switch to English** (2026-07-25): the dashboard UI, this file and the
+  tests are English; `DOCS/` and `AI_USAGE/` are CAPS.
 
-- ✅ **Перестройка репозитория под требования владельца** (25.07.2026): тесты →
-  `src/tests/`, `session_start.sh` → `.claude/`, создана `AI_USAGE/`
-  (переносимая методология + описание скиллов), `DEPLOY.md` →
-  `HOW_TO_DEPLOY_DASHBOARD.md` (переписан пошагово), `HOW_IT_WORKS.md` расширен,
-  `Archive/` удалён (ТЗ вобрано сюда), `requirements.in` → `pyproject.toml`,
-  `.env.example` удалён. Проверено после переезда: 154 теста, ruff, браузерная
-  проверка на 4040 компаниях, **прогон File 1 в Actions на новой структуре —
-  успех** (значит `pip install -e .` и papermill живы).
+## 10. What's next / open tasks
 
-## 10. Что дальше / открытые задачи
+1. **⏳ Come back to performance work** (the owner asked to record this explicitly).
+   What still costs time on every rerun — measured by ablation on the real dataset:
+   - **charts ≈ 0.36 s** (cache the Plotly figures by a filter hash) — the largest;
+   - **the 50 card expanders ≈ 0.16 s**, the two big tables ≈ 0.11 s each;
+   - the bulk notes editor is ≈ 0.03 s — **paginating it was tried and reverted**
+     (1.06 s → 1.12 s, i.e. no effect). Do not retry it.
+   - The structural win would be rendering only the active tab (≈ 0.4 s), at the
+     cost of tab switching becoming a server round-trip.
+   - Measure with the Playwright script on the real dataset, before and after.
+2. **Audit:** all confirmed critical findings are closed (see §9). The detailed
+   list of **high/medium** findings was lost with the old chat — re-run the
+   adversarial audit (multi-agent Workflow) when the owner asks.
+3. **Failure alerting** — the owner asked for it: the runs should notice an expired
+   key, a retired model, a changed source schema, and surface it visibly.
+4. Possibly phase 2: a full website (Cloudflare Pages on the same dataset). The
+   owner decided: **not this time**, keep it for the future.
 
-1. **⏳ ОБЯЗАТЕЛЬНО вернуться к оптимизации после починки основы** (решение владельца
-   от 25.07.2026: «остановимся на C, но запиши, чтобы потом обязательно вернулись»).
-   Что осталось тяжёлым — перерисовывается на каждый ререндер (смена фильтра,
-   сохранение заметок):
-   - **A.** Вкладка «Заметки»: `st.data_editor` строится на **все** отфильтрованные
-     строки (до 4037). Сделать пагинацию по 50, как в карточках. ← главный обжора.
-   - **B.** Вкладка «Обзор»: 6 графиков Plotly. Кэшировать фигуры по хешу фильтра.
-   - Замеры делать Playwright-скриптом на реальном датасете (см. журнал: клик по
-     строке 1.1 с → 0.4 с после фрагмента).
-2. **Аудит: закрыты все подтверждённые критичные находки** (см. раздел 9). Осталось:
-   детальный список **high/medium** находок был в старом чате и не сохранился —
-   при желании прогнать adversarial-аудит заново (многоагентный Workflow) и
-   пройтись по оставшимся уровням.
-3. **Финальный README** — написать последним, когда структура устоялась.
-4. Возможно: фаза 2 — полноценный сайт (Cloudflare Pages поверх того же датасета).
-   Владелец решил: **в этот раз сайт не делаем**, оставляем на будущее.
+## 11. Risks and maintenance (details in `DOCS/HOW_TO_UPDATE.md`)
 
-## 11. Риски и обслуживание (детали — `docs/HOW_TO_UPDATE.md`)
-
-- Кредиты Anthropic заканчиваются → File 2 падает; кэш делает повтор дешёвым.
-- Модель устаревает (~раз в 6–12 мес) → поменять одну константу в `config.py`.
-- Google-сервис-аккаунт удалён/ключ протух → `invalid_grant`; пересоздать ключ,
-  обновить секреты, расшарить таблицу на `client_email`.
-- Streamlit Cloud засыпает после 12 ч простоя (просыпается ~15 с) — это норма.
-- Зависимости дрейфуют → пересобрать `requirements.txt` через
+- Anthropic credits run out → File 2 fails; the cache makes a retry cheap.
+- The model is retired (~every 6–12 months) → change one constant in `config.py`.
+- The Google service account is deleted / its key expires → `invalid_grant`;
+  recreate the key, update the secrets, share the sheet with `client_email`.
+- Streamlit Cloud sleeps after 12 h idle (wakes in ~15 s) — this is normal.
+- Dependencies drift → recompile `requirements.txt` with
   `uv pip compile pyproject.toml --generate-hashes -o requirements.txt`.
-- **Внимание:** на хостинге может быть более новый Python/pandas, чем зафиксирован
-  локально — различия pandas 3 уже дважды роняли приложение (строковые булевы,
-  запись текста в float-колонку). Тестировать на pandas 3.
-- При обновлении Streamlit до **1.60+** придётся опустить `pyarrow` ниже 25:
-  в 1.59.1 ограничения нет, в 1.60 появилось `pyarrow<25`.
-- **GitHub Actions иногда падает со `startup_failure` и нулём джобов** — это отказ
-  на стороне GitHub (совпал с переименованием репозитория), а не наш код.
-  Лечение: просто перезапустить кнопку.
+- **Careful:** the host may run a newer Python/pandas than we pin locally — pandas
+  3 differences have crashed the app twice (stringified booleans, writing text into
+  a float column). Test on pandas 3.
+- Upgrading Streamlit to **1.60+** requires dropping `pyarrow` below 25: 1.59.1 has
+  no such bound, 1.60 introduced `pyarrow<25`.
+- **GitHub Actions sometimes fails with `startup_failure` and zero jobs** — a
+  failure on GitHub's side, not in our code. Cure: press the button again.
 
-## 12. Стартовый промпт для нового чата
+## 12. Starter prompt for a new session
 
-> «Вот репозиторий Nerbi357/YC-Scouter, ветка
-> `claude/ycombinator-startups-agent-skills-eyv4ar`. Прочитай `FOR_CLAUDE.md`,
-> затем `docs/HOW_IT_WORKS.md`. Работаем по нашим правилам: общение на русском,
-> сначала варианты — потом код, TDD, атомарные коммиты, merge в `main` для деплоя.
-> Продолжаем с раздела «Что дальше».»
+> "Here is the repository Nerbi357/YC-Scouter, branch
+> `claude/ycombinator-startups-agent-skills-eyv4ar`. Read `FOR_CLAUDE.md`, then
+> `DOCS/HOW_IT_WORKS.md`. We work by our rules: talk to me in Russian, write
+> everything in the repository in English, options before code, TDD, atomic
+> commits, merge into `main` to deploy. Continue from the 'What's next' section."

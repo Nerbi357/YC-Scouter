@@ -56,11 +56,11 @@ def test_search_is_vectorized_and_matches_all_fields(sample_records):
 
     df = normalize.normalize(sample_records)
     df["my_notes"] = ""
-    df.loc[df.index[0], "my_notes"] = "мойфлаг"
+    df.loc[df.index[0], "my_notes"] = "myflag"
     # matches long_description
     assert len(filters.apply_filters(df, query="ROBOT")) >= 1
     # matches personal notes too
-    out = filters.apply_filters(df, query="мойфлаг")
+    out = filters.apply_filters(df, query="myflag")
     assert len(out) == 1
     # no match -> empty, no crash
     assert len(filters.apply_filters(df, query="zzz-nothing")) == 0

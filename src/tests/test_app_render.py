@@ -31,6 +31,6 @@ def test_dashboard_renders_without_exception(tmp_path, sample_records, monkeypat
 
     assert not at.exception, at.exception
     assert at.title[0].value.startswith("🛰️ YC Scouter")
-    assert [t.label for t in at.tabs] == ["📊 Обзор", "🔎 Компании", "⚖️ Сравнение", "📝 Заметки"]
+    assert [t.label for t in at.tabs] == ["📊 Overview", "🔎 Companies", "⚖️ Compare", "📝 Notes"]
     labels = {m.label for m in at.metric}
-    assert {"Компаний", "Индустрий"} <= labels
+    assert {"Companies", "Industries"} <= labels
