@@ -37,7 +37,7 @@ def test_string_booleans_from_sheets_do_not_crash():
         ("True", True),
         ("true", True),
         ("TRUE", True),
-        ("да", True),  # legacy Russian spellings still parsed
+        ("да", True),  # legacy spellings from the author's-language UI, still parsed
         ("yes", True),
         ("1", True),
         (1, True),
@@ -45,7 +45,7 @@ def test_string_booleans_from_sheets_do_not_crash():
         ("False", False),
         ("false", False),
         ("FALSE", False),
-        ("нет", False),  # Russian "no" — must stay false
+        ("нет", False),  # the same word for "no" — must stay false
         ("0", False),
         (0, False),
         ("", False),

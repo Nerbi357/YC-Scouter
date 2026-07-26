@@ -7,7 +7,7 @@ and serves all of it as an interactive dashboard you can filter, chart, compare 
 annotate.
 
 > 🔗 **Live dashboard — [nerbi357-yc-scouter.streamlit.app](https://nerbi357-yc-scouter.streamlit.app/)**
-> · 🇷🇺 [Русская версия этого файла](README.ru.md)
+> · 🌐 [This README in the author's language](README.ru.md)
 
 **Several thousand companies** · batches 2020–2026 · every one of them carrying an AI
 description and risks · rebuilt on demand by pressing two buttons.

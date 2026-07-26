@@ -20,8 +20,11 @@
 **YC Scouter** — a personal tool for the owner (Nerbi357) to find and evaluate
 Y Combinator startups **from 2020 to the present**.
 
-- Repository: **`Nerbi357/YC-Scouter`** (public; formerly `VC-Tracking` — the git
-  remote inside the agent sandbox may still show the old path, GitHub redirects).
+- Repository: **`Nerbi357/YC-Scouter`** (public). An older clone may still be wired
+  to the repository's previous path; GitHub redirects, so it keeps working. Inside
+  an agent sandbox, do **not** rewrite that remote: fetching accepts either name,
+  but only the path the sandbox was created with is authorised to push (verified
+  2026-07-25 — the renamed URL fetches and then fails the push with HTTP 403).
 - Live dashboard: **https://nerbi357-yc-scouter.streamlit.app/**
 - Data: **several thousand companies** (batches 2020–2026), all with an AI description
   and risks. Exact counts are deliberately kept out of the documents — they drift with
@@ -138,7 +141,7 @@ Commands: `/spec /plan /build /test /review /ship /code-simplify /webperf`
 
 ```
 README.md                   the shop window — for a first-time visitor (English)
-README.ru.md                the same, in Russian
+README.ru.md                the same, in the author's language
 app.py                      the Streamlit dashboard — the most active file
 requirements.txt            pinned + hashed versions (must stay in the root)
 pyproject.toml              dependency source, packaging, ruff/pytest settings
@@ -251,8 +254,9 @@ re-run to collect new companies; no service files beyond the agreed ones.
 - The "Invested" metric was removed (the funnel chart covers it).
 - **Language (2026-07-25):** everything in the repository is English — code, docs,
   the dashboard UI and this file — so an English speaker can read the whole
-  project. `README.ru.md` is the Russian version of the README. Conversation with
-  the owner stays in Russian.
+  project. `README.ru.md` is a translation of the README into the author's language,
+  the one exception. The language of the conversation is not fixed here: the owner
+  names it at the start of each project (see `AI_INSTRUCTIONS.md` §2).
 - Visitor-facing folders are named in CAPS (`DOCS/`, `AI_USAGE/`).
 - **No drifting counts in descriptions** (2026-07-25): company and test counts drift
   with every rebuild and had already disagreed across files (4037 vs 4040).
@@ -423,8 +427,7 @@ aimed at outside readers · keeping `AI_INSTRUCTIONS.md` in its own repository.
 
 ## 12. Starter prompt for a new session
 
-> "Here is the repository Nerbi357/YC-Scouter, branch
-> `claude/ycombinator-startups-agent-skills-eyv4ar`. Read
-> `AI_USAGE/AI_INSTRUCTIONS.md` first, then `AI_USAGE/PROJECT_MEMORY.md`, then
-> `DOCS/HOW_IT_WORKS.md`. Talk to me in Russian, write
-> everything in the repository in English. Continue from the plan."
+> "Here is the repository Nerbi357/YC-Scouter, branch `main` (the only branch).
+> Read `AI_USAGE/AI_INSTRUCTIONS.md` first, then `AI_USAGE/PROJECT_MEMORY.md`, then
+> `DOCS/HOW_IT_WORKS.md`. Talk to me in `<language>`, write everything in the
+> repository in English. Continue from §10, *What's next*."

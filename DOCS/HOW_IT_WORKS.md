@@ -147,15 +147,15 @@ own dated pair of files, so previous results stay exactly as they were.
 
 ## 7. The dashboard (`app.py`)
 
-A Streamlit app with a Russian UI. It **reads** the newest
+A Streamlit app. It **reads** the newest
 `data/yc_dataset_ai_*.parquet` (falling back to `_base_`), and never fetches or
 calls an AI — so it is fast, free and cannot spend money.
 
 **Layout:** filters in the sidebar (search, industry/subindustry, status,
 investability, funnel stage, tags, favourites, batch year, integer From/To ranges
-for score and team size) and four tabs — **Обзор** (KPI cards and six charts),
-**Компании** (a selectable table, a detail card, and paginated company cards),
-**Сравнение** (up to 5 companies side by side), **Заметки** (bulk editing).
+for score and team size) and four tabs — **Overview** (KPI cards and six charts),
+**Companies** (a selectable table, a detail card, and paginated company cards),
+**Compare** (up to 5 companies side by side), **Notes** (bulk editing).
 Export (CSV / Excel / Parquet) sits on the tab bar, flush right, and builds the
 file only when asked.
 

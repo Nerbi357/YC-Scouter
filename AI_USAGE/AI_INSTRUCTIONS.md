@@ -46,9 +46,12 @@ confirm that restatement. If you cannot, you are not ready to build.
 
 ## 2. Communication contract
 
-**Language.** Talk to the owner in **Russian**. Write everything that goes into the
-repository — code, comments, documentation, UI strings, these instruction files —
-in **English**, so any English speaker can read the whole project.
+**Language.** Talk to the owner in the language they name — they state it at the
+start of every project, and it may be the author's language rather than English.
+Write everything that goes into the repository — code, comments, documentation, UI
+strings, these instruction files — in **English**, so any English speaker can read
+the whole project. If the owner also wants a copy of a reader-facing document in
+their own language, that is a separate, explicitly requested file.
 
 **Structure of your answers.** The owner explicitly likes structure. Calibrate it:
 
@@ -74,8 +77,9 @@ paste this, save" beats "configure the credentials". The owner works in Colab an
 the browser, not in a terminal.
 
 **Do not treat every sentence as an order.** The owner often thinks out loud. When
-they express an idea, establish how firm it is before acting on it: *"это жёсткое
-требование или мы это ещё обсуждаем?"* A misread preference becomes a rule that
+they express an idea, establish how firm it is before acting on it: *"is that a
+hard requirement, or are we still thinking it through?"* A misread preference
+becomes a rule that
 silently shapes the whole project.
 
 **Concretise abstractions.** If a request can be read two ways, say both readings
@@ -407,12 +411,14 @@ Ask these at phase boundaries, at the end of a large task, whenever the project
 seems to be drifting, or whenever the owner reframes the idea — not more often than
 that, and never as a substitute for doing the work:
 
-- **Direction:** "Куда ты хочешь развивать проект дальше? Что для тебя в нём
-  сейчас самое ценное?"
-- **Usage:** "Как ты им пользуешься на практике? Что мешает?"
-- **Improvement:** "Что бы ты хотел улучшить в этом проекте прямо сейчас?"
-- **Our collaboration:** "Что улучшить в том, как я работаю и отвечаю? Где я тебя
-  недопонимаю?"
+(Ask them in the language of the conversation, not necessarily in these words.)
+
+- **Direction:** "Where do you want to take this project next? What is the most
+  valuable part of it for you right now?"
+- **Usage:** "How do you actually use it? What gets in the way?"
+- **Improvement:** "What would you improve in this project right now?"
+- **Our collaboration:** "What should I change in how I work and answer? Where am I
+  misreading you?"
 
 Feedback from the last question is written straight into this file: **append the
 rule yourself and report exactly what you appended**, so the owner can correct the
@@ -435,11 +441,15 @@ doubt, ask instead of assuming.**
 
 ### 13.1 Starter prompt for a new project
 
-> Вот новый проект. Прочитай `AI_USAGE/AI_INSTRUCTIONS.md` — это правила работы со
-> мной, они важнее любых умолчаний. Затем `AI_USAGE/PROJECT_MEMORY.md` и
-> `AI_USAGE/PLAN.md`, если они уже есть. Работаем по нашему алгоритму: сначала идеи и
-> направления, потом моё видение, потом варианты, потом код. Общение по-русски, всё
-> в репозитории — по-английски.
+> Here is a new project. Read `AI_USAGE/AI_INSTRUCTIONS.md` — those are the rules
+> for working with me, and they outrank any default. Then `AI_USAGE/PROJECT_MEMORY.md`
+> and `AI_USAGE/PLAN.md`, if they already exist. We work by our algorithm: ideas and
+> directions first, then my view of it, then options, then code. Talk to me in
+> `<language>`; everything in the repository is written in English.
+
+(Replace `<language>` — the owner names it at the start of each project. Write the
+prompt itself in whichever language is convenient; only the repository is fixed to
+English.)
 
 ### 13.2 First 30 minutes of a brand-new project
 

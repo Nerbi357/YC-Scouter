@@ -33,7 +33,7 @@ def test_parquet_roundtrip_preserves_rows(tmp_path, sample_records):
     assert list(back["id"]) == list(df["id"])
 
 
-def test_xlsx_styled_hyperlinks_and_russian_title(tmp_path, sample_records):
+def test_xlsx_styled_hyperlinks_and_sheet_title(tmp_path, sample_records):
     df = _df(sample_records)
     paths = export.export(df, stage="base", date="2026-01-27", out_dir=tmp_path)
 

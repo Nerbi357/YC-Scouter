@@ -3,7 +3,7 @@
 Parquet is the canonical machine-readable snapshot (keeps native list columns and
 is what the dashboard reads). XLSX is the human-facing view: list columns are
 flattened to comma-joined strings, URL columns become clickable hyperlinks, and
-the worksheet tab carries a short Russian title. Filenames are dated via
+the worksheet tab carries a short title. Filenames are dated via
 ``config.dated_path`` — ``yc_dataset_<stage>_<YYYY-MM-DD>.<ext>``.
 """
 
@@ -21,7 +21,7 @@ from . import config, filters
 # Control chars Excel/openpyxl rejects (matches openpyxl's ILLEGAL_CHARACTERS_RE).
 _ILLEGAL_XLSX_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 
-# Short Russian sheet-tab titles (the only Russian in the data artifacts).
+# Short sheet-tab titles.
 _SHEET_TITLES = {"base": "YC data", "ai": "YC + AI"}
 
 

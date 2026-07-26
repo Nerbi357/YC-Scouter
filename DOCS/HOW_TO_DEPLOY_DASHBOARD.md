@@ -70,7 +70,7 @@ finishes, the dashboard opens at a URL like
 `https://<account>-<repo>.streamlit.app`.
 
 **What you should see:** the title *🛰️ YC Scouter*, a line saying
-`Источник: yc_dataset_ai_<date>.parquet`, filters on the left, four tabs.
+`Source: yc_dataset_ai_<date>.parquet`, filters on the left, four tabs.
 
 > **From now on the app redeploys itself.** Every commit to `main` — including the
 > ones the update buttons make — triggers a rebuild. You never touch this screen
@@ -81,7 +81,7 @@ finishes, the dashboard opens at a URL like
 | What you see | What it means | Fix |
 |---|---|---|
 | `ModuleNotFoundError` | the branch you deployed is missing code, or `requirements.txt` is not in the repository root | check the branch in **Settings → General**; `requirements.txt` must be at the top level |
-| "Датасет не найден" | no dataset file is committed | run the two buttons (see `HOW_TO_UPDATE.md`), then reload |
+| "No dataset found" | no dataset file is committed | run the two buttons (see `HOW_TO_UPDATE.md`), then reload |
 | The build log stops at installing packages | a version conflict | re-lock the dependencies (`HOW_TO_UPDATE.md` → *Dependencies drift*) |
 | The app is blank / says it is sleeping | free-tier apps sleep after ~12 h idle | click once and wait ~15 s — this is normal, not a fault |
 
@@ -165,8 +165,8 @@ owner_key = "some-long-random-passphrase"      # see Step 4 — required here
 **Copy `private_key` exactly, including the `\n` sequences** — mangling them is the
 number-one setup mistake, and it shows up as `invalid_grant` later.
 
-**What you should see:** a green banner — *«Полный доступ. Ваши заметки сохраняются
-в постоянное хранилище (Google Таблица)»*. The worksheet is created automatically
+**What you should see:** a green banner — *“Full access. Your notes go to permanent
+storage (a Google Sheet).”* The worksheet is created automatically
 on the first save; you can open the Sheet any time and read your notes as a normal
 table (one row per company, keyed by the company's immutable `id`).
 
@@ -175,7 +175,7 @@ table (one row per company, keyed by the company's immutable `id`).
 | Message in the app | Cause | Fix |
 |---|---|---|
 | `invalid_grant` / *account not found* | the key is mangled or the service account was deleted | create a **new** JSON key, re-paste all fields, keep the `\n` |
-| *Google Таблица недоступна* | the sheet was not shared with `client_email`, or the APIs are not enabled | redo 3b; check both APIs are Enabled |
+| *The Google Sheet is unavailable* | the sheet was not shared with `client_email`, or the APIs are not enabled | redo 3b; check both APIs are Enabled |
 | Notes save but you cannot see them in the Sheet | you are looking at the wrong worksheet tab | the tab name is the `worksheet` value (default `annotations`) |
 
 The app is deliberately careful here: while the sheet cannot be **read**, saving is
@@ -198,7 +198,7 @@ owner_key = "some-long-random-passphrase"
 
 Then:
 
-- **You:** open the sidebar → **🔒 Ключ доступа** → paste the passphrase once per
+- **You:** open the sidebar → **🔒 Access key** → paste the passphrase once per
   browser session. Saving now writes to your Google Sheet.
 - **Visitors:** get full read access — filters, charts, comparison, export — and
   their own **working** notes that live only in their browser tab. Nothing they do
