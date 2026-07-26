@@ -141,7 +141,7 @@ Commands: `/spec /plan /build /test /review /ship /code-simplify /webperf`
 
 ```
 README.md                   the shop window — for a first-time visitor (English)
-README.ru.md                the same, in the author's language
+README.ru.md                the same README, translated
 app.py                      the Streamlit dashboard — the most active file
 requirements.txt            pinned + hashed versions (must stay in the root)
 pyproject.toml              dependency source, packaging, ruff/pytest settings
@@ -254,9 +254,9 @@ re-run to collect new companies; no service files beyond the agreed ones.
 - The "Invested" metric was removed (the funnel chart covers it).
 - **Language (2026-07-25):** everything in the repository is English — code, docs,
   the dashboard UI and this file — so an English speaker can read the whole
-  project. `README.ru.md` is a translation of the README into the author's language,
-  the one exception. The language of the conversation is not fixed here: the owner
-  names it at the start of each project (see `AI_INSTRUCTIONS.md` §2).
+  project. `README.ru.md`, a translation of the README, is the one exception. The
+  language of the conversation is not fixed here: the owner names it at the start of
+  each project (see `AI_INSTRUCTIONS.md` §2).
 - Visitor-facing folders are named in CAPS (`DOCS/`, `AI_USAGE/`).
 - **No drifting counts in descriptions** (2026-07-25): company and test counts drift
   with every rebuild and had already disagreed across files (4037 vs 4040).

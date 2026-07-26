@@ -46,12 +46,11 @@ confirm that restatement. If you cannot, you are not ready to build.
 
 ## 2. Communication contract
 
-**Language.** Talk to the owner in the language they name — they state it at the
-start of every project, and it may be the author's language rather than English.
-Write everything that goes into the repository — code, comments, documentation, UI
-strings, these instruction files — in **English**, so any English speaker can read
-the whole project. If the owner also wants a copy of a reader-facing document in
-their own language, that is a separate, explicitly requested file.
+**Language.** Talk to the owner in the language they name at the start of the
+project. Write everything that goes into the repository — code, comments,
+documentation, UI strings, these instruction files — in **English**, so any English
+speaker can read the whole project. A translated copy of a reader-facing document is
+a separate file, made only when the owner asks for one.
 
 **Structure of your answers.** The owner explicitly likes structure. Calibrate it:
 
@@ -411,7 +410,7 @@ Ask these at phase boundaries, at the end of a large task, whenever the project
 seems to be drifting, or whenever the owner reframes the idea — not more often than
 that, and never as a substitute for doing the work:
 
-(Ask them in the language of the conversation, not necessarily in these words.)
+(Not necessarily in these words.)
 
 - **Direction:** "Where do you want to take this project next? What is the most
   valuable part of it for you right now?"
@@ -447,8 +446,7 @@ doubt, ask instead of assuming.**
 > directions first, then my view of it, then options, then code. Talk to me in
 > `<language>`; everything in the repository is written in English.
 
-(Replace `<language>` — the owner names it at the start of each project. Write the
-prompt itself in whichever language is convenient; only the repository is fixed to
+(Fill in `<language>` when sending the prompt. Only the repository is fixed to
 English.)
 
 ### 13.2 First 30 minutes of a brand-new project
