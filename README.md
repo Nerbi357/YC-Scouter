@@ -12,6 +12,12 @@ annotate.
 **Several thousand companies** · batches 2020–2026 · every one of them carrying an AI
 description and risks · rebuilt on demand by pressing two buttons.
 
+**In practice:** narrow the list to fintech companies from the last two batches that
+are still hiring, open one, read the two risks worth checking before a call, tag it
+`watch` and move to the next. **A dataset is committed to this repository**, so
+`streamlit run app.py` works the moment you clone it — a key is needed only to
+rebuild the data, never to look at it.
+
 ---
 
 ## What Y Combinator is
@@ -41,20 +47,21 @@ the gap this tool fills.
 - **Exports** — the filtered selection as CSV, Excel or Parquet.
 - **Stays honest** — see [Honesty about data](#honesty-about-data).
 
-## How to read the numbers
+## Quick start
 
-Some fields come from YC and some are this project's own. The card never mixes them
-up, and neither does this table.
+```bash
+pip install -r requirements.txt --require-hashes    # pinned + hashed lockfile
+streamlit run app.py                                # the dashboard, on the committed data
+pytest                                              # the test suite
+```
 
-| Field | Where it comes from | What it means |
-|---|---|---|
-| `batch` | YC | The intake the company joined — a season and a year, e.g. *Winter 2020*. |
-| `status` | YC | *Active*, *Inactive*, *Acquired* or *Public*. |
-| `stage` | YC | A rough size marker: *Early* or *Growth*. |
-| `top_company`, `is_hiring` | YC | YC's own flags, passed through untouched. |
-| `investability` | **this project** | A plain reading of `status`: an active private company is reachable only through an accredited round, an SPV or a secondary sale; an acquired or inactive one is not investable at all. A statement about access — **not** a prediction and not advice. |
-| `score` (0–100) | **this project** | A transparent weighted blend of cheap signals: YC's *top company* flag (weight 3), how recent the batch is (2), whether the company is hiring (1), team size (1), a substantive description (0.5) and how richly it is tagged (0.5). Deterministic, and retunable in [`src/yc_scouter/score.py`](src/yc_scouter/score.py). The scale is deliberately hard: in the run of 2026-07-25 the median was 23.4 and the highest score 72.9. |
-| `ai_description`, `ai_risks` | **a language model** | 6–7 sentences and 1–2 risks worth checking, generated from the company's own published text and labelled as machine-generated everywhere they appear. |
+Rebuilding the data is a separate, optional step: run the pipeline through the
+notebooks (Colab or `papermill`) or through the two GitHub Actions workflows. Only
+that step needs `ANTHROPIC_API_KEY` (or `GROQ_API_KEY`); without a key the AI columns
+show a placeholder and nothing is charged.
+
+Deploying your own copy — hosting, notes that survive restarts, sharing the link
+safely: [`DOCS/HOW_TO_DEPLOY_DASHBOARD.md`](DOCS/HOW_TO_DEPLOY_DASHBOARD.md).
 
 ## How it works
 
@@ -82,7 +89,7 @@ app.py  read     →  the dashboard        (never fetches, never pays)
 Full architecture, the prompts and the design rules:
 [`DOCS/HOW_IT_WORKS.md`](DOCS/HOW_IT_WORKS.md).
 
-## Repository map
+## Where everything lives
 
 | Path | What it is |
 |---|---|
@@ -91,41 +98,38 @@ Full architecture, the prompts and the design rules:
 | `src/tests/` | the test suite; network and LLM mocked, so a run never costs anything |
 | `notebooks/` | File 1 and File 2 — thin wrappers over the package |
 | `data/` | dated datasets (Parquet + Excel) and the AI cache |
-| `DOCS/` | documentation for people (see below) |
+| `DOCS/` | the three documents below |
 | `AI_USAGE/` | working files for the AI agent: instructions, project memory, idea backlog |
 | `.github/workflows/` | the two update buttons |
 | `.streamlit/` | dashboard config + a secrets template |
 | `.claude/` | agent configuration used while building (skills, roles, session setup) |
 
-## Quick start
+- [`HOW_IT_WORKS.md`](DOCS/HOW_IT_WORKS.md) — architecture, derived fields, the
+  prompts and their cost controls, the reproducibility contract.
+- [`HOW_TO_DEPLOY_DASHBOARD.md`](DOCS/HOW_TO_DEPLOY_DASHBOARD.md) — publish your own
+  copy, step by step, from zero.
+- [`HOW_TO_UPDATE.md`](DOCS/HOW_TO_UPDATE.md) — maintenance: the two buttons, keys,
+  models, dependencies, what breaks and what to do.
+- Continuing this project with an AI agent? Start from
+  [`AI_USAGE/PROJECT_MEMORY.md`](AI_USAGE/PROJECT_MEMORY.md) — decisions and their
+  reasons, current state, open tasks — next to
+  [`AI_INSTRUCTIONS.md`](AI_USAGE/AI_INSTRUCTIONS.md) and
+  [`IDEAS.md`](AI_USAGE/IDEAS.md).
 
-```bash
-pip install -r requirements.txt --require-hashes    # pinned + hashed lockfile
-streamlit run app.py                                # the dashboard
-pytest                                              # the test suite
-```
+## How to read the numbers
 
-Run the pipeline through the notebooks (Colab or `papermill`) or through the two
-GitHub Actions workflows. The AI step needs `ANTHROPIC_API_KEY` (or `GROQ_API_KEY`);
-without a key the AI columns show a placeholder and nothing is charged.
+Some fields come from YC and some are this project's own. The card never mixes them
+up, and neither does this table.
 
-Deploying your own copy — hosting, notes that survive restarts, sharing the link
-safely: [`DOCS/HOW_TO_DEPLOY_DASHBOARD.md`](DOCS/HOW_TO_DEPLOY_DASHBOARD.md).
-
-## Documentation
-
-- [`DOCS/HOW_IT_WORKS.md`](DOCS/HOW_IT_WORKS.md) — architecture, the data source and
-  derived fields, the prompts and their cost controls, the reproducibility
-  contract, and the rules the dashboard is built to obey.
-- [`DOCS/HOW_TO_DEPLOY_DASHBOARD.md`](DOCS/HOW_TO_DEPLOY_DASHBOARD.md) — publish your
-  own copy, step by step, from zero.
-- [`DOCS/HOW_TO_UPDATE.md`](DOCS/HOW_TO_UPDATE.md) — the maintenance checklist: the
-  two buttons, keys, models, dependencies, what breaks and what to do.
-- [`AI_USAGE/PROJECT_MEMORY.md`](AI_USAGE/PROJECT_MEMORY.md) — **start here when
-  continuing this project with an AI agent**: decisions and their reasons, current
-  state, open tasks. Next to it,
-  [`AI_INSTRUCTIONS.md`](AI_USAGE/AI_INSTRUCTIONS.md) (how that agent is expected to
-  work) and [`IDEAS.md`](AI_USAGE/IDEAS.md) (proposals not yet scheduled).
+| Field | Where it comes from | What it means |
+|---|---|---|
+| `batch` | YC | The intake the company joined — a season and a year, e.g. *Winter 2020*. |
+| `status` | YC | *Active*, *Inactive*, *Acquired* or *Public*. |
+| `stage` | YC | A rough size marker: *Early* or *Growth*. |
+| `top_company`, `is_hiring` | YC | YC's own flags, passed through untouched. |
+| `investability` | **this project** | A plain reading of `status`: an active private company is reachable only through an accredited round, an SPV or a secondary sale; an acquired or inactive one is not investable at all. A statement about access — **not** a prediction and not advice. |
+| `score` (0–100) | **this project** | A transparent weighted blend of cheap signals: YC's *top company* flag (weight 3), how recent the batch is (2), whether the company is hiring (1), team size (1), a substantive description (0.5) and how richly it is tagged (0.5). Deterministic, and retunable in [`src/yc_scouter/score.py`](src/yc_scouter/score.py). The scale is deliberately hard: in the run of 2026-07-25 the median was 23.4 and the highest score 72.9. |
+| `ai_description`, `ai_risks` | **a language model** | 6–7 sentences and 1–2 risks worth checking, generated from the company's own published text and labelled as machine-generated everywhere they appear. |
 
 ## Honesty about data
 
