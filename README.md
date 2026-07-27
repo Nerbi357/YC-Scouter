@@ -12,7 +12,22 @@ annotate.
 **Several thousand companies** · batches 2020–2026 · every one of them carrying an AI
 description and risks · rebuilt on demand by pressing two buttons.
 
+![The dashboard: filters on the left, KPI cards and charts on the Overview tab](DOCS/images/dashboard-overview.png)
+
 ---
+
+## What Y Combinator is
+
+Y Combinator is a US startup accelerator that has funded companies at their earliest
+stage since 2005 — Airbnb, Stripe, Dropbox, Coinbase and Reddit all went through it.
+Every company gets the same standard deal (a fixed amount of money for a fixed share
+of the company), joins a three-month **batch** named after the season it starts in —
+Winter, Spring, Summer or Fall — and ends it at Demo Day, presenting to investors.
+
+YC publishes its entire portfolio openly, and that is what makes this project
+possible. But the directory is a *list*: nothing is ranked, two companies cannot be
+put side by side, and there is nowhere to record what you thought about them. That is
+the gap this tool fills.
 
 ## What it does
 
@@ -27,6 +42,23 @@ description and risks · rebuilt on demand by pressing two buttons.
   stored outside the app so a data refresh never touches them.
 - **Exports** — the filtered selection as CSV, Excel or Parquet.
 - **Stays honest** — see [Honesty about data](#honesty-about-data).
+
+![A company card: the score, the batch, the AI description, the risks and open links](DOCS/images/dashboard-card.png)
+
+## How to read the numbers
+
+Some fields come from YC and some are this project's own. The card never mixes them
+up, and neither does this table.
+
+| Field | Where it comes from | What it means |
+|---|---|---|
+| `batch` | YC | The intake the company joined — a season and a year, e.g. *Winter 2020*. |
+| `status` | YC | *Active*, *Inactive*, *Acquired* or *Public*. |
+| `stage` | YC | A rough size marker: *Early* or *Growth*. |
+| `top_company`, `is_hiring` | YC | YC's own flags, passed through untouched. |
+| `investability` | **this project** | A plain reading of `status`: an active private company is reachable only through an accredited round, an SPV or a secondary sale; an acquired or inactive one is not investable at all. A statement about access — **not** a prediction and not advice. |
+| `score` (0–100) | **this project** | A transparent weighted blend of cheap signals: YC's *top company* flag (weight 3), how recent the batch is (2), whether the company is hiring (1), team size (1), a substantive description (0.5) and how richly it is tagged (0.5). Deterministic, and retunable in [`src/yc_scouter/score.py`](src/yc_scouter/score.py). The scale is deliberately hard: in the run of 2026-07-25 the median was 23.4 and the highest score 72.9. |
+| `ai_description`, `ai_risks` | **a language model** | 6–7 sentences and 1–2 risks worth checking, generated from the company's own published text and labelled as machine-generated everywhere they appear. |
 
 ## How it works
 

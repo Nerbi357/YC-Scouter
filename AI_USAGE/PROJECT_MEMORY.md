@@ -398,6 +398,18 @@ re-run to collect new companies; no service files beyond the agreed ones.
   - **any later commit replaces the row of the files it touches.** That is expected;
     re-seal the listing by repeating the mode-flip pair as the last action before
     closing the project again.
+- ✅ **Context for the first-time visitor** (2026-07-27). The README assumed too much:
+  it never said what Y Combinator or a *batch* is, never showed the dashboard, and
+  never said which numbers are YC's and which are ours. Added, in both READMEs: a
+  short *What Y Combinator is* section, two screenshots (`DOCS/images/`), and a
+  *How to read the numbers* table that marks the origin of every field and states
+  plainly that `investability` is a statement about access, not a prediction.
+  - **Re-taking the screenshots** (needed whenever the UI changes visibly): run the
+    app locally on the newest dataset, drive it with Playwright, and inject
+    `display:none` for `stToolbar`/`stAlertContainer` first — otherwise the shot
+    carries the local-mode banner and a "Deploy" button. The page does not scroll
+    with `window.scrollTo`: walk up from the card heading to the first ancestor whose
+    `scrollHeight` exceeds its `clientHeight` and scroll that.
 - ⚠️ **`v1.0` had to be tagged by hand.** The sandbox may push branches but not tags
   (`git push origin v1.0` → HTTP 403, same restriction as deleting a ref). The tag
   and its release page are created in the GitHub UI: *Releases → Draft a new release
