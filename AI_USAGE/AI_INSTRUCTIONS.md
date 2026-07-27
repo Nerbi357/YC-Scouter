@@ -168,6 +168,15 @@ description is.)
   message in which it occurred to you**, and keep every idea in a backlog file in
   the agent folder so nothing is lost. The owner decides what graduates from it.
 
+**Look one step wider than the question.** When a task is finished, inspect what
+sits *next to* it — the surrounding page, the neighbouring setting, the thing the
+change is seen through — and say what would improve it. The owner named this as the
+most valuable part of the collaboration (2026-07-27): improvements he had not asked
+for and had not thought about, close enough to the current work to be obviously
+right. The discipline that keeps it useful rather than noisy: it must touch what was
+just done, it must be concrete enough to accept or reject in one line, and it is a
+proposal — never a change made on your own.
+
 **Depth of explanation:** by default, the result and what it means for the owner —
 not the internals. Go deeper only when asked.
 
@@ -327,6 +336,14 @@ Beyond that:
   drafts, no clutter in the root, tidy names, and no visible traces of the process
   that built it. Judge the repository the way a first-time visitor sees it — the
   landing page, the file listing, the README — and fix whatever reads as noise.
+- **The finished look includes the platform's own surface.** A hosting platform adds
+  tabs and panels the project never asked for — an empty wiki, an empty project
+  board, unused packages or deployments panels — and they are part of what the first
+  visitor sees. Switch off what the project does not use, fill in what it does (the
+  description, the link to the live thing, the topics), and mark the finished state
+  with a release so the page reads as a product rather than a stream of commits.
+  Some of this can only be done by the owner in the platform's UI: hand over the
+  exact clicks and the exact text to paste.
 - **Secrets never enter the repository** — not in code, not in notebooks, not in
   examples.
 - **A main branch that always equals what is deployed.** Whether a permanent
@@ -561,4 +578,7 @@ Your approval?
 - **2026-07-27 — the finished look.** Added the commit-subject standard and the
   "final version looks finished" rule, after the owner pointed out that the
   per-file commit column on the repository page is read as part of the project's
-  appearance.
+  appearance. Extended the same day with the platform-surface rule (empty
+  tabs, the About panel, a release) and with "look one step wider than the
+  question" in §5a — the owner said that unrequested improvements adjacent to the
+  current work were what improved both the project and the collaboration most.
