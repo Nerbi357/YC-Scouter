@@ -45,6 +45,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dataset changes to commit."
           else
-            git commit -m "data: rebuild YC Dataset Base ($(date -u +%Y-%m-%d))"
+            git commit -m "Refresh the base dataset ($(date -u +%Y-%m-%d))"
             git push
           fi

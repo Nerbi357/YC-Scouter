@@ -61,6 +61,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No AI-summary changes to commit."
           else
-            git commit -m "data: rebuild YC Dataset AI Summary ($(date -u +%Y-%m-%d))"
+            git commit -m "Refresh the AI dataset ($(date -u +%Y-%m-%d))"
             git push
           fi

@@ -314,6 +314,19 @@ Beyond that:
   `AI_USAGE/`); service folders stay lowercase or dot-prefixed.
 - **Never delete produced data.** Dated outputs are an archive.
 - **Atomic commits**, each with tests and linters green, each explaining *why*.
+- **Commit subjects are part of the finished look.** A repository page prints the
+  subject of the last commit that touched each file, so those lines are read far
+  more often than the diffs under them. Write the subject for that column: one
+  short sentence in plain words, capitalised, no trailing period, no ticket codes
+  or `T4.3:` / `wip:` prefixes, no file names, ideally under ~50 characters. The
+  detail goes in the body, which the listing never shows. Machine-generated commits
+  (CI, scheduled jobs) obey the same rule — their message is what a visitor sees
+  next to the folder they write to.
+- **The final version looks finished.** In the final phase the standard is not "it
+  works" but "nothing here looks like a workbench": no leftover working files, no
+  drafts, no clutter in the root, tidy names, and no visible traces of the process
+  that built it. Judge the repository the way a first-time visitor sees it — the
+  landing page, the file listing, the README — and fix whatever reads as noise.
 - **Secrets never enter the repository** — not in code, not in notebooks, not in
   examples.
 - **A main branch that always equals what is deployed.** Whether a permanent
@@ -545,3 +558,7 @@ Your approval?
   collaboration itself) and on what worked (large parallel audits, heavy work in
   the background, crisp step-by-step instructions, options with trade-offs,
   problems found before they happened).
+- **2026-07-27 — the finished look.** Added the commit-subject standard and the
+  "final version looks finished" rule, after the owner pointed out that the
+  per-file commit column on the repository page is read as part of the project's
+  appearance.

@@ -81,6 +81,13 @@ only blocks and a few mandatory files, with no service clutter.
    rules, travels between projects), `PROJECT_MEMORY.md` (this file) and
    `IDEAS.md` (the backlog). No separate SPEC / plan / TODO in the final state —
    the plan is a working instrument and is folded in here when the project closes.
+8. **The final version must look finished** (asked for 2026-07-27). The judgement is
+   made from what a first-time visitor sees: the landing page, the file listing, the
+   README. Anything that reads as a workbench — draft files, clutter in the root,
+   working prefixes in commit subjects — is a defect. This includes the column
+   GitHub prints next to every file with the subject of the last commit that touched
+   it: those lines are part of the page, so they are written as short plain
+   sentences (see `AI_INSTRUCTIONS.md` §10). The column itself cannot be turned off.
 
 **What physically cannot be moved** (verified — moving it breaks the project):
 `requirements.txt` (Streamlit Cloud only reads it from the root), `pyproject.toml`
