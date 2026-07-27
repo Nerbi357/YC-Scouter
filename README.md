@@ -12,8 +12,6 @@ annotate.
 **Several thousand companies** · batches 2020–2026 · every one of them carrying an AI
 description and risks · rebuilt on demand by pressing two buttons.
 
-![The dashboard: filters on the left, KPI cards and charts on the Overview tab](DOCS/images/dashboard-overview.png)
-
 ---
 
 ## What Y Combinator is
@@ -42,8 +40,6 @@ the gap this tool fills.
   stored outside the app so a data refresh never touches them.
 - **Exports** — the filtered selection as CSV, Excel or Parquet.
 - **Stays honest** — see [Honesty about data](#honesty-about-data).
-
-![A company card: the score, the batch, the AI description, the risks and open links](DOCS/images/dashboard-card.png)
 
 ## How to read the numbers
 
@@ -133,17 +129,15 @@ safely: [`DOCS/HOW_TO_DEPLOY_DASHBOARD.md`](DOCS/HOW_TO_DEPLOY_DASHBOARD.md).
 
 ## Honesty about data
 
-The source is the community mirror `yc-oss/api` — open, no key, rebuilt daily. Every
-deep-dive link points at a freely accessible page; there are no Crunchbase or
-LinkedIn links. Cap tables, funding rounds and valuations for private startups are
-not published anywhere, so this tool never invents them: where a fact does not
-exist, the cell stays empty and the card offers an open link instead.
-`investability` is an honest status-derived heuristic, not a prediction. The AI
-fields are generated **only** from the company's own published text.
-
-Reproducibility here means *code*, not data: the environment is pinned to a hashed
-lockfile, while the source legitimately changes between runs — so every run is
-written to its own dated pair of files and previous results stay untouched.
+- **Open sources only.** The data comes from the community mirror `yc-oss/api` (no
+  key, rebuilt daily); every deep-dive link points at a freely accessible page.
+- **Nothing is invented.** Funding, valuations and cap tables for private startups
+  are not published anywhere, so no cell here contains them — an unknown fact stays
+  empty and the card offers a link instead. The AI fields are written **only** from
+  the company's own published text.
+- **Reproducible code, not frozen data.** The environment is pinned to a hashed
+  lockfile; the source legitimately changes between runs, so every run lands in its
+  own dated pair of files and earlier ones stay untouched.
 
 ## AI usage
 
