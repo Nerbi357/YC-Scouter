@@ -386,6 +386,22 @@ re-run to collect new companies; no service files beyond the agreed ones.
   dataset covering both cards and the notes tab.
 - ✅ **Full switch to English** (2026-07-25): the dashboard UI, this file and the
   tests are English; `DOCS/` and `AI_USAGE/` are CAPS.
+- ✅ **The finished look** (2026-07-27). The repository page is now judged as part of
+  the product:
+  - the **About** panel carries a description, the dashboard link and topics;
+  - every row of the file listing shows the same subject, **`YC Scouter 1.0`**. It was
+    done without touching a single byte of content: one commit flips every file's
+    mode, the next restores it, so both commits "touch" every path while the final
+    tree is identical to the one before them (verified with `git diff`);
+  - the two update buttons write plain subjects (`Refresh the base dataset (date)`),
+    because that line sits next to `data/` after every run;
+  - **any later commit replaces the row of the files it touches.** That is expected;
+    re-seal the listing by repeating the mode-flip pair as the last action before
+    closing the project again.
+- ⚠️ **`v1.0` had to be tagged by hand.** The sandbox may push branches but not tags
+  (`git push origin v1.0` → HTTP 403, same restriction as deleting a ref). The tag
+  and its release page are created in the GitHub UI: *Releases → Draft a new release
+  → Choose a tag → v1.0 → Publish*.
 
 ## 10. What's next / open tasks
 
