@@ -109,6 +109,37 @@ each entry — including the two he rejected, so nobody re-proposes them blind.
 - **[open] Publish.** An open dataset with a data card, and a generated digest of what
   is new — the cheapest way to get outside feedback.
 
+## The v2 product (decided 2026-07-27 — see PLAN.md)
+
+The owner chose the multi-source direction and named the ambition: a place where the
+early-stage universe is visible, sellable to funds as a tool and interesting to
+everyone else. Entries below are the branch menu; the plan holds their order.
+
+- **[decided] Company profile pages with a timeline.** One URL per company: facts
+  with provenance, and a slider that walks its events. *The owner's own idea and the
+  most product-shaped thing in the list.*
+- **[decided] Theme map over time.** Clusters of what companies are building, and how
+  the clusters move batch by batch.
+- **[decided] MCP server.** The dataset queryable from any AI assistant.
+- **[decided] Telegram bot.** Four shapes, not one — they share a backend and can ship
+  in this order: **(1) alerts** on a watchlist (a filing, a status change, a new
+  batch); **(2) query in chat** — the MCP tools with a chat front-end; **(3) a digest**
+  on a cadence the subscriber picks; **(4) a submission channel** where a startup posts
+  an update that lands on its profile. Shape 4 needs identity and moderation and
+  belongs after accounts exist.
+- **[saved] One-page PDF memo per company.** Explicitly kept for later at the owner's
+  request: it is the artefact that gets forwarded inside a fund, and it is worth
+  building *after* there are hard facts to put in it.
+- **[open] The social layer.** Accounts, subscriptions, a personal feed, discussion,
+  startup-authored posts. The dream statement is "LinkedIn for startups, investors and
+  the public". It is a different product from a dataset — moderation, identity and
+  abuse handling arrive with it — so it is scoped as its own late branch.
+- **[open] Curated rosters beyond YC.** Only YC publishes a machine-readable
+  portfolio; everything else is a web page. Curated lists with visible provenance beat
+  fragile scraping, and avoid the EU database-right question entirely.
+- **[open] SBIR and CORDIS as rosters.** They are lists of companies *and* real award
+  amounts, and they cover deep tech, which YC under-represents.
+
 ## Beyond this project
 
 - **[open] Phase 2: a standalone website.** The dataset is already a clean data

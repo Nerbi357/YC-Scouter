@@ -39,7 +39,11 @@ Streamlit dashboard and documentation.
 - **Final phase** — only agreed files remain; the owner's routine is "press two
   buttons every few months".
 
-The project is currently **in the final phase**: built, deployed, being polished.
+**Where it stands (2026-07-27):** v1.0 is released and finished, and the project has
+**re-entered the working phase** for v2 — a multi-source platform. v1.0 is not
+broken to make room: its pipeline becomes one source among many. The map of the work
+lives in [`PLAN.md`](PLAN.md), the source study in
+[`SOURCE_RESEARCH.md`](SOURCE_RESEARCH.md).
 
 ## 3. How to communicate
 
@@ -98,7 +102,11 @@ the hosting configuration).
 
 ## 4. Methodology, skills and the working algorithm
 
-A fork of **`addyosmani/agent-skills`** is vendored into `.claude/`.
+A fork of **`addyosmani/agent-skills`** is vendored into `.claude/`, plus
+**`living-project`** — the skill that shapes v2 (added by the owner 2026-07-27). It
+outranks habit for anything structural: build wide before deep, every step must make
+the next cheaper, a failed branch is still a branch if its failure is published, and
+the ideas file is the visible roadmap rather than a tidy-up.
 
 **The algorithm for any task (agreed with the owner):**
 
@@ -110,13 +118,14 @@ A fork of **`addyosmani/agent-skills`** is vendored into `.claude/`.
    dataset; for speed — a before/after measurement, not a feeling.
 4. **Deploy:** merge the working branch into `main` → push (Streamlit picks it up).
 5. **Write the decision and the result into `PROJECT_MEMORY.md`** in the same pass.
-   (While a project is in flight there is also a `PLAN.md`; this one is finished, so
-   its plan was folded in here and deleted.)
+   While a project is in flight there is also a [`PLAN.md`](PLAN.md) — it exists again
+   for v2 and is folded back in here when the project next closes.
 6. On any failure use `debugging-and-error-recovery`: find the root cause in the
    traceback first, then change code. Never guess.
 
 Commands: `/spec /plan /build /test /review /ship /code-simplify /webperf`
-(`.claude/commands/*`); skills: `.claude/skills/*` (24 of them).
+(`.claude/commands/*`); skills: `.claude/skills/*`; agents: `.claude/agents/*`,
+including `source-scout` for open-data research with confidence marks.
 
 - **Do not move `.claude/`** — the harness finds it by path, and
   `.claude/settings.json` points at `.claude/session_start.sh`.

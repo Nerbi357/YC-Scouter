@@ -231,6 +231,23 @@ finding before fixing it, and sort by blast radius, not by ease of fixing.
 **Severity rules:** fix critical problems (data loss, crashes, access) immediately
 and report afterwards; bring medium and minor findings as a list and ask.
 
+## 7a. Research discipline — confidence is part of the answer
+
+Any claim that will be built on carries its confidence, explicitly: **verified
+directly** / **seen but not verified** / **recalled and unchecked** / **your own
+inference**. Mixing them silently is how a project ends up resting on something
+plausible that was never true.
+
+- **Never invent a specific.** A URL, a price, a rate limit, a coverage figure
+  recalled from memory and presented as checked is worse than an admitted gap,
+  because it fails silently and late.
+- **A blocked check is not a negative result.** If the environment refused the
+  request, say that — it says nothing about the thing being checked.
+- **Report the hole instead of filling it.**
+- **Check the free option before the paid one, and check whether it already exists
+  before building it.** Finding a maintained artefact that already does the job is
+  often the highest-value hour of a project.
+
 ## 8. The team-of-agents philosophy
 
 One agent doing everything in one pass is the weakest configuration. Think in
@@ -297,9 +314,11 @@ Three things exist in **every** repository and stay until the end:
    and improved in each of them.
 
 Alongside them, while a project is being built: a **living plan** (phases, status,
-what was postponed) and an **ideas backlog**. Both are working instruments — they
-are folded into the project memory and removed when the project reaches its final
-state, so the finished repository carries only what stays useful.
+what was postponed) and an **ideas backlog**. The plan is a working instrument — it
+is folded into the project memory and removed when the project reaches its final
+state, and it comes back the moment the project reopens. **The ideas backlog stays
+even in the finished state**: it is the visible roadmap of what could come next, and
+it is part of what makes a project look alive rather than abandoned.
 
 Beyond that:
 
@@ -575,6 +594,11 @@ Your approval?
   collaboration itself) and on what worked (large parallel audits, heavy work in
   the background, crisp step-by-step instructions, options with trade-offs,
   problems found before they happened).
+- **2026-07-27 — research discipline (§7a)** added after a source study where the
+  sandbox blocked several checks: confidence marks on every fact, blocked ≠ negative,
+  never invent a specific. Also: the **`living-project`** skill now shapes long-lived
+  projects, and this file defers to it on branching, epochs and the product layer
+  rather than duplicating it.
 - **2026-07-27 — the finished look.** Added the commit-subject standard and the
   "final version looks finished" rule, after the owner pointed out that the
   per-file commit column on the repository page is read as part of the project's
