@@ -244,6 +244,6 @@ provide the same secrets (as a `.streamlit/secrets.toml` file or environment
 configuration).
 
 If you later want a full website instead of a dashboard, the dataset is already a
-clean data contract: `parquet`/JSON with `score`, `investability` and the `ai_*`
+clean data contract: `parquet`/JSON with `custom_score`, `investability` and the `ai_*`
 fields pre-computed, so a static front-end can be built on top without touching the
 pipeline.

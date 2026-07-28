@@ -32,7 +32,7 @@ def test_file1_notebook_builds_dated_base(tmp_path):
     xlsx = out_dir / "yc_dataset_base_2026-01-27.xlsx"
     assert parquet.exists() and xlsx.exists()
     df = pd.read_parquet(parquet)
-    assert len(df) > 0 and "score" in df.columns and "id" in df.columns
+    assert len(df) > 0 and "custom_score" in df.columns and "id" in df.columns
 
 
 def test_file2_notebook_adds_ai_fields_mock(tmp_path):

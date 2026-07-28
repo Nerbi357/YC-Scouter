@@ -27,13 +27,13 @@ def _rows():
 
 def test_score_in_range_and_ordered():
     df = score.score(_rows())
-    assert df["score"].between(0, 100).all()
-    assert df.loc[0, "score"] > df.loc[1, "score"]
+    assert df["custom_score"].between(0, 100).all()
+    assert df.loc[0, "custom_score"] > df.loc[1, "custom_score"]
 
 
 def test_score_is_deterministic():
-    a = score.score(_rows())["score"].tolist()
-    b = score.score(_rows())["score"].tolist()
+    a = score.score(_rows())["custom_score"].tolist()
+    b = score.score(_rows())["custom_score"].tolist()
     assert a == b
 
 
@@ -49,5 +49,5 @@ def test_custom_weights_change_result():
     }
     out = score.score(df, weights=only_recency)
     # 2026 -> full recency (100), 2024 -> lowest
-    assert out.loc[0, "score"] == 100.0
-    assert out.loc[0, "score"] > out.loc[1, "score"]
+    assert out.loc[0, "custom_score"] == 100.0
+    assert out.loc[0, "custom_score"] > out.loc[1, "custom_score"]

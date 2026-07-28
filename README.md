@@ -36,7 +36,7 @@ the gap this tool fills.
 ## What it does
 
 - **Finds** — filter by industry and subindustry, YC status, investability, batch
-  year, team size, score, your own funnel stage and tags, or search across names,
+  year, team size, custom score, your own funnel stage and tags, or search across names,
   ideas, descriptions and your notes.
 - **Explains** — every company card carries YC's own one-liner, a 6–7 sentence AI
   description, 1–2 concrete risks worth checking, and links to open sources only
@@ -73,7 +73,7 @@ app.py  read     →  the dashboard        (never fetches, never pays)
 
 - **File 1** — `notebooks/01_dataset_base.ipynb`: pulls every YC company from the
   open [`yc-oss/api`](https://yc-oss.github.io/api/companies/all.json), normalises
-  it, adds `investability`, deep-dive links and a 0–100 score, and writes
+  it, adds `investability`, deep-dive links and a 0–100 `custom_score`, and writes
   `yc_dataset_base_<date>.parquet` + `.xlsx`.
 - **File 2** — `notebooks/02_ai_summary.ipynb`: adds `ai_description` and `ai_risks`
   with **Claude by Anthropic** (Groq optional), writing
@@ -118,8 +118,9 @@ Full architecture, the prompts and the design rules:
 
 ## How to read the numbers
 
-Some fields come from YC and some are this project's own. The card never mixes them
-up, and neither does this table.
+Some fields come from YC and some are this project's own — which is why the one
+number we invent is called `custom_score` rather than "score". The card never mixes
+them up, and neither does this table.
 
 | Field | Where it comes from | What it means |
 |---|---|---|
@@ -128,7 +129,7 @@ up, and neither does this table.
 | `stage` | YC | A rough size marker: *Early* or *Growth*. |
 | `top_company`, `is_hiring` | YC | YC's own flags, passed through untouched. |
 | `investability` | **this project** | A plain reading of `status`: an active private company is reachable only through an accredited round, an SPV or a secondary sale; an acquired or inactive one is not investable at all. A statement about access — **not** a prediction and not advice. |
-| `score` (0–100) | **this project** | A transparent weighted blend of cheap signals: YC's *top company* flag (weight 3), how recent the batch is (2), whether the company is hiring (1), team size (1), a substantive description (0.5) and how richly it is tagged (0.5). Deterministic, and retunable in [`src/yc_scouter/score.py`](src/yc_scouter/score.py). The scale is deliberately hard: in the run of 2026-07-25 the median was 23.4 and the highest score 72.9. |
+| `custom_score` (0–100) | **this project** | A transparent weighted blend of cheap signals: YC's *top company* flag (weight 3), how recent the batch is (2), whether the company is hiring (1), team size (1), a substantive description (0.5) and how richly it is tagged (0.5). Deterministic, and retunable in [`src/yc_scouter/score.py`](src/yc_scouter/score.py). The scale is deliberately hard: in the run of 2026-07-25 the median was 23.4 and the highest score 72.9. |
 | `ai_description`, `ai_risks` | **a language model** | 6–7 sentences and 1–2 risks worth checking, generated from the company's own published text and labelled as machine-generated everywhere they appear. |
 
 ## Honesty about data

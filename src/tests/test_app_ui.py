@@ -17,7 +17,7 @@ def _row():
             "batch": "Winter 2024",
             "status": "Active",
             "team_size": 12,
-            "score": 42.5,
+            "custom_score": 42.5,
             "investability": "Private",
             "ai_description": "Builds robots.",
             "ai_risks": "Crowded market.",
@@ -37,7 +37,7 @@ def test_card_text_contains_key_fields_and_links():
 
 def test_sort_options_map_to_real_columns():
     for label, (col, ascending) in app.SORT_OPTIONS.items():
-        assert col in {"score", "batch_year", "name"}, label
+        assert col in {"custom_score", "batch_year", "name"}, label
         assert isinstance(ascending, bool)
     assert len(app.SORT_OPTIONS) == 6  # score / batch year / name, both directions
 

@@ -125,9 +125,9 @@ def apply_filters(
             mask &= team <= max_team_size
         out = out[mask]
     if min_score is not None:
-        out = out[out["score"] >= min_score]
+        out = out[out["custom_score"] >= min_score]
     if max_score is not None:
-        out = out[out["score"] <= max_score]
+        out = out[out["custom_score"] <= max_score]
     if query and query.strip():
         out = out[_search_mask(out, query.strip().lower())]
     return out.reset_index(drop=True)

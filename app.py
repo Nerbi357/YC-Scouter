@@ -55,8 +55,8 @@ USER_DATA_CSV = Path(os.environ.get("YC_SCOUTER_USERDATA", "data/user_data.csv")
 PAGE_SIZE = 50
 
 SORT_OPTIONS = {
-    "Score (high to low)": ("score", False),
-    "Score (low to high)": ("score", True),
+    "Custom score (high to low)": ("custom_score", False),
+    "Custom score (low to high)": ("custom_score", True),
     "Batch year (newest first)": ("batch_year", False),
     "Batch year (oldest first)": ("batch_year", True),
     "Name (A to Z)": ("name", True),
@@ -158,7 +158,7 @@ OPTIONAL_DEFAULTS: dict[str, object] = {
     "long_description": "",
     "tags": "",
     "team_size": pd.NA,
-    "score": pd.NA,
+    "custom_score": pd.NA,
     "ai_description": "",
     "ai_risks": "",
     "website": "",
@@ -199,6 +199,12 @@ def prepare_data(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
         # Widget keys are built from the id — two rows with the same id crash the app.
         out = out.drop_duplicates(subset="id", keep="first")
         notes.append(f"Collapsed duplicate ids: {dupes}.")
+
+    # Datasets built before the rename carry the column as ``score``. They are kept in
+    # data/ as an archive and must stay readable, so the old name is accepted and
+    # mapped rather than filled in as empty.
+    if "custom_score" not in out.columns and "score" in out.columns:
+        out = out.rename(columns={"score": "custom_score"})
 
     added = [c for c in OPTIONAL_DEFAULTS if c not in out.columns]
     for col in added:
@@ -675,7 +681,7 @@ def sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     years = sorted(int(y) for y in df["batch_year"].dropna().unique())
     year_sel = st.sidebar.multiselect("Batch year", years)
 
-    score_lo, score_hi = _int_range("Score (0–100)", "score", df["score"])
+    score_lo, score_hi = _int_range("Custom score (0–100)", "score", df["custom_score"])
     team_lo, team_hi = _int_range("Team size", "team", df["team_size"])
 
     return filters.apply_filters(
@@ -786,7 +792,7 @@ def card_text(row: pd.Series) -> str:
         f"{row.get('name', '')} — {row.get('one_liner', '')}",
         f"Industry: {row.get('industry', '')} / {row.get('subindustry', '')}",
         f"Batch: {row.get('batch', '')} | Status: {row.get('status', '')} "
-        f"| Team: {row.get('team_size', '')} | Score: {row.get('score', '')}",
+        f"| Team: {row.get('team_size', '')} | Custom score: {row.get('custom_score', '')}",
         f"Investability: {row.get('investability', '')}",
     ]
     if str(row.get("ai_description", "")).strip():
@@ -946,7 +952,7 @@ def detail_card(df: pd.DataFrame, place: str, table_key: str | None = None) -> N
             st.rerun(scope="fragment")
 
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Score", f"{row.get('score', '')}")
+        m1.metric("Custom score", f"{row.get('custom_score', '')}")
         m2.metric("Team", f"{row.get('team_size', '')}")
         m3.metric("Batch", f"{row.get('batch', '')}")
         m4.metric("Status", f"{row.get('status', '')}")
@@ -965,7 +971,7 @@ TABLE_COLUMNS = [
     "investability",
     "my_stage",
     "team_size",
-    "score",
+    "custom_score",
     "one_liner",
     "website",
     "yc_url",
@@ -1069,7 +1075,8 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
         int(filtered.get("watchlist", pd.Series(dtype=bool)).sum()),
         help=f"Favorites in total, ignoring filters: {fav_total}",
     )
-    c3.metric("Average score", f"{filtered['score'].mean():.0f}" if len(filtered) else "—")
+    avg = f"{filtered['custom_score'].mean():.0f}" if len(filtered) else "—"
+    c3.metric("Average custom score", avg)
     c4.metric("Industries", filtered["industry"].nunique())
 
     st.divider()
@@ -1090,7 +1097,9 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
             if year_fig is not None:
                 st.plotly_chart(year_fig, width="stretch")
         with r2c2:
-            fig = px.histogram(filtered, x="score", nbins=20, title="Score distribution")
+            fig = px.histogram(
+                filtered, x="custom_score", nbins=20, title="Custom score distribution"
+            )
             fig.update_traces(marker_color="#7C5CFC")
             st.plotly_chart(fig, width="stretch")
 
@@ -1102,15 +1111,23 @@ def tab_overview(filtered: pd.DataFrame, total: int, all_df: pd.DataFrame) -> No
                 _bar_count(filtered, "my_stage", "My funnel (stages)", order=user_data.STAGES)
 
     st.divider()
-    st.subheader("🏆 Top by score")
+    st.subheader("🏆 Top by custom score")
     n = st.slider("How many to show", 5, 50, 10, key="topn")
-    top_df = filtered.sort_values("score", ascending=False).head(n).reset_index(drop=True)
+    top_df = filtered.sort_values("custom_score", ascending=False).head(n).reset_index(drop=True)
     st.markdown("👁 **Open a card** — tick a company in the first column")
     table_and_card(
         filtered,
         key="table_top",
         place="overview",
-        cols=["name", "industry", "subindustry", "status", "score", "team_size", "one_liner"],
+        cols=[
+            "name",
+            "industry",
+            "subindustry",
+            "status",
+            "custom_score",
+            "team_size",
+            "one_liner",
+        ],
         table_df=top_df,
     )
 
@@ -1190,7 +1207,8 @@ def tab_companies(filtered: pd.DataFrame) -> None:
     for _, row in chunk.iterrows():
         star = "⭐ " if bool(row.get("watchlist")) else ""
         with st.expander(
-            f"{star}{row['name']} — {row.get('one_liner', '')}  (score {row.get('score', '')})"
+            f"{star}{row['name']} — {row.get('one_liner', '')}  "
+            f"(custom score {row.get('custom_score', '')})"
         ):
             company_body(row)
             note_section_lazy(row, place="list")
@@ -1246,7 +1264,7 @@ def tab_compare(filtered: pd.DataFrame) -> None:
             "my_stage",
             "batch",
             "team_size",
-            "score",
+            "custom_score",
             "website",
             "yc_url",
             "ai_description",

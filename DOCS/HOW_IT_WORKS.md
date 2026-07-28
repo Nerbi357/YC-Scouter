@@ -12,7 +12,7 @@ agent picking the project up.
 
 Y Combinator publishes its companies openly. YC Scouter takes every company from
 **2020 to the current year**, cleans the data, adds a few honest derived signals
-(an "investability" status, open-source research links, an interestingness score),
+(an "investability" status, open-source research links, a custom score),
 asks an LLM for a short factual description and a couple of concrete risks per
 company, and serves the result as an interactive dashboard where you can filter,
 chart, compare and keep private notes. It is a personal scouting tool, not a data
@@ -64,7 +64,7 @@ the buttons and the dashboard all run the same code.
 |---|---|---|
 | `batch_year` | parsed from `batch` ("Winter 2024" → 2024) | lets you filter by year |
 | `investability` | derived from YC's `status` (Active / Acquired / Public / Inactive) | an honest status heuristic, **not** a prediction |
-| `score` (0–100) | a transparent weighted formula in `score.py` (recency, team size, status, data completeness) | a sortable "worth a look" signal |
+| `custom_score` (0–100) | a transparent weighted formula in `score.py` (recency, team size, status, data completeness) | a sortable "worth a look" signal — **this project's** opinion, not a YC number |
 | deep-dive links | built as URLs, no scraping: website, YC profile, Google News, Product Hunt, Hacker News, GitHub, Wikipedia | open sources only — no Crunchbase/LinkedIn |
 | `ai_description`, `ai_risks` | one LLM call per company (see §5) | 6–7 factual sentences + 1–2 concrete risks |
 
@@ -79,7 +79,7 @@ identically. Each module does one thing:
 | `fetch.py` | download the source JSON (fresh every run; an optional local cache for development) |
 | `normalize.py` | raw records → a typed table: parse the batch year, keep 2020→now, **de-duplicate by `id`** with a stable sort so the order is deterministic |
 | `enrich.py` | the `investability` heuristic and the open deep-dive links |
-| `score.py` | the 0–100 interestingness score |
+| `score.py` | the 0–100 `custom_score` |
 | `ai.py` | the prompts, the provider adapters (Claude / Groq / offline mock), the resumable cache and the running cost estimate |
 | `export.py` | write the dated Parquet + styled Excel pair |
 | `filters.py` | the dashboard's filtering and search, kept free of Streamlit so it can be unit-tested |
@@ -153,7 +153,7 @@ calls an AI — so it is fast, free and cannot spend money.
 
 **Layout:** filters in the sidebar (search, industry/subindustry, status,
 investability, funnel stage, tags, favourites, batch year, integer From/To ranges
-for score and team size) and four tabs — **Overview** (KPI cards and six charts),
+for custom score and team size) and four tabs — **Overview** (KPI cards and six charts),
 **Companies** (a selectable table, a detail card, and paginated company cards),
 **Compare** (up to 5 companies side by side), **Notes** (bulk editing).
 Export (CSV / Excel / Parquet) sits on the tab bar, flush right, and builds the

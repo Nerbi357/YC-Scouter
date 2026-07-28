@@ -26,7 +26,7 @@ def _df() -> pd.DataFrame:
                 "my_tags": "",
                 "my_notes": "",
                 "team_size": 5,
-                "score": 50,
+                "custom_score": 50,
             },
             {
                 "name": "Beta",
@@ -36,7 +36,7 @@ def _df() -> pd.DataFrame:
                 "my_tags": "",
                 "my_notes": "",
                 "team_size": None,  # YC publishes nothing for this one
-                "score": 60,
+                "custom_score": 60,
             },
         ]
     )

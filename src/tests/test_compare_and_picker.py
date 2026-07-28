@@ -14,9 +14,9 @@ import pandas as pd
 def _df() -> pd.DataFrame:
     return pd.DataFrame(
         [
-            {"id": 1, "name": "Vera", "batch": "Winter 2021", "score": 10},
-            {"id": 2, "name": "Vera", "batch": "Summer 2023", "score": 20},
-            {"id": 3, "name": "Solo", "batch": "Winter 2021", "score": 30},
+            {"id": 1, "name": "Vera", "batch": "Winter 2021", "custom_score": 10},
+            {"id": 2, "name": "Vera", "batch": "Summer 2023", "custom_score": 20},
+            {"id": 3, "name": "Solo", "batch": "Winter 2021", "custom_score": 30},
         ]
     )
 
@@ -47,9 +47,9 @@ def test_comparison_frame_has_one_column_per_picked_company():
     df = _df()
     labels = app.compare_labels(df)
     picked = [label for label, cid in labels.items() if cid in (1, 2)]
-    comp = app.comparison_frame(df, labels, picked, ["score"])
+    comp = app.comparison_frame(df, labels, picked, ["custom_score"])
     assert list(comp.columns) == picked, "duplicate names must not collapse into one column"
-    assert comp.loc["score"].tolist() == [10, 20]
+    assert comp.loc["custom_score"].tolist() == [10, 20]
 
 
 def test_keep_valid_preserves_what_still_exists():

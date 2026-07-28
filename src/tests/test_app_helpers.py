@@ -24,9 +24,9 @@ def test_filter_by_batch_year(sample_records):
 
 def test_filter_min_score_reduces_rows(sample_records):
     df = _full_df(sample_records)
-    hi = filters.apply_filters(df, min_score=df["score"].max())
+    hi = filters.apply_filters(df, min_score=df["custom_score"].max())
     assert len(hi) < len(df)
-    assert (hi["score"] >= df["score"].max()).all()
+    assert (hi["custom_score"] >= df["custom_score"].max()).all()
 
 
 def test_search_matches_description_case_insensitive(sample_records):
@@ -58,7 +58,7 @@ def test_score_range_bounds(sample_records):
     df = _full_df(sample_records)
     lo, hi = 10, 40
     out = filters.apply_filters(df, min_score=lo, max_score=hi)
-    assert out["score"].between(lo, hi).all()
+    assert out["custom_score"].between(lo, hi).all()
 
 
 def test_watchlist_only(sample_records):

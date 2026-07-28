@@ -3,6 +3,10 @@
 The score is a weighted blend of cheap, transparent signals. Weights live in a
 plain dict so the user can retune what "interesting" means. Output is
 deterministic and lands in [0, 100].
+
+The column is called ``custom_score`` on purpose: it is *this project's* opinion,
+not a number Y Combinator publishes. Everything the source provides keeps its own
+name, so a reader can always tell whose claim they are looking at.
 """
 
 from __future__ import annotations
@@ -18,6 +22,9 @@ DEFAULT_WEIGHTS: dict[str, float] = {
     "description": 0.5,  # has a substantive description
     "tags": 0.5,  # richer categorization
 }
+
+#: The name of the column this module writes.
+COLUMN = "custom_score"
 
 _MIN_YEAR = 2023  # 2024 -> 1/3, 2025 -> 2/3, 2026 -> 1.0
 
@@ -45,7 +52,7 @@ def _components(row: pd.Series) -> dict[str, float]:
 
 
 def score(df: pd.DataFrame, *, weights: dict[str, float] | None = None) -> pd.DataFrame:
-    """Add a ``score`` column in [0, 100] computed from weighted signals."""
+    """Add a ``custom_score`` column in [0, 100] computed from weighted signals."""
     w = {**DEFAULT_WEIGHTS, **(weights or {})}
     total_w = sum(w.values()) or 1.0
 
@@ -55,5 +62,5 @@ def score(df: pd.DataFrame, *, weights: dict[str, float] | None = None) -> pd.Da
         return round(100.0 * raw / total_w, 1)
 
     out = df.copy()
-    out["score"] = out.apply(_row_score, axis=1) if len(out) else []
+    out[COLUMN] = out.apply(_row_score, axis=1) if len(out) else []
     return out

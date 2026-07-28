@@ -157,7 +157,7 @@ LICENSE .gitignore .python-version
 src/yc_scouter/             ALL the logic (notebooks and the dashboard import it)
   config.py                 THE single source of truth: model, tokens, prices, paths
   fetch.py normalize.py     download YC data + normalize (key = the immutable id)
-  enrich.py score.py        investability, open links, score 0–100
+  enrich.py score.py        investability, open links, custom_score 0–100
   ai.py                     AI description + risks, cache on (id, model, prompt_version)
   export.py                 dated parquet/xlsx
   filters.py                dashboard filtering and search
@@ -410,6 +410,11 @@ re-run to collect new companies; no service files beyond the agreed ones.
     carries the local-mode banner and a "Deploy" button. The page does not scroll
     with `window.scrollTo`: walk up from the card heading to the first ancestor whose
     `scrollHeight` exceeds its `clientHeight` and scroll that.
+- ✅ **`score` renamed to `custom_score`** (2026-07-27, owner's request). The point is
+  provenance: every other column is what the source says, and this one is our opinion,
+  so the name has to say so. Datasets built before the rename stay readable —
+  `prepare_data` maps the old column instead of blanking it, with a test that guards
+  it, because `data/` is an archive.
 - ⚠️ **`v1.0` had to be tagged by hand.** The sandbox may push branches but not tags
   (`git push origin v1.0` → HTTP 403, same restriction as deleting a ref). The tag
   and its release page are created in the GitHub UI: *Releases → Draft a new release

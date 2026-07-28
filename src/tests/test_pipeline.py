@@ -11,7 +11,7 @@ def test_build_base_from_records(tmp_path, sample_records):
     df, paths = pipeline.build_base(records=sample_records, out_dir=tmp_path, date="2026-01-27")
     assert paths["parquet"].name == "yc_dataset_base_2026-01-27.parquet"
     assert paths["parquet"].exists() and paths["xlsx"].exists()
-    for col in ("id", "score", "investability", "yc_url"):
+    for col in ("id", "custom_score", "investability", "yc_url"):
         assert col in df.columns
     back = pd.read_parquet(paths["parquet"])
     assert len(back) == len(df)
