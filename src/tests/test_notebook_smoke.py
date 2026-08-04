@@ -4,6 +4,7 @@ Runs in CI (which installs the full lock incl. papermill + ipykernel) and locall
 when available; skipped otherwise so the core suite stays dependency-light.
 """
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -67,3 +68,25 @@ def test_file2_notebook_adds_ai_fields_mock(tmp_path):
     df = pd.read_parquet(ai_parquet)
     assert "ai_description" in df.columns and "ai_risks" in df.columns
     assert (df["ai_description"].str.contains("MOCK")).all()
+
+
+def test_spike_notebook_runs_and_writes_a_report(tmp_path):
+    """Plumbing only: with an empty sample it makes no requests and still reports.
+
+    Keeping the sample at zero is deliberate — the test suite must never depend on
+    SEC being reachable, and the measurement itself belongs in the workflow, not
+    here.
+    """
+    out_dir = tmp_path / "spikes"
+    pm.execute_notebook(
+        str(ROOT / "notebooks" / "03_spike_formd_coverage.ipynb"),
+        str(tmp_path / "out_spike.ipynb"),
+        parameters={"sample_size": 0, "out_dir": str(out_dir), "pause": 0},
+        kernel_name="python3",
+    )
+    reports = list(out_dir.glob("formd_coverage_*.json"))
+    assert len(reports) == 1
+    report = json.loads(reports[0].read_text())
+    assert report["sample_size"] == 0
+    assert sum(report["counts"].values()) == 0
+    assert "browse-edgar" in report["source"]

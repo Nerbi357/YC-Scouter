@@ -69,9 +69,21 @@ contract tests per source; the identity table with domain normalisation.
 **Done when:** the current dashboard runs on the new layers with byte-identical
 results, and adding a fake second source requires no edit outside its own module.
 
-### E1 — The trunk: one enricher end to end *(SEC Form D)*
+### E1 — The trunk: one enricher end to end *(SEC Form D)*  ⏳ *in progress*
 
 **Agree before starting:** nothing — this is the naive version by design.
+
+**Step 1 — the coverage spike (built 2026-07-27, waiting to be run).**
+`src/yc_scouter/sec_edgar.py` + `notebooks/03_spike_formd_coverage.ipynb` + a third
+Actions button. It looks up a deterministic sample of companies in EDGAR's company
+search restricted to Form D and counts four outcomes: **matched** (one filer by that
+name), **ambiguous** (several — never resolved by picking one), **none**, and
+**error** (a failed request, which says nothing about the company). The report lands
+in `data/spikes/formd_coverage_<date>.json`.
+
+The result decides the branch: a high match rate justifies real entity resolution in
+E2; a low one closes this branch honestly and the plan changes. **The number goes in
+this file either way.**
 
 **Produces:** a measured match rate on a 200-company sample **published whether it is
 good or bad**; Form D events in the facts table with links to the filings; the first
@@ -131,9 +143,9 @@ read, and the next set of branches proposed at the boundary.
 
 ## Still open
 
-- **How a recurring refresh is implemented.** Allowed in principle; the mechanism is
-  undecided, and it is not only "cron or not" — it is what runs, how failure is
-  noticed, and what stops it costing money. Options round due before anything runs.
+- ~~How a recurring refresh is implemented~~ — **settled 2026-07-27: it stays manual.**
+  The owner presses the collect button himself, weekly. No schedule, nothing runs
+  unattended, and the history accumulates at whatever pace he keeps.
 - **How far into the social product to go.** A feed a visitor reads is a different
   commitment from accounts, subscriptions and user-generated posts, which bring
   moderation, identity and abuse handling with them.

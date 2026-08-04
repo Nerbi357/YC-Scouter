@@ -17,6 +17,25 @@ concrete steps. Keep it open when you do maintenance.
 > Prefer Colab? Open the two notebooks and Run all, with the top switch set to
 > `drive` or `download`. Same result; the buttons just do it server-side.
 
+## The third button — measure Form D coverage (a spike, not a refresh)
+
+**Actions → "Measure Form D coverage (spike)" → Run workflow.** Free, needs no key,
+and writes nothing to any dataset: it asks SEC EDGAR how many companies from the
+newest dataset can be found among Form D filers, and commits one report to
+`data/spikes/`.
+
+- **Sample size** is an input; 200 is the default and takes a couple of minutes.
+- Optionally set the repository secret **`SEC_USER_AGENT`** to a string containing a
+  contact address — SEC asks every client to identify itself. Without it the run
+  still works and identifies the project by its repository URL.
+- The four outcomes mean exactly what they say: *matched* is one filer with that
+  name (evidence, not proof of identity), *ambiguous* is several filers (never
+  resolved by choosing one), *none* is no filer at all, and *error* is a failed
+  request — **which says nothing about the company**.
+
+It is a measurement, not part of the routine: once the question it answers is
+settled, this button and its notebook go away.
+
 ## The preflight: File 2 tells you what is wrong before it spends
 
 File 2 checks the AI provider **before** the loop over companies starts, with a
