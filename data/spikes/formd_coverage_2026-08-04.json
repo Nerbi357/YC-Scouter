@@ -1,0 +1,1815 @@
+{
+  "generated_at": "2026-08-04",
+  "source": "SEC EDGAR browse-edgar company search, forms=D",
+  "method": "exact name match after normalising punctuation and legal suffixes",
+  "user_agent": "YC-Scouter/2.0 (+https://github.com/Nerbi357/YC-Scouter)",
+  "sample_size": 200,
+  "counts": {
+    "matched": 0,
+    "ambiguous": 0,
+    "none": 0,
+    "error": 200
+  },
+  "rows": [
+    {
+      "id": 12581,
+      "name": "Genecis Bio",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13075,
+      "name": "Okay",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13102,
+      "name": "Explo",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13122,
+      "name": "Nextmv",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13164,
+      "name": "Edlyft",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13204,
+      "name": "Duffl",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13233,
+      "name": "Cortex",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13312,
+      "name": "PostHog",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13347,
+      "name": "farmtheory",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13430,
+      "name": "Breathe Well-being",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13496,
+      "name": "Apartio",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13523,
+      "name": "99minutos",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 13673,
+      "name": "Jet Admin",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 21781,
+      "name": "Datafold",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 21815,
+      "name": "Jeevam Health",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 21883,
+      "name": "Speedscale",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 21947,
+      "name": "Daybreak Health",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 21999,
+      "name": "In Stock",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22049,
+      "name": "Virtually",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22101,
+      "name": "Together Video Chat",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22238,
+      "name": "Nestybox",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22294,
+      "name": "Clau",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22600,
+      "name": "Neverland",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22664,
+      "name": "SBX Robotics",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22699,
+      "name": "Nourish",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22721,
+      "name": "Zepto",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22777,
+      "name": "Gradia Health",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22826,
+      "name": "FifthTry",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22855,
+      "name": "Mindee",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22889,
+      "name": "Greywing",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 22974,
+      "name": "LogisticsOS",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23048,
+      "name": "Stoke Space",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23128,
+      "name": "FitHub",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23238,
+      "name": "Ontop",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23290,
+      "name": "Kitemaker",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23371,
+      "name": "BusinessOnBot",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23435,
+      "name": "Cheqout",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23530,
+      "name": "Waydev AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23633,
+      "name": "Chorus Sleep",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23819,
+      "name": "Inversion Space",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23953,
+      "name": "Hive Health",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 23985,
+      "name": "FirstQuadrant",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24053,
+      "name": "ODWEN",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24108,
+      "name": "V-Flow Medical",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24153,
+      "name": "Dailybot",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24185,
+      "name": "Micro Meat",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24243,
+      "name": "Repool",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24275,
+      "name": "Cloudanix",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24353,
+      "name": "Intellect",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24391,
+      "name": "CoLoop",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24459,
+      "name": "lapzo",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24508,
+      "name": "Meticulous",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24557,
+      "name": "Dots 💸",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24599,
+      "name": "Female Invest",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24666,
+      "name": "Baubap",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24756,
+      "name": "Hirebolt",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24830,
+      "name": "GamerPay",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 24875,
+      "name": "Equipt Health",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25075,
+      "name": "Attack Capital",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25278,
+      "name": "Pelm",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25319,
+      "name": "Samos Insurance",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25346,
+      "name": "Transfez",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25396,
+      "name": "HomeRoom",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25451,
+      "name": "Instant Labs",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25526,
+      "name": "Complif",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25571,
+      "name": "Omoi (formerly Azuki)",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25606,
+      "name": "HOKALI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25650,
+      "name": "NearWave",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25680,
+      "name": "Cotera",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25715,
+      "name": "SubscriptionFlow",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25752,
+      "name": "Simplifyd Systems",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25820,
+      "name": "Fello",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25913,
+      "name": "Trueplace",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25958,
+      "name": "Unsaddl",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 25989,
+      "name": "Blink",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26049,
+      "name": "Netmaker",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26137,
+      "name": "Pina Earth",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26267,
+      "name": "Fresh Factory",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26564,
+      "name": "Banabo",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26690,
+      "name": "Truva",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26724,
+      "name": "Coupl",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26752,
+      "name": "Delegasi",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26794,
+      "name": "Capix",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26837,
+      "name": "Unify",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 26884,
+      "name": "Alphawatch AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27047,
+      "name": "Plutto",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27124,
+      "name": "KemNet",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27164,
+      "name": "autone",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27205,
+      "name": "Kashin",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27267,
+      "name": "Ping",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27677,
+      "name": "Matano",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27701,
+      "name": "Backdrop",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27774,
+      "name": "Versive",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27824,
+      "name": "Coperniq",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27854,
+      "name": "Suger",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27882,
+      "name": "Velos",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27924,
+      "name": "OutSail Technologies",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27956,
+      "name": "Hippo Scribe",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 27986,
+      "name": "Rally Tax",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28075,
+      "name": "Stralis Aircraft",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28108,
+      "name": "CodeParrot AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28178,
+      "name": "Vector",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28404,
+      "name": "Cercli",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28743,
+      "name": "Leafpress",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28796,
+      "name": "Sweetspot",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28825,
+      "name": "Solve Intelligence",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28853,
+      "name": "Obento Health",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28886,
+      "name": "Cardinal Gray",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28930,
+      "name": "Midrender",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 28971,
+      "name": "Kobalt Labs",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29004,
+      "name": "Chatter",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29073,
+      "name": "Terracotta AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29104,
+      "name": "Shadeform",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29136,
+      "name": "Autotab",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29182,
+      "name": "Upsolve AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29247,
+      "name": "Precip",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29272,
+      "name": "Aidy",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29297,
+      "name": "Eggnog",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29318,
+      "name": "StarJar",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29342,
+      "name": "InQuery",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29366,
+      "name": "Metofico",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29387,
+      "name": "Overeasy",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29410,
+      "name": "Model ML",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29433,
+      "name": "Hatchet",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29456,
+      "name": "Marblism",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29483,
+      "name": "Healia",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29515,
+      "name": "NowHouse",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29575,
+      "name": "Doublezero",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29634,
+      "name": "Random Labs",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29657,
+      "name": "Azalea Robotics Corporation",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29683,
+      "name": "CodeViz",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29706,
+      "name": "Mito Health",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29731,
+      "name": "Zoa Research",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29755,
+      "name": "Pax",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29777,
+      "name": "Zettascale",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29798,
+      "name": "&AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29824,
+      "name": "Assembly HOA",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29852,
+      "name": "Dayflow",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 29967,
+      "name": "Village Labs",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30017,
+      "name": "Riveter",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30041,
+      "name": "Revyl",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30063,
+      "name": "Freebuff",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30091,
+      "name": "CollectWise",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30115,
+      "name": "Laminar",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30179,
+      "name": "Vetnio",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30204,
+      "name": "Subtrace",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30228,
+      "name": "Weave",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30249,
+      "name": "HealthKey",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30269,
+      "name": "Pluto",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30291,
+      "name": "Outlit",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30319,
+      "name": "Corsair",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30347,
+      "name": "Instinct",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30400,
+      "name": "Plexe",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30426,
+      "name": "Ralo",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30447,
+      "name": "Caucus",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30468,
+      "name": "Clidey",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30498,
+      "name": "Alkali",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30520,
+      "name": "Synthetic Society",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30544,
+      "name": "Wavedash",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30592,
+      "name": "Prox",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30622,
+      "name": "Liva AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30645,
+      "name": "Panels",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30668,
+      "name": "Wedge",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30692,
+      "name": "Costream",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30715,
+      "name": "Autumn AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30738,
+      "name": "Altur",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30769,
+      "name": "Juxta",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30797,
+      "name": "Veritus",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30844,
+      "name": "Uplane",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30865,
+      "name": "Lunavo",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30888,
+      "name": "Lakonia",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30916,
+      "name": "Rovr",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30938,
+      "name": "Imagine AI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30963,
+      "name": "TakeCareOS",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 30993,
+      "name": "DiligenceSquared",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31021,
+      "name": "Zephyr Fusion",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31074,
+      "name": "TrustAI",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31098,
+      "name": "10x Science",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31123,
+      "name": "21st",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31147,
+      "name": "Salus",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31170,
+      "name": "Cajal",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31191,
+      "name": "Traverse",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31213,
+      "name": "Byteport",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31240,
+      "name": "General Legal",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31264,
+      "name": "Vela",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31296,
+      "name": "Unifold",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31342,
+      "name": "Osmaura",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31372,
+      "name": "Trellis",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31399,
+      "name": "Madrone",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31424,
+      "name": "Lab0",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31448,
+      "name": "smol machines",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31475,
+      "name": "Ardent",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31501,
+      "name": "General Aviation",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31530,
+      "name": "Avea Robotics",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 31554,
+      "name": "Clawvisor",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 32130,
+      "name": "Olam Labs",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 32200,
+      "name": "Bizmark",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 32552,
+      "name": "6thSense",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 32979,
+      "name": "RonanRx Inc.",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    },
+    {
+      "id": 33277,
+      "name": "Hop Aero",
+      "match": "error",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": "HTTPError: HTTP Error 403: Forbidden"
+    }
+  ]
+}
