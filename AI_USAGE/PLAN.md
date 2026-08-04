@@ -101,7 +101,7 @@ cell is distinguishable from an uncovered one.
 | **Company profile page** | one URL per company: facts with provenance, a **timeline** on a slider, the AI text clearly labelled | E0, E1 | a stranger understands the company and where each fact came from, on a phone |
 | **Theme map over time** | embeddings → clusters → how themes rise and fall across batches | E0 | someone finds a trend they did not expect and re-runs it with another filter |
 | **MCP server** | the dataset queryable from any AI assistant | E0 | an analyst asks in their own words and gets rows with sources |
-| **Telegram bot** | alerts, queries and a digest (see the menu below) | E0 + one enricher | a subscription produces a message the owner actually wants |
+| **Telegram bot** *(deferred to v3)* | alerts, queries and a digest | E0 + one enricher | a subscription produces a message the owner actually wants |
 | **More rosters** | curated accelerator lists; SBIR and CORDIS as rosters *and* money | E0 | each roster names its provenance and its update cadence |
 | **News feed** | GDELT mentions per company, deduplicated | E0 | the feed is about *these* companies, with a measured false-positive rate |
 | **Public static site** | precomputed JSON, no server, no bill | E0 + profile pages | twenty seconds to understand, one thing to touch immediately |
@@ -116,18 +116,27 @@ read, and the next set of branches proposed at the boundary.
 
 ---
 
-## Open decisions (blocking ones first)
+## Decisions taken (2026-07-27)
 
-1. **One artefact or two?** A working tool and a public product pull in opposite
-   directions. Streamlit is unbeatable for the first and always looks like Streamlit
-   for the second. *Recommendation: two front-ends over one data layer.*
-2. **Where does the data live** once it outgrows the repository?
-3. **How far into the social product** to go — a feed a visitor reads is a different
-   commitment from accounts, subscriptions and user-generated posts, which bring
-   moderation, identity and abuse handling with them.
-4. Whether a **weekly free roster refresh** may run on a schedule, given the "no
-   schedules" rule — history only accumulates going forward, and cannot be recovered
-   retroactively.
+1. **Two front-ends now, one site later.** Build them separately, then merge into a
+   single site with **two viewing modes** — one for working, one for reading.
+   **Streamlit stays as the training ground**: new ideas are tried there first and
+   graduate to the site once they prove themselves. That reframes it from "the thing
+   we will replace" to "where things are prototyped", and it is a better answer than
+   the one proposed.
+2. **Company profile pages with a timeline: approved, building now.**
+3. **Telegram bot: deferred to the next version.** The immediate work is the
+   extraction that would feed it anyway.
+4. **Where the data lives: revisited next phase.** Until then the repository holds it.
+
+## Still open
+
+- **How a recurring refresh is implemented.** Allowed in principle; the mechanism is
+  undecided, and it is not only "cron or not" — it is what runs, how failure is
+  noticed, and what stops it costing money. Options round due before anything runs.
+- **How far into the social product to go.** A feed a visitor reads is a different
+  commitment from accounts, subscriptions and user-generated posts, which bring
+  moderation, identity and abuse handling with them.
 
 ---
 

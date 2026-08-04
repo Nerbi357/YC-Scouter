@@ -69,3 +69,15 @@ everything step by step, thinking the forks through in advance"*.
 Candidate: none yet — the shape is now `living-project`'s job. Worth reviewing after
 E0 whether the skill needed anything this project exposed.
 Confidence: high.
+
+## 2026-07-27 · worked · flagging a conflict instead of resolving it silently
+What happened: installing `signal-capture` put a file in the root, which contradicts
+the owner's own minimal-root rule. I installed it as the skill prescribes and named
+the conflict in one line rather than choosing quietly. The ruling came back in six
+words, and the rule is now settled rather than pending.
+Verbatim: "оставь в корне, этому файлу можно" — *"leave it in the root, this file is
+allowed"*.
+Candidate: when two instructions collide, follow the more recent and specific one,
+then surface the collision in a single line with the one-line undo. Cheaper than
+either asking first or hiding it.
+Confidence: medium — one instance, but it cost nothing and settled a standing rule.

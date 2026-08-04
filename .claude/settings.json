@@ -9,7 +9,7 @@
           },
           {
             "type": "command",
-            "command": "bash .claude/signals_check.sh"
+            "command": "SIGNALS_THRESHOLD=10 bash .claude/signals_check.sh"
           }
         ]
       }
