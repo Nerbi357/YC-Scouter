@@ -441,6 +441,15 @@ re-run to collect new companies; no service files beyond the agreed ones.
   so the name has to say so. Datasets built before the rename stay readable —
   `prepare_data` maps the old column instead of blanking it, with a test that guards
   it, because `data/` is an archive.
+- ✅ **E0, first slice** (2026-07-27): the layers v2 attaches to — `facts.py`,
+  `identities.py`, `sources/` with YC as the first plugin, and
+  `pipeline.build_facts()`. The facts table is **long, not wide**: one row per
+  `(company, field, value, source)` with `observed_at`/`last_seen`, so a new source
+  is an insert rather than a migration, a rerun of an unchanged source adds nothing,
+  and the timeline, the provenance line and the coverage matrix all fall out of the
+  same table. Built from the archive: 29,442 facts for 4,040 companies in 0.13 MB,
+  in `data/facts.parquet`. **Nothing in the dashboard changed yet — that is the rest
+  of E0.**
 - ⚠️ **`v1.0` had to be tagged by hand.** The sandbox may push branches but not tags
   (`git push origin v1.0` → HTTP 403, same restriction as deleting a ref). The tag
   and its release page are created in the GitHub UI: *Releases → Draft a new release

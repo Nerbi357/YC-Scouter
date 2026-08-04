@@ -130,3 +130,33 @@ def build_ai(
     )
     paths = export.export(out, stage="ai", date=date, out_dir=out_dir)
     return out, paths
+
+
+def build_facts(
+    *,
+    datasets: list[Path] | None = None,
+    data_dir: Path = config.DATA_DIR,
+    facts_path: Path | None = None,
+) -> pd.DataFrame:
+    """Fold every dated dataset into the facts table, oldest first.
+
+    The dated files in ``data/`` are an archive of what each source said on a given
+    day, so replaying them **is** the project's history — no snapshot storage
+    needed, and nothing has to be recovered retroactively. Replaying is safe to
+    repeat: an unchanged value only refreshes when it was last confirmed, so
+    running this twice produces the same table.
+    """
+    from . import facts as facts_layer
+    from .sources import yc as yc_source
+
+    files = sorted(datasets or Path(data_dir).glob("yc_dataset_*_*.parquet"))
+    target = Path(facts_path) if facts_path else Path(data_dir) / "facts.parquet"
+    store = facts_layer.load(target)
+
+    for path in files:
+        observed_at = path.stem.rsplit("_", 1)[-1]  # yc_dataset_base_2026-07-24
+        frame = pd.read_parquet(path)
+        store = facts_layer.record(store, yc_source.to_facts(frame, observed_at=observed_at))
+
+    facts_layer.save(store, target)
+    return store

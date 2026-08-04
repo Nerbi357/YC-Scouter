@@ -40,6 +40,8 @@ from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from . import identities
+
 SEARCH_URL = (
     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany"
     "&company={name}&type=D&dateb=&owner=include&count=40&output=atom"
@@ -47,39 +49,6 @@ SEARCH_URL = (
 
 DEFAULT_USER_AGENT = "YC-Scouter/2.0 (+https://github.com/Nerbi357/YC-Scouter)"
 
-#: Legal forms that say nothing about which company this is.
-_SUFFIXES = {
-    "inc",
-    "incorporated",
-    "llc",
-    "l l c",
-    "ltd",
-    "limited",
-    "corp",
-    "corporation",
-    "co",
-    "company",
-    "plc",
-    "pbc",
-    "lp",
-    "llp",
-    "sa",
-    "sas",
-    "ab",
-    "as",
-    "oy",
-    "bv",
-    "nv",
-    "gmbh",
-    "ug",
-    "srl",
-    "spa",
-    "pte",
-    "pty",
-    "kk",
-    "holdings",
-    "holding",
-}
 _PUNCT = re.compile(r"[^\w\s]+")
 _SPACE = re.compile(r"\s+")
 #: "NAME (0001812216) (Filer)" — the title browse-edgar puts on each match.
@@ -91,17 +60,9 @@ def user_agent() -> str:
     return os.environ.get("SEC_USER_AGENT") or DEFAULT_USER_AGENT
 
 
-def normalise_name(name: str) -> str:
-    """Lowercase, drop punctuation and trailing legal forms.
-
-    ``Motion, Inc.`` and ``MOTION INC`` are the same company; ``Motion`` and
-    ``Motion Capital`` are not, and this must never merge them.
-    """
-    text = _SPACE.sub(" ", _PUNCT.sub(" ", str(name or ""))).strip().lower()
-    words = text.split()
-    while words and words[-1] in _SUFFIXES:
-        words.pop()
-    return " ".join(words)
+#: One canonical name normaliser for the whole project — SEC and YC must agree on
+#: what a name is, or they will never join.
+normalise_name = identities.normalise_name
 
 
 def take_sample(companies: Sequence[dict], size: int) -> list[dict]:

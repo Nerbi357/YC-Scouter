@@ -54,11 +54,24 @@ showing a misleading blank.
 Tasks are written only when an epoch opens. Everything after E2 is **deliberately
 unordered** — the next branch is chosen, not queued.
 
-### E0 — Foundation *(no visible change; everything later depends on it)*
+### E0 — Foundation *(no visible change; everything later depends on it)*  ⏳ *first slice built 2026-07-27*
 
-**Agree before starting:** where the data lives (repository / GitHub Release assets /
-R2 / Hugging Face); whether the public site is a second artefact or the same one
-(see *Open decisions*).
+**Built so far:** `facts.py` (the long table with provenance), `identities.py` (the
+one place that decides whether two records are one company), `sources/` (the
+registry) with **YC as the first plugin**, and `pipeline.build_facts()`, which folds
+the dated archive into history.
+
+**Measured on the real archive**, replaying both dated datasets: **29,442 facts ·
+4,040 companies · 0.13 MB**. A snapshot is ~6 MB, so the long table holds two days
+of history in one fiftieth of the space of one day of snapshots — the storage
+objection to a history dissolves at this shape. Ten companies changed between
+2026-07-24 and 2026-07-25, and those changes are now visible as history rather than
+as two files: *Notabene* Early → Growth, *Sota2* Consumer → B2B.
+
+Replaying is idempotent: running it twice adds nothing, it only moves `last_seen`.
+
+**Still to do in E0:** the dashboard reading through the new layers, and a contract
+test per source.
 
 **Produces:** the six layers as real modules; the existing YC pipeline rewritten as
 **the first source plugin** with unchanged output; the facts table with provenance;
