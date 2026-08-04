@@ -71,6 +71,10 @@ only blocks and a few mandatory files, with no service clutter.
 1. **Keep the root minimal:** `README.md`, `README.ru.md`, `app.py`,
    `requirements.txt`, `pyproject.toml`, `LICENSE`, `.gitignore`,
    `.python-version`. Nothing else goes to the root — a new file goes into a block.
+   **One deliberate exception:** `SIGNALS.md`, added 2026-07-27 with the
+   `signal-capture` skill, which puts the log at the root on purpose — the owner reads
+   it there, and a log filed away in a service folder is a log nobody processes. Move
+   it into `AI_USAGE/` if the clean root wins; the hook's path is the only edit.
 2. **Service code lives in `src/`** — including the tests (`src/tests/`), which are
    service code rather than a project block.
 3. **Everything the AI agent needs lives in `.claude/`**: skills, commands, agents,
@@ -102,11 +106,20 @@ the hosting configuration).
 
 ## 4. Methodology, skills and the working algorithm
 
-A fork of **`addyosmani/agent-skills`** is vendored into `.claude/`, plus
-**`living-project`** — the skill that shapes v2 (added by the owner 2026-07-27). It
-outranks habit for anything structural: build wide before deep, every step must make
-the next cheaper, a failed branch is still a branch if its failure is published, and
-the ideas file is the visible roadmap rather than a tidy-up.
+A fork of **`addyosmani/agent-skills`** is vendored into `.claude/`, plus two skills
+the owner supplied on 2026-07-27.
+
+- **`living-project`** shapes v2 and outranks habit for anything structural: build
+  wide before deep, every step must make the next cheaper, a failed branch is still a
+  branch if its failure is published, and the ideas file is the visible roadmap rather
+  than a tidy-up.
+- **`signal-capture`** keeps [`SIGNALS.md`](../SIGNALS.md) at the root: raw
+  observations about *how the work goes*, quoted verbatim, recorded as they happen and
+  reviewed later against the skill library. Writing one is not proposing a fix. A
+  `SessionStart` hook (`.claude/signals_check.sh`, wired into `.claude/settings.json`
+  next to `session_start.sh`) reports the count each session and offers a review pass
+  once the count reaches the threshold — **20 by default; the owner has not set this
+  project's number yet.**
 
 **The algorithm for any task (agreed with the owner):**
 
