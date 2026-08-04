@@ -98,6 +98,20 @@ The result decides the branch: a high match rate justifies real entity resolutio
 E2; a low one closes this branch honestly and the plan changes. **The number goes in
 this file either way.**
 
+**Run 1 (2026-08-04): no measurement — SEC refused every request with HTTP 403.**
+200 of 200 rows came back as errors, which is *not* a statement about the companies.
+The cause is our own: SEC asks automated clients to declare a contact address in the
+User-Agent, and the default one names only the repository. Two fixes went in rather
+than a retry: the refusal body is now captured (a status code is not a diagnosis),
+and a single probe request decides whether the service will talk to us at all, so a
+blocked run stops after one request and reports `status: blocked` instead of two
+hundred identical failures that look like absence.
+
+**To run it again:** set the repository secret `SEC_USER_AGENT` to something like
+`YC-Scouter research (you@example.com)` and press the button. If it is still refused
+with a declared contact, the browse-edgar CGI endpoint is the suspect and the JSON
+full-text search at `efts.sec.gov` is the alternative to try next.
+
 **Produces:** a measured match rate on a 200-company sample **published whether it is
 good or bad**; Form D events in the facts table with links to the filings; the first
 provenance line in the UI.

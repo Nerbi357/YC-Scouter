@@ -33,6 +33,7 @@ import datetime as dt
 import os
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -48,6 +49,9 @@ SEARCH_URL = (
 )
 
 DEFAULT_USER_AGENT = "YC-Scouter/2.0 (+https://github.com/Nerbi357/YC-Scouter)"
+
+SOURCE_NOTE = "SEC EDGAR browse-edgar company search, forms=D"
+METHOD_NOTE = "exact name match after normalising punctuation and legal suffixes"
 
 _PUNCT = re.compile(r"[^\w\s]+")
 _SPACE = re.compile(r"\s+")
@@ -81,10 +85,49 @@ def take_sample(companies: Sequence[dict], size: int) -> list[dict]:
     return [rows[int(i * step)] for i in range(size)]
 
 
+class Blocked(RuntimeError):
+    """The service refused us — which says nothing about the companies."""
+
+
 def _fetch(url: str, *, headers: dict[str, str] | None = None, **_: Any) -> str:
     request = urllib.request.Request(url, headers=headers or {})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        return response.read().decode("utf-8", errors="replace")
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return response.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as exc:
+        # The status code alone is not a diagnosis. SEC explains its refusals in the
+        # body ("Your Request Originates from an Undeclared Automated Tool"), and
+        # without that text a run reports 403 two hundred times and teaches nothing.
+        try:
+            detail = exc.read().decode("utf-8", errors="replace")
+        except Exception:  # pragma: no cover - the body is a bonus, never required
+            detail = ""
+        detail = _SPACE.sub(" ", re.sub(r"<[^>]+>", " ", detail)).strip()[:300]
+        raise Blocked(f"HTTP {exc.code}: {detail or exc.reason}") from exc
+
+
+def declares_a_contact(agent: str | None = None) -> bool:
+    """SEC asks automated clients to name themselves *and* a contact address."""
+    return "@" in (agent if agent is not None else user_agent())
+
+
+def probe(*, fetch: Callable[..., str] = _fetch) -> tuple[bool, str]:
+    """One request, to learn whether the service will talk to us at all.
+
+    Two hundred identical refusals are two hundred wasted requests and one lost
+    afternoon. This asks once and reports what came back, so a blocked run stops
+    being mistaken for a company that never filed.
+    """
+    url = SEARCH_URL.format(name=urllib.parse.quote("Stripe"))
+    try:
+        fetch(url, headers=_headers(), name="Stripe")
+        return True, "ok"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
+
+
+def _headers() -> dict[str, str]:
+    return {"User-Agent": user_agent(), "Accept": "application/atom+xml, text/xml, */*"}
 
 
 def parse_candidates(xml_text: str) -> list[dict[str, str]]:
@@ -168,12 +211,37 @@ def measure_coverage(
     rows: list[dict[str, Any]] = []
     counts = {"matched": 0, "ambiguous": 0, "none": 0, "error": 0}
 
+    ok, detail = probe(fetch=fetch)
+    if not ok:
+        # Stop before spending two hundred requests on the same refusal. The report
+        # says "blocked", never "none" — a service that will not answer has told us
+        # nothing at all about these companies.
+        return {
+            "generated_at": today or dt.date.today().isoformat(),
+            "source": SOURCE_NOTE,
+            "method": METHOD_NOTE,
+            "user_agent": user_agent(),
+            "status": "blocked",
+            "blocked_reason": detail,
+            "hint": (
+                "SEC refuses undeclared automated clients. Set SEC_USER_AGENT to a "
+                "string containing a contact address, e.g. 'YC-Scouter research "
+                "(you@example.com)', and run again."
+                if not declares_a_contact()
+                else "The request was refused even with a declared contact — check the "
+                "hint text above before changing anything else."
+            ),
+            "sample_size": 0,
+            "counts": counts,
+            "rows": [],
+        }
+
     for company in companies:
         name = str(company.get("name", "")).strip()
         url = SEARCH_URL.format(name=urllib.parse.quote(name))
         note = ""
         try:
-            body = fetch(url, headers={"User-Agent": user_agent()}, name=name)
+            body = fetch(url, headers=_headers(), name=name)
             verdict = classify(name, parse_candidates(body))
         except Exception as exc:  # network, XML, anything — never a silent "none"
             verdict, note = Verdict("error"), f"{type(exc).__name__}: {exc}"
@@ -194,9 +262,10 @@ def measure_coverage(
 
     return {
         "generated_at": today or dt.date.today().isoformat(),
-        "source": "SEC EDGAR browse-edgar company search, forms=D",
-        "method": "exact name match after normalising punctuation and legal suffixes",
+        "source": SOURCE_NOTE,
+        "method": METHOD_NOTE,
         "user_agent": user_agent(),
+        "status": "measured",
         "sample_size": len(rows),
         "counts": counts,
         "rows": rows,

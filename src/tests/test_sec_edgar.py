@@ -107,9 +107,15 @@ def test_no_filers_is_a_clean_negative():
 
 
 def test_a_failed_request_is_an_error_not_a_negative():
-    """The distinction the whole measurement rests on."""
+    """The distinction the whole measurement rests on.
 
-    def boom(url, **kw):
+    The service answers (so the run proceeds) and then one company's request fails.
+    That company is an *error*, not a company without filings.
+    """
+
+    def boom(url, *, name=None, **kw):
+        if name == "Stripe":  # the probe: the service is reachable
+            return EMPTY
         raise TimeoutError("connection timed out")
 
     report = sec_edgar.measure_coverage([{"id": 1, "name": "Motion"}], fetch=boom, pause=0)
@@ -121,14 +127,15 @@ def test_a_failed_request_is_an_error_not_a_negative():
 
 
 def test_unparseable_xml_is_reported_rather_than_swallowed():
-    report = sec_edgar.measure_coverage(
-        [{"id": 1, "name": "Motion"}], fetch=lambda url, **kw: "<not xml", pause=0
-    )
+    def fake(url, *, name=None, **kw):
+        return EMPTY if name == "Stripe" else "<not xml"
+
+    report = sec_edgar.measure_coverage([{"id": 1, "name": "Motion"}], fetch=fake, pause=0)
     assert report["rows"][0]["match"] == "error"
 
 
 def test_the_report_counts_every_company_exactly_once():
-    pages = {"Motion": MULTI, "Genecis Bioindustries": SINGLE, "Nobody": EMPTY}
+    pages = {"Stripe": EMPTY, "Motion": MULTI, "Genecis Bioindustries": SINGLE, "Nobody": EMPTY}
     calls = []
 
     def fake(url, *, name=None, **kw):
@@ -142,7 +149,9 @@ def test_the_report_counts_every_company_exactly_once():
     ]
     report = sec_edgar.measure_coverage(companies, fetch=fake, pause=0)
 
-    assert calls == ["Motion", "Genecis Bioindustries", "Nobody"]
+    assert calls == ["Stripe", "Motion", "Genecis Bioindustries", "Nobody"], (
+        "one probe first, then one request per company"
+    )
     assert sum(report["counts"].values()) == 3
     assert report["counts"] == {"matched": 1, "ambiguous": 1, "none": 1, "error": 0}
     assert report["sample_size"] == 3
@@ -188,3 +197,57 @@ def test_a_contact_can_be_supplied_without_being_committed(monkeypatch):
 def test_a_tiny_or_empty_sample_does_not_crash(size):
     frame = [{"id": i, "name": f"C{i}"} for i in range(5)]
     assert len(sec_edgar.take_sample(frame, size)) == min(size, 5)
+
+
+def test_a_refusal_is_diagnosed_once_instead_of_two_hundred_times():
+    """The failure this spike actually hit: SEC answered 403 to every request.
+
+    Two hundred identical refusals cost an afternoon and teach nothing. One probe
+    stops the run, keeps the reason, and reports *blocked* — never "none".
+    """
+    calls = []
+
+    def refuse(url, **kw):
+        calls.append(url)
+        raise sec_edgar.Blocked("HTTP 403: Your Request Originates from an Undeclared Tool")
+
+    companies = [{"id": i, "name": f"C{i}"} for i in range(200)]
+    report = sec_edgar.measure_coverage(companies, fetch=refuse, pause=0)
+
+    assert len(calls) == 1, "one probe, not two hundred"
+    assert report["status"] == "blocked"
+    assert "403" in report["blocked_reason"]
+    assert report["counts"]["none"] == 0, "a refusal must never look like an absence"
+    assert report["rows"] == []
+    assert "SEC_USER_AGENT" in report["hint"], "the report must say how to fix it"
+
+
+def test_the_body_of_a_refusal_is_kept_because_the_status_code_is_not_a_diagnosis():
+    import io
+    import urllib.error
+
+    def http_403(url, **kw):
+        raise urllib.error.HTTPError(
+            url,
+            403,
+            "Forbidden",
+            {},
+            io.BytesIO(
+                b"<html><body>Undeclared Automated Tool. Declare your traffic.</body></html>"
+            ),
+        )
+
+    ok, detail = sec_edgar.probe(fetch=lambda url, **kw: http_403(url))
+    assert ok is False and "403" in detail
+
+
+def test_a_run_that_works_is_still_reported_as_measured():
+    report = sec_edgar.measure_coverage(
+        [{"id": 1, "name": "Nobody"}], fetch=lambda url, **kw: EMPTY, pause=0
+    )
+    assert report["status"] == "measured" and report["counts"]["none"] == 1
+
+
+def test_a_declared_contact_is_recognised():
+    assert sec_edgar.declares_a_contact("YC-Scouter (a@b.com)") is True
+    assert sec_edgar.declares_a_contact(sec_edgar.DEFAULT_USER_AGENT) is False

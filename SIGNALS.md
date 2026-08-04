@@ -81,3 +81,16 @@ Candidate: when two instructions collide, follow the more recent and specific on
 then surface the collision in a single line with the one-line undo. Cheaper than
 either asking first or hiding it.
 Confidence: medium — one instance, but it cost nothing and settled a standing rule.
+
+## 2026-08-04 · caught · a run that failed 200 times before saying why
+What happened: the first Form D spike returned HTTP 403 for all 200 companies. The
+report recorded 200 errors — correctly *not* counting them as "no filings" — but it
+had no idea why, because only the status code was kept, and it kept going after the
+first refusal. The cause was ours: SEC refuses automated clients that do not declare
+a contact address.
+Source: mine.
+Candidate: any client of an external service should (a) keep the body of a refusal,
+not just its code, and (b) probe once before a batch, so a systematic block costs one
+request instead of the whole run. Written into the module; worth generalising into a
+skill.
+Confidence: high — reproduced, and the fix is covered by tests.

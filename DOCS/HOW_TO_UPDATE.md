@@ -25,9 +25,12 @@ newest dataset can be found among Form D filers, and commits one report to
 `data/spikes/`.
 
 - **Sample size** is an input; 200 is the default and takes a couple of minutes.
-- Optionally set the repository secret **`SEC_USER_AGENT`** to a string containing a
-  contact address — SEC asks every client to identify itself. Without it the run
-  still works and identifies the project by its repository URL.
+- **Set the repository secret `SEC_USER_AGENT`** to a string containing a contact
+  address, e.g. `YC-Scouter research (you@example.com)`. This is not optional in
+  practice: the first run (2026-08-04) was refused with HTTP 403 for every company
+  because SEC declines automated clients that do not declare a contact. The run now
+  detects that on its first request, stops, and says so — it never reports a refusal
+  as "no filings".
 - The four outcomes mean exactly what they say: *matched* is one filer with that
   name (evidence, not proof of identity), *ambiguous* is several filers (never
   resolved by choosing one), *none* is no filer at all, and *error* is a failed
