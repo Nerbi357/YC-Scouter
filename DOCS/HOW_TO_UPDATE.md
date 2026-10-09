@@ -24,6 +24,10 @@ hand with *Run workflow*. It collects (File 1), summarises only the new companie
 (File 2), checks the result against the data contract, folds it into the facts table
 and commits. Nothing waits for a person.
 
+- **To spend nothing on AI**, simply do not keep an `ANTHROPIC_API_KEY` secret: the
+  AI step is skipped, the run says so, and the free data still publishes every week.
+  Add the key back whenever you want descriptions for new companies again (the cache
+  means only the new ones are paid for — cents).
 - **If File 2 fails** — a rejected key, an empty balance, a retired model — the run
   says so in a warning and **still publishes the collected data and the facts**. The
   dashboard shows the freshest file of either kind, with blank AI columns until the

@@ -62,11 +62,11 @@ the foundation was built.
 
 | Task | Status |
 |---|---|
-| CI on every push — tests, lint, format, link check (`.github/workflows/ci.yml`) | built, first run pending on push |
+| CI on every push — tests, lint, format, link check (`.github/workflows/ci.yml`) | ✅ green on `main` |
 | Weekly unattended refresh — File 1 → File 2 (new companies only) → contract check → facts (`weekly-refresh.yml`, Mondays 06:00 UTC) | built; first scheduled run next Monday, can be triggered by hand |
 | Data contract (`contract.py`) gating every refresh | built, tested, passes on the real archive |
 | Independent reviewer agent (`.claude/agents/product-reviewer.md`) | built; runs at every milestone |
-| `SEC_USER_AGENT` secret, then the Form D coverage number | **waits for the owner** |
+| `SEC_USER_AGENT` secret, then the Form D coverage number | ✅ done — **5.0%** by exact name (see E1) |
 
 **Accepted when:** the number is in this file; CI is green on `main`; a refresh ran
 unattended.
@@ -104,7 +104,7 @@ contract tests per source; the identity table with domain normalisation.
 **Done when:** the current dashboard runs on the new layers with byte-identical
 results, and adding a fake second source requires no edit outside its own module.
 
-### E1 — The trunk: one enricher end to end *(SEC Form D)*  ⏳ *in progress*
+### E1 — The trunk: one enricher end to end *(SEC Form D)*  ✅ *measured 2026-10-09: 5% by exact name*
 
 **Agree before starting:** nothing — this is the naive version by design.
 
@@ -129,10 +129,34 @@ and a single probe request decides whether the service will talk to us at all, s
 blocked run stops after one request and reports `status: blocked` instead of two
 hundred identical failures that look like absence.
 
-**To run it again:** set the repository secret `SEC_USER_AGENT` to something like
-`YC-Scouter research (you@example.com)` and press the button. If it is still refused
-with a declared contact, the browse-edgar CGI endpoint is the suspect and the JSON
-full-text search at `efts.sec.gov` is the alternative to try next.
+**Run 2 (2026-10-09), with a declared contact — measured, 0 errors:**
+
+| outcome | companies | share |
+|---|---|---|
+| matched (one filer with that exact name) | 10 | **5.0%** |
+| ambiguous | 0 | 0% |
+| none | 190 | 95.0% |
+| error | 0 | 0% |
+
+Sample: 200 companies spread across the whole dataset. Name collisions were rare (at
+most one neighbouring filer per search), so the matches themselves look clean —
+Datafold, Speedscale, Mindee, Cotera and six more, each with a CIK.
+
+**What 5% means, honestly.** This is the *naive* method by design: exact legal-name
+match. It undercounts for at least three reasons that are not about Form D at all —
+companies incorporate under a different name ("X Labs Inc", "X Technologies"), many
+YC companies are not US-incorporated, and many raise on SAFEs that are never filed.
+It also overcounts nothing: every match is a single filer with the exact name. So 5%
+is a **floor**, not the coverage.
+
+**What it decides.** Form D is not a headline feature at this rate; it is one
+enricher among several, worth keeping because every match is a real filing with a
+date and an amount. Before spending more on it, two cheap checks would move the
+number from "floor" to "estimate": (1) hand-check 10 of the 190 "none" companies in
+EDGAR's own search to measure how many are false negatives of the name method;
+(2) try the full-text search endpoint, which matches issuer-name variants. Either is
+an hour. **Decision needed: run those two checks, or park Form D and move to GDELT /
+HN / Wayback, which cover every company regardless of incorporation.**
 
 **Produces:** a measured match rate on a 200-company sample **published whether it is
 good or bad**; Form D events in the facts table with links to the filings; the first

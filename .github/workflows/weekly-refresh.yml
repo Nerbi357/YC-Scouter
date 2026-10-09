@@ -22,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      # No key, no AI step, no spend. The owner decides whether the paid step runs
+      # by whether the secret exists; everything free runs regardless.
+      AI_ENABLED: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,15 +52,20 @@ jobs:
         # A failure here must not hold the free data hostage: File 1's result and the
         # facts still publish, and the dashboard reads the newest file of either kind.
         id: ai
+        if: env.AI_ENABLED == 'true'
         continue-on-error: true
         run: |
           papermill --log-output --no-progress-bar notebooks/02_ai_summary.ipynb /tmp/out_ai.ipynb \
             -p provider claude -p output commit -p out_dir data
 
-      - name: Say so if the AI step failed
-        if: steps.ai.outcome == 'failure'
+      - name: Say so if the AI step was skipped or failed
+        if: env.AI_ENABLED != 'true' || steps.ai.outcome == 'failure'
         run: |
-          echo "::warning::File 2 failed — the AI dataset was not refreshed. The base data and the facts publish anyway. Check the step above: a rejected key, an empty balance or a retired model each name themselves."
+          if [ "$AI_ENABLED" != "true" ]; then
+            echo "::notice::AI step skipped: no ANTHROPIC_API_KEY secret, so nothing is spent. The base data and the facts publish; AI columns stay as they were."
+          else
+            echo "::warning::File 2 failed — the AI dataset was not refreshed. The base data and the facts publish anyway. Check the step above: a rejected key, an empty balance or a retired model each name themselves."
+          fi
 
       - name: Contract check and facts
         run: python -m yc_scouter.refresh
