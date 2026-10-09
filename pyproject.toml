@@ -54,7 +54,7 @@ target-version = "py311"
 src = ["src", "src/tests"]
 # Notebooks are deliberately loose (bootstrap cells, papermill parameter cells);
 # their logic lives in src/ and is linted there.
-extend-exclude = ["notebooks"]
+extend-exclude = ["notebooks", ".claude"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
