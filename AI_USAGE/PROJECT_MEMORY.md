@@ -39,11 +39,16 @@ Streamlit dashboard and documentation.
 - **Final phase** — only agreed files remain; the owner's routine is "press two
   buttons every few months".
 
-**Where it stands (2026-07-27):** v1.0 is released and finished, and the project has
-**re-entered the working phase** for v2 — a multi-source platform. v1.0 is not
-broken to make room: its pipeline becomes one source among many. The map of the work
-lives in [`PLAN.md`](PLAN.md), the source study in
-[`SOURCE_RESEARCH.md`](SOURCE_RESEARCH.md).
+**Where it stands (2026-10-09):** v1.0 is released and finished. v2 was opened on
+2026-07-27 and then **stalled for ten weeks** — no refresh, the Form D spike never
+rerun. On 2026-10-09 the owner was interviewed in depth and the product was specified:
+[`SPEC.md`](SPEC.md) is now the authority (vision, users, scope, data rules, stack,
+milestones, open decisions). [`PLAN.md`](PLAN.md) tracks execution against it; the
+source study is [`SOURCE_RESEARCH.md`](SOURCE_RESEARCH.md).
+
+**The mode-flip ritual is over.** Keeping "YC Scouter 1.0" on every file was right for a
+finished showcase and wrong for a product in development: it fills history with paired
+no-op commits. From now on commits are ordinary, with plain subjects.
 
 ## 3. How to communicate
 

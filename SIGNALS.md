@@ -94,3 +94,25 @@ not just its code, and (b) probe once before a batch, so a systematic block cost
 request instead of the whole run. Written into the module; worth generalising into a
 skill.
 Confidence: high — reproduced, and the fix is covered by tests.
+
+## 2026-10-09 · caught · a cadence that depended on the owner produced nothing
+What happened: on 2026-07-27 the owner chose a manual weekly refresh over a schedule
+("давай пока регулярное обновление будет ручное, я сам буду запускать сбор данных
+раз в неделю"). Ten weeks later: zero refreshes, and the one secret the Form D spike
+needed was never set. I accepted the decision without naming its failure mode.
+Source: mine — the decision was his, the silence about its risk was mine.
+Candidate: when a plan step depends on the owner doing something routine, say the
+base rate out loud and offer the automated version as the default, with the manual
+one as the override. "Nothing scheduled depends on the owner" is now a design rule in
+`SPEC.md` §13.
+Confidence: high — one clean, dated instance.
+
+## 2026-10-09 · worked · asking the owner what he actually does with the tool
+What happened: question A4 of the interview ("what did you do with it in the last
+month?") produced the most useful answer of the whole session.
+Verbatim: "фактически сейчас единственное использование - это фильтр по категории и
+потом перейти на рабочую ссылку" — *"in practice the only use now is the category
+filter and then the outbound link"*.
+Candidate: at every project start and every phase close, ask for the last concrete
+use, not the intended one. It is the cheapest honest measurement of a product.
+Confidence: high.

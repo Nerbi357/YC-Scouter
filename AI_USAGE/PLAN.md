@@ -9,9 +9,15 @@
 > build wide before deep, every step must make the next step cheaper, and a branch
 > that fails is still a branch as long as the failure is published.
 
-**Where the project stands:** v1.0 is released, deployed and finished. This plan
-re-opens the working phase. v1.0 stays reachable by tag, and nothing in it gets
-broken to make room for v2 — the pipeline it defines becomes *one source among many*.
+**Where the project stands (2026-10-09):** after ten weeks without a commit, the
+owner was interviewed in depth and the result is [`SPEC.md`](SPEC.md) — **the product
+specification now outranks this file.** This plan tracks execution against it; the
+roadmap of record is `SPEC.md` §14. The two facts that reopened the project: the
+owner does not use the current tool (one source, little information beyond links), and
+the manual refresh cadence produced zero refreshes — so v2 is automated by design.
+
+v1.0 stays reachable by tag, and nothing in it gets broken to make room for v2 — the
+pipeline it defines becomes *one source among many*.
 
 ---
 
