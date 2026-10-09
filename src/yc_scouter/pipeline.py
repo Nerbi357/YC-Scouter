@@ -151,12 +151,16 @@ def build_facts(
 
     files = sorted(datasets or Path(data_dir).glob("yc_dataset_*_*.parquet"))
     target = Path(facts_path) if facts_path else Path(data_dir) / "facts.parquet"
-    store = facts_layer.load(target)
+    before = facts_layer.load(target)
+    store = before
 
     for path in files:
         observed_at = path.stem.rsplit("_", 1)[-1]  # yc_dataset_base_2026-07-24
         frame = pd.read_parquet(path)
         store = facts_layer.record(store, yc_source.to_facts(frame, observed_at=observed_at))
 
-    facts_layer.save(store, target)
+    # Rewriting an identical table would still change the file's bytes, and the
+    # weekly job would then commit "a refresh" every Monday with nothing in it.
+    if not target.exists() or not store.equals(before):
+        facts_layer.save(store, target)
     return store

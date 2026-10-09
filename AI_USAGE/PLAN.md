@@ -55,6 +55,22 @@ showing a misleading blank.
 
 ---
 
+## M0 — Unblock and measure *(opened 2026-10-09)*
+
+Milestones now follow `SPEC.md` §14; the epochs below are kept as the record of how
+the foundation was built.
+
+| Task | Status |
+|---|---|
+| CI on every push — tests, lint, format, link check (`.github/workflows/ci.yml`) | built, first run pending on push |
+| Weekly unattended refresh — File 1 → File 2 (new companies only) → contract check → facts (`weekly-refresh.yml`, Mondays 06:00 UTC) | built; first scheduled run next Monday, can be triggered by hand |
+| Data contract (`contract.py`) gating every refresh | built, tested, passes on the real archive |
+| Independent reviewer agent (`.claude/agents/product-reviewer.md`) | built; runs at every milestone |
+| `SEC_USER_AGENT` secret, then the Form D coverage number | **waits for the owner** |
+
+**Accepted when:** the number is in this file; CI is green on `main`; a refresh ran
+unattended.
+
 ## Epochs
 
 Tasks are written only when an epoch opens. Everything after E2 is **deliberately

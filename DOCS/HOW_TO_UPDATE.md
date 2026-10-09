@@ -98,6 +98,7 @@ cache, never overwritten).
 
 ```python
 from yc_scouter import user_data
+
 user_data.migrate_slug_to_id("old_user_data.csv", "data/yc_dataset_base_<date>.parquet")
 ```
 Maps your old slug-keyed notes to the immutable `id`, backs up the old file to

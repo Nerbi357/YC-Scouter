@@ -1,4 +1,4 @@
-# PRODUCT SPEC — Scouter v2
+# PRODUCT SPEC — Scouter
 
 > **What this is.** The target state of the product, written so that an executing
 > agent (or a team) can build it without re-deriving decisions, and so that the owner
@@ -577,24 +577,17 @@ Design work (references, typography, the map) starts at M1 and runs alongside.
 
 ---
 
-## 15. Open decisions
+## 15. Decisions
 
-**Taken on 2026-10-09:** front-end B · legal tier policy · storage R2 + mirrors ·
-public part (profiles, map, search, compare public; watchlist, notes, alerts
-private) · no person profiles in v1 · differentiation 1 + 2 + 3 · design brief (§8.0).
+**All v1 decisions are taken (2026-10-09).** Front-end B · legal tier policy ·
+storage R2 + mirrors · public part · no person profiles · differentiation 1 + 2 + 3 ·
+design brief (§8.0) · **name: Scouter** · out-of-scope list as proposed in §4 ·
+news → timeline by rules first (§8.6) · five header figures = rounds, amount raised,
+employees, founding year, **latest event**, with *not covered* shown honestly ·
+**light theme** by default · signal review declined at this boundary.
 
-**Still open (owner to settle; blocking ones first):**
-
-1. **⚖ Name.** "YC Scouter" no longer describes the product. Working name: *Scouter*.
-   *Blocks M1 (the site needs a title and a domain).*
-2. **⚖ Out-of-scope list for v1** (§4, "proposed") — confirm or edit. *Blocks M0.*
-3. **⚖ News → timeline rule** (§8.6) — rule-based first, model later. *Blocks M4.*
-4. **⚖ The five header figures** (§8.0) — rounds · amount raised · employees ·
-   founding year · one more? And the owner's acceptance that for many companies the
-   funding slots will honestly read *not covered* until enrichers land. *Blocks M1.*
-5. **⚖ Light or dark** as the default (§8.0, Linear/Mercury both work). *Not blocking.*
-6. **⚖ Review threshold for signals** — ten entries are now waiting (see
-   `SIGNALS.md`); a review pass is due at this boundary if the owner wants one.
+New decisions are added here with a date; a decision is changed here first and in
+the code second.
 
 ## 16. Risks
 

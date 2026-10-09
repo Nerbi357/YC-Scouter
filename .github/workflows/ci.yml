@@ -1,0 +1,54 @@
+name: Checks
+
+# Every push and pull request: tests, lint, format, and the documentation links.
+# Nothing here touches the network or spends anything.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt --require-hashes
+          pip install -e . --no-deps
+          python -m ipykernel install --user --name python3
+
+      - name: Lint and format
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Tests
+        run: pytest -q -p no:warnings
+
+      - name: Documentation links
+        run: |
+          python - <<'EOF'
+          import re, pathlib, sys
+          bad = []
+          for md in [*pathlib.Path(".").glob("*.md"), *pathlib.Path("DOCS").glob("*.md"),
+                     *pathlib.Path("AI_USAGE").glob("*.md")]:
+              for _, target in re.findall(r"\[([^\]]*)\]\(([^)]+)\)", md.read_text()):
+                  if target.startswith(("http", "#", "mailto")):
+                      continue
+                  if not (md.parent / target.split("#")[0]).resolve().exists():
+                      bad.append(f"{md}: {target}")
+          print("broken links:", bad or 0)
+          sys.exit(1 if bad else 0)
+          EOF

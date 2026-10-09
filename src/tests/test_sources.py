@@ -168,3 +168,15 @@ def test_replaying_the_archive_builds_a_history_and_is_repeatable(tmp_path, comp
     assert len(again) == len(store), "replaying the same archive twice must add nothing"
     sizes = [r["value"] for r in facts.timeline(store, 1) if r["field"] == "team_size"]
     assert sizes == ["30", "65"], "the archive replayed into a real history"
+
+
+def test_an_unchanged_archive_does_not_rewrite_the_facts_file(tmp_path, companies):
+    """Otherwise the weekly job commits an empty 'refresh' every Monday."""
+    from yc_scouter import pipeline
+
+    companies.to_parquet(tmp_path / "yc_dataset_base_2026-07-01.parquet", index=False)
+    target = tmp_path / "facts.parquet"
+    pipeline.build_facts(data_dir=tmp_path, facts_path=target)
+    stamp = target.stat().st_mtime_ns
+    pipeline.build_facts(data_dir=tmp_path, facts_path=target)
+    assert target.stat().st_mtime_ns == stamp, "the file was rewritten with nothing new"

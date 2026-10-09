@@ -1,0 +1,66 @@
+name: Weekly refresh
+
+# The unattended refresh the product depends on. Nothing here waits for a person:
+# File 1 collects, File 2 summarises only the companies that are new (the cache makes
+# that cost cents), the contract check refuses a broken dataset, and the facts table
+# is folded forward. A failing step commits nothing — the previous, true dataset
+# stays the newest.
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt --require-hashes
+          pip install -e . --no-deps
+          python -m ipykernel install --user --name python3
+
+      - name: Collect (File 1)
+        run: |
+          papermill --log-output --no-progress-bar notebooks/01_dataset_base.ipynb /tmp/out_base.ipynb \
+            -p output commit -p out_dir data
+
+      - name: Summarise what is new (File 2)
+        # The preflight inside File 2 stops before spending if the key, the credit
+        # balance or the model is wrong; the cache limits the spend to new companies.
+        run: |
+          papermill --log-output --no-progress-bar notebooks/02_ai_summary.ipynb /tmp/out_ai.ipynb \
+            -p provider claude -p output commit -p out_dir data
+
+      - name: Contract check and facts
+        run: python -m yc_scouter.refresh
+
+      - name: Commit the refreshed data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/yc_dataset_*.parquet data/yc_dataset_*.xlsx data/cache/ai_cache.json data/facts.parquet
+          if git diff --cached --quiet; then
+            echo "Nothing changed this week."
+          else
+            git commit -m "Weekly refresh ($(date -u +%Y-%m-%d))"
+            git push
+          fi
