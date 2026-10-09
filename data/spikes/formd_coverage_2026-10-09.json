@@ -1,0 +1,1816 @@
+{
+  "generated_at": "2026-10-09",
+  "source": "SEC EDGAR browse-edgar company search, forms=D",
+  "method": "exact name match after normalising punctuation and legal suffixes",
+  "user_agent": "Scouter research (timurgar.tg@gmail.com)",
+  "status": "measured",
+  "sample_size": 200,
+  "counts": {
+    "matched": 10,
+    "ambiguous": 0,
+    "none": 190,
+    "error": 0
+  },
+  "rows": [
+    {
+      "id": 12581,
+      "name": "Genecis Bio",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 13075,
+      "name": "Okay",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 13102,
+      "name": "Explo",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13122,
+      "name": "Nextmv",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 13164,
+      "name": "Edlyft",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13204,
+      "name": "Duffl",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13233,
+      "name": "Cortex",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13312,
+      "name": "PostHog",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13347,
+      "name": "farmtheory",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13430,
+      "name": "Breathe Well-being",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13496,
+      "name": "Apartio",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13523,
+      "name": "99minutos",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 13673,
+      "name": "Jet Admin",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 21781,
+      "name": "Datafold",
+      "match": "matched",
+      "cik": "0001891176",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 21815,
+      "name": "Jeevam Health",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 21883,
+      "name": "Speedscale",
+      "match": "matched",
+      "cik": "0001807698",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 21947,
+      "name": "Daybreak Health",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 21999,
+      "name": "In Stock",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22049,
+      "name": "Virtually",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22101,
+      "name": "Together Video Chat",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22238,
+      "name": "Nestybox",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22294,
+      "name": "Clau",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22600,
+      "name": "Neverland",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22664,
+      "name": "SBX Robotics",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22699,
+      "name": "Nourish",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22721,
+      "name": "Zepto",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22777,
+      "name": "Gradia Health",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22826,
+      "name": "FifthTry",
+      "match": "matched",
+      "cik": "0001873857",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22855,
+      "name": "Mindee",
+      "match": "matched",
+      "cik": "0001868190",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22889,
+      "name": "Greywing",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 22974,
+      "name": "LogisticsOS",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23048,
+      "name": "Stoke Space",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23128,
+      "name": "FitHub",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23238,
+      "name": "Ontop",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23290,
+      "name": "Kitemaker",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23371,
+      "name": "BusinessOnBot",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23435,
+      "name": "Cheqout",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23530,
+      "name": "Waydev AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23633,
+      "name": "Chorus Sleep",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23819,
+      "name": "Inversion Space",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23953,
+      "name": "Hive Health",
+      "match": "matched",
+      "cik": "0002133179",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 23985,
+      "name": "FirstQuadrant",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24053,
+      "name": "ODWEN",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 24108,
+      "name": "V-Flow Medical",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24153,
+      "name": "Dailybot",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24185,
+      "name": "Micro Meat",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24243,
+      "name": "Repool",
+      "match": "matched",
+      "cik": "0001985481",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24275,
+      "name": "Cloudanix",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24353,
+      "name": "Intellect",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24391,
+      "name": "CoLoop",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24459,
+      "name": "lapzo",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24508,
+      "name": "Meticulous",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 24557,
+      "name": "Dots 💸",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24599,
+      "name": "Female Invest",
+      "match": "matched",
+      "cik": "0002031731",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24666,
+      "name": "Baubap",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 24756,
+      "name": "Hirebolt",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24830,
+      "name": "GamerPay",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 24875,
+      "name": "Equipt Health",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25075,
+      "name": "Attack Capital",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 25278,
+      "name": "Pelm",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25319,
+      "name": "Samos Insurance",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25346,
+      "name": "Transfez",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25396,
+      "name": "HomeRoom",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25451,
+      "name": "Instant Labs",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25526,
+      "name": "Complif",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25571,
+      "name": "Omoi (formerly Azuki)",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25606,
+      "name": "HOKALI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25650,
+      "name": "NearWave",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25680,
+      "name": "Cotera",
+      "match": "matched",
+      "cik": "0001561875",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25715,
+      "name": "SubscriptionFlow",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25752,
+      "name": "Simplifyd Systems",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25820,
+      "name": "Fello",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25913,
+      "name": "Trueplace",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25958,
+      "name": "Unsaddl",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 25989,
+      "name": "Blink",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26049,
+      "name": "Netmaker",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26137,
+      "name": "Pina Earth",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26267,
+      "name": "Fresh Factory",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 26564,
+      "name": "Banabo",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26690,
+      "name": "Truva",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26724,
+      "name": "Coupl",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26752,
+      "name": "Delegasi",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26794,
+      "name": "Capix",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26837,
+      "name": "Unify",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 26884,
+      "name": "Alphawatch AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 27047,
+      "name": "Plutto",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27124,
+      "name": "KemNet",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27164,
+      "name": "autone",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27205,
+      "name": "Kashin",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27267,
+      "name": "Ping",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27677,
+      "name": "Matano",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27701,
+      "name": "Backdrop",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27774,
+      "name": "Versive",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27824,
+      "name": "Coperniq",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27854,
+      "name": "Suger",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27882,
+      "name": "Velos",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27924,
+      "name": "OutSail Technologies",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27956,
+      "name": "Hippo Scribe",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 27986,
+      "name": "Rally Tax",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28075,
+      "name": "Stralis Aircraft",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28108,
+      "name": "CodeParrot AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28178,
+      "name": "Vector",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28404,
+      "name": "Cercli",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28743,
+      "name": "Leafpress",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 28796,
+      "name": "Sweetspot",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 28825,
+      "name": "Solve Intelligence",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28853,
+      "name": "Obento Health",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28886,
+      "name": "Cardinal Gray",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28930,
+      "name": "Midrender",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 28971,
+      "name": "Kobalt Labs",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29004,
+      "name": "Chatter",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29073,
+      "name": "Terracotta AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29104,
+      "name": "Shadeform",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29136,
+      "name": "Autotab",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29182,
+      "name": "Upsolve AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29247,
+      "name": "Precip",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29272,
+      "name": "Aidy",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29297,
+      "name": "Eggnog",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29318,
+      "name": "StarJar",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29342,
+      "name": "InQuery",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29366,
+      "name": "Metofico",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29387,
+      "name": "Overeasy",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 29410,
+      "name": "Model ML",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29433,
+      "name": "Hatchet",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29456,
+      "name": "Marblism",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29483,
+      "name": "Healia",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29515,
+      "name": "NowHouse",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29575,
+      "name": "Doublezero",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 29634,
+      "name": "Random Labs",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29657,
+      "name": "Azalea Robotics Corporation",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29683,
+      "name": "CodeViz",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29706,
+      "name": "Mito Health",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29731,
+      "name": "Zoa Research",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29755,
+      "name": "Pax",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29777,
+      "name": "Zettascale",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29798,
+      "name": "&AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29824,
+      "name": "Assembly HOA",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29852,
+      "name": "Dayflow",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 29967,
+      "name": "Village Labs",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30017,
+      "name": "Riveter",
+      "match": "matched",
+      "cik": "0001696106",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30041,
+      "name": "Revyl",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30063,
+      "name": "Freebuff",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30091,
+      "name": "CollectWise",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30115,
+      "name": "Laminar",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 30179,
+      "name": "Vetnio",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30204,
+      "name": "Subtrace",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30228,
+      "name": "Weave",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30249,
+      "name": "HealthKey",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 30269,
+      "name": "Pluto",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30291,
+      "name": "Outlit",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30319,
+      "name": "Corsair",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30347,
+      "name": "Instinct",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30400,
+      "name": "Plexe",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30426,
+      "name": "Ralo",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30447,
+      "name": "Caucus",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30468,
+      "name": "Clidey",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30498,
+      "name": "Alkali",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30520,
+      "name": "Synthetic Society",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30544,
+      "name": "Wavedash",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30592,
+      "name": "Prox",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30622,
+      "name": "Liva AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30645,
+      "name": "Panels",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30668,
+      "name": "Wedge",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30692,
+      "name": "Costream",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30715,
+      "name": "Autumn AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30738,
+      "name": "Altur",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30769,
+      "name": "Juxta",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30797,
+      "name": "Veritus",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30844,
+      "name": "Uplane",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30865,
+      "name": "Lunavo",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30888,
+      "name": "Lakonia",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30916,
+      "name": "Rovr",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 1,
+      "note": ""
+    },
+    {
+      "id": 30938,
+      "name": "Imagine AI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30963,
+      "name": "TakeCareOS",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 30993,
+      "name": "DiligenceSquared",
+      "match": "matched",
+      "cik": "0002100275",
+      "candidates": 1,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31021,
+      "name": "Zephyr Fusion",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31074,
+      "name": "TrustAI",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31098,
+      "name": "10x Science",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31123,
+      "name": "21st",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31147,
+      "name": "Salus",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31170,
+      "name": "Cajal",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31191,
+      "name": "Traverse",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31213,
+      "name": "Byteport",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31240,
+      "name": "General Legal",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31264,
+      "name": "Vela",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31296,
+      "name": "Unifold",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31342,
+      "name": "Osmaura",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31372,
+      "name": "Trellis",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31399,
+      "name": "Madrone",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31424,
+      "name": "Lab0",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31448,
+      "name": "smol machines",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31475,
+      "name": "Ardent",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31501,
+      "name": "General Aviation",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31530,
+      "name": "Avea Robotics",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 31554,
+      "name": "Clawvisor",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 32130,
+      "name": "Olam Labs",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 32200,
+      "name": "Bizmark",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 32552,
+      "name": "6thSense",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 32979,
+      "name": "RonanRx Inc.",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    },
+    {
+      "id": 33277,
+      "name": "Hop Aero",
+      "match": "none",
+      "cik": null,
+      "candidates": 0,
+      "others": 0,
+      "note": ""
+    }
+  ]
+}
