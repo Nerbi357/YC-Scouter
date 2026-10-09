@@ -12,7 +12,8 @@
 > still open. When something changes, change it here first — this file outranks
 > `PLAN.md`, which now tracks execution against it.
 >
-> **Status:** draft for the owner's review. Nothing in it is approved yet.
+> **Status:** reviewed by the owner on 2026-10-09. Decisions marked **✔** are taken;
+> the ones still marked **⚖ decision** are listed in §15.
 
 ---
 
@@ -25,6 +26,9 @@ traced to its source and its date.**
 Not a bigger Crunchbase. The layer *before* the databases: companies at the moment
 they first appear — in an accelerator batch, on a launch board, in a grant list, in a
 filing — followed from there, with the path recorded (accelerator X → Y → acquired).
+
+**In the owner's words (2026-10-09):** *a tool that gathers public information
+about startups — a company profile, a timeline of events, and news.*
 
 ### The scene the product is built for
 
@@ -127,7 +131,7 @@ markets (Kazakhstan, CIS), startup-authored posts, affiliated-person feeds.
 
 ---
 
-## 5. Why this and not Tracxn (differentiation — **⚖ decision**, owner asked for options)
+## 5. Why this and not Tracxn (differentiation — **✔ confirmed 2026-10-09: 1 + 2 + 3**)
 
 | Angle | What it means | How defensible |
 |---|---|---|
@@ -162,6 +166,32 @@ Watch       (user_id, company_id, since)                   — private
 Alert       (user_id, event_id, channel, delivered_at)
 ```
 
+#### Field catalogue — structure borrowed from Crunchbase, PitchBook, Dealroom and Harmonic (not their design)
+
+The owner named these four as the reference for *what a company record contains*.
+The catalogue below is that structure, with an honest mark of what v1 sources can fill.
+A field no source fills is shown as **not covered**, never as a blank.
+
+| Field | Where it would come from | v1 |
+|---|---|---|
+| Name, one-liner, description | rosters, company site | ● |
+| Website, logo | rosters, site | ● |
+| Founded (year) | rosters (YC batch ≈ year), registries | ◐ batch year only |
+| HQ city / country | rosters, registries | ◐ |
+| Categories / sector, tags | rosters | ● |
+| Status (active, acquired, closed, public) | rosters, filings, press | ● |
+| Employees | rosters (team_size), careers pages | ◐ |
+| **Total raised, last round, round date** | SEC Form D (US), Companies House (UK), press | ◐ partial, US first; **the header must say "not covered" where it is** |
+| Investors | Form D related persons, press | ○ later |
+| Accelerators / programs (the path) | every roster the company appears in | ● — our own strength |
+| Key hires | press, careers | ○ later |
+| Product launches | HN, Product Hunt | ◐ |
+| Patents, registrations | USPTO; registries per market | ○ later |
+| News and mentions | GDELT, HN | ● |
+| Valuation, revenue | **never estimated**; shown only if an official record publishes it | ○ |
+
+● fillable in v1 · ◐ partly · ○ not in v1
+
 The facts table already exists (`src/yc_scouter/facts.py`) and is **long, not wide**:
 a new source is an insert, never a migration. Events are facts with an event field;
 the timeline is the company's events sorted by date.
@@ -194,9 +224,10 @@ visible** (owner's choice D2-a).
    required fields present, no source with 100% errors. A failing contract blocks the
    publish and notifies the owner.
 
-### 6.4 Legal policy — **⚖ decision, with a recommendation the owner should read**
+### 6.4 Legal policy — **✔ decided 2026-10-09: the tier policy below**
 
-The owner chose "everything technically accessible" (D4-c). **Recommendation: do not.**
+The owner first chose "everything technically accessible" (D4-c), then accepted the
+alternative. The reasoning is kept:
 For a product meant as a portfolio piece and a tool inside a fund, the exposure is
 reputational, not only legal. The policy proposed instead:
 
@@ -218,7 +249,7 @@ sources and the budget allow. **The owner's manual cadence produced zero refresh
 ten weeks** — the plan no longer depends on it. Every refresh is idempotent (an
 unchanged source adds no rows) and gated by the contract check.
 
-### 6.6 Storage — **⚖ decision**
+### 6.6 Storage — **✔ decided 2026-10-09: R2 + Releases mirror + Hugging Face**
 
 | Option | Cost | Fits | Risk |
 |---|---|---|---|
@@ -274,6 +305,35 @@ from Actions, not from the agent sandbox.
 
 Design bar (owner): **Apple / sequoiacap.com** — typographic, quiet, generous space,
 no dashboard chrome. Mobile must open and be usable; desktop is primary.
+
+### 8.0 Design brief (the owner's references, 2026-10-09)
+
+**Structure of the data** — borrow from Crunchbase, PitchBook, Dealroom, Harmonic
+(§6.1 catalogue). **Not** their design.
+
+**Feel** — Apple and Sequoia: air, large typography, restraint. Linear, Mercury,
+Stripe: a premium interface for dense data; Stripe's annual letters for how numbers
+and charts read as a magazine rather than a report.
+
+**The governing principle, in the owner's words:** *there is a lot of data, but the
+screen must never feel crowded. The essentials first — who this is, how much they
+raised, what is new — and the details unfold on request.*
+
+How the references map onto screens:
+
+- **Search** — Apple-style: one large central input on a clean screen.
+- **Company page** — Robinhood / Public.com stock page, Perplexity Finance card: a
+  large name and logo, **4–5 key figures** (rounds, amount raised, employees,
+  founding year), a short description beneath, then the timeline and news — calm,
+  with room. Where a key figure is not covered by any source, the slot says so in the
+  same quiet type; it is never left blank and never faked.
+- **Timeline** — Linear's changelog: a vertical feed that is pleasant to scroll;
+  dates, short headlines, large visual accents; **filterable by event type**
+  (founding, rounds, launches, key hires, status changes).
+- **News** — Apple Newsroom: cards with a source and a date. **Important news items
+  are promoted into the timeline automatically** — see §8.6 for how, because that
+  step decides whether the timeline is trustworthy.
+- **Interface chrome** — Linear and Mercury: dark or light, restrained, premium.
 
 ### 8.1 Screens
 
@@ -356,6 +416,22 @@ Description on request only, generated from the company's own public text plus t
 facts on file, labelled, cached per `(company, model, prompt version)` as today, with
 the same preflight and cost cap. Never produces a number the sources do not hold.
 
+### 8.6 How a news item becomes an event — **⚖ decision**
+
+The owner wants important news promoted into the timeline. That is the one place
+where the product could put a *claim* on the timeline rather than a *record*, so the
+rule has to be explicit:
+
+- **Rule-based promotion** (recommended for v1): an item becomes an event only when
+  it carries a recognisable, dated marker — a filing, an acquisition announced by the
+  company, a launch on a launch board, a status change in a roster. Deterministic,
+  auditable, no AI in the loop.
+- **Model-assisted promotion** (later): a language model classifies news into event
+  types. Everything it promotes is labelled `generated` and shown in a visibly
+  different style, and never counts toward figures.
+
+Either way, the news card stays as the receipt: the event links back to it.
+
 ### 8.5 The public part — explained (owner asked, F4)
 
 "Public" means a visitor without an account can open it. The recommendation is that
@@ -367,7 +443,7 @@ invisible, which conflicts with the portfolio goal.
 
 ---
 
-## 9. Architecture and stack — **⚖ decision on the front-end**
+## 9. Architecture and stack — **✔ front-end option B, decided 2026-10-09**
 
 ### 9.1 Shape: static-first
 
@@ -391,7 +467,7 @@ bill, fast on a phone. Only the private slice needs a store.
 | **B. Static site + managed backend** ★ | Astro or Next (static export) on Cloudflare Pages; auth/notes/watchlist on Supabase or Cloudflare D1 + Workers; alerts from a scheduled job | fully reachable | proper | **moderate**: two free services, one deploy command, no servers to patch |
 | **C. Full web app** | Next.js + Postgres on a small VPS or Fly.io | fully reachable | proper | **hard** alone: a server to keep alive, backups, upgrades |
 
-**Recommendation: B.** It meets the design bar, costs $0–5/month, and the owner can
+**Decided: B.** It meets the design bar, costs $0–5/month, and the owner can
 redeploy it with one command. Streamlit stays as the **training ground** (owner's
 earlier decision) for trying ideas before they reach the site.
 
@@ -501,20 +577,24 @@ Design work (references, typography, the map) starts at M1 and runs alongside.
 
 ---
 
-## 15. Open decisions (owner to settle; blocking ones first)
+## 15. Open decisions
 
-1. **⚖ Front-end option** — A/B/C (§9.2). Recommended B. *Blocks M1.*
-2. **⚖ Legal policy** — Tier A/B/C (§6.4) instead of "everything accessible". *Blocks M3.*
-3. **⚖ Storage** — R2 + Releases (§6.6). *Blocks M0's refresh job.*
-4. **⚖ Name.** "YC Scouter" no longer describes the product. Working name here is
-   *Scouter*; the owner names it.
-5. **⚖ Differentiation** — confirm 1+2+3 (§5).
-6. **⚖ Out-of-scope list** (§4) — confirm or edit.
-7. **Design references** — the owner sends 3–5 links to screens he likes and 2 he
-   dislikes, one line each on why. Needed by M1.
-8. **Person data** — confirm "no person profiles in v1" (§4, §12).
+**Taken on 2026-10-09:** front-end B · legal tier policy · storage R2 + mirrors ·
+public part (profiles, map, search, compare public; watchlist, notes, alerts
+private) · no person profiles in v1 · differentiation 1 + 2 + 3 · design brief (§8.0).
 
----
+**Still open (owner to settle; blocking ones first):**
+
+1. **⚖ Name.** "YC Scouter" no longer describes the product. Working name: *Scouter*.
+   *Blocks M1 (the site needs a title and a domain).*
+2. **⚖ Out-of-scope list for v1** (§4, "proposed") — confirm or edit. *Blocks M0.*
+3. **⚖ News → timeline rule** (§8.6) — rule-based first, model later. *Blocks M4.*
+4. **⚖ The five header figures** (§8.0) — rounds · amount raised · employees ·
+   founding year · one more? And the owner's acceptance that for many companies the
+   funding slots will honestly read *not covered* until enrichers land. *Blocks M1.*
+5. **⚖ Light or dark** as the default (§8.0, Linear/Mercury both work). *Not blocking.*
+6. **⚖ Review threshold for signals** — ten entries are now waiting (see
+   `SIGNALS.md`); a review pass is due at this boundary if the owner wants one.
 
 ## 16. Risks
 
