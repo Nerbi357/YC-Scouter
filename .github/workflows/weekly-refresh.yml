@@ -46,9 +46,18 @@ jobs:
       - name: Summarise what is new (File 2)
         # The preflight inside File 2 stops before spending if the key, the credit
         # balance or the model is wrong; the cache limits the spend to new companies.
+        # A failure here must not hold the free data hostage: File 1's result and the
+        # facts still publish, and the dashboard reads the newest file of either kind.
+        id: ai
+        continue-on-error: true
         run: |
           papermill --log-output --no-progress-bar notebooks/02_ai_summary.ipynb /tmp/out_ai.ipynb \
             -p provider claude -p output commit -p out_dir data
+
+      - name: Say so if the AI step failed
+        if: steps.ai.outcome == 'failure'
+        run: |
+          echo "::warning::File 2 failed — the AI dataset was not refreshed. The base data and the facts publish anyway. Check the step above: a rejected key, an empty balance or a retired model each name themselves."
 
       - name: Contract check and facts
         run: python -m yc_scouter.refresh

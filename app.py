@@ -121,15 +121,28 @@ CSS = """
 
 
 def dataset_path() -> Path | None:
-    """Newest dated dataset the dashboard should read (AI preferred, else Base)."""
+    """The newest dated dataset of either kind — AI preferred only on the same day.
+
+    Fresh wins over rich. If the AI step fails for a month (a rotated key did exactly
+    that), the collect step still runs weekly, and showing October's companies without
+    AI text beats showing July's companies with it. ``prepare_data`` fills the AI
+    columns with blanks when the newest file is a Base one.
+    """
     env = os.environ.get("YC_SCOUTER_DATASET")
     if env:
         return Path(env)
-    for stage in ("ai", "base"):
-        p = config.latest_dated(stage, "parquet")
-        if p is not None:
-            return p
-    return None
+    candidates = [
+        p
+        for p in (
+            config.latest_dated(s, "parquet", out_dir=config.DATA_DIR) for s in ("ai", "base")
+        )
+        if p
+    ]
+    if not candidates:
+        return None
+    # The date is the last token of the stem; "ai" sorts before "base" so on a tie the
+    # richer file wins. max() keeps the first maximal element, hence the ordering.
+    return max(candidates, key=lambda p: p.stem.rsplit("_", 1)[-1])
 
 
 # --------------------------------------------------------------------------- data

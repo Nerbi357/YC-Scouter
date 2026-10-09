@@ -112,3 +112,21 @@ def test_a_dataset_from_before_the_rename_still_opens():
     out, _ = app.prepare_data(old)
     assert out["custom_score"].tolist() == [42.5, 7.0]
     assert "score" not in out.columns
+
+
+def test_the_dashboard_reads_the_freshest_file_even_if_it_is_only_a_base_one(tmp_path, monkeypatch):
+    """A rotated AI key once froze the data at July while the free collect step could
+    have kept it current; freshness wins, and the AI columns are simply blank."""
+    from yc_scouter import config
+
+    monkeypatch.delenv("YC_SCOUTER_DATASET", raising=False)
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    frame = pd.DataFrame({"id": [1], "name": ["A"]})
+    frame.to_parquet(tmp_path / "yc_dataset_ai_2026-07-25.parquet", index=False)
+    frame.to_parquet(tmp_path / "yc_dataset_base_2026-10-13.parquet", index=False)
+    assert app.dataset_path().name == "yc_dataset_base_2026-10-13.parquet"
+
+    frame.to_parquet(tmp_path / "yc_dataset_ai_2026-10-13.parquet", index=False)
+    assert app.dataset_path().name == "yc_dataset_ai_2026-10-13.parquet", (
+        "on the same day the richer file wins"
+    )

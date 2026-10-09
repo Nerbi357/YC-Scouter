@@ -17,6 +17,22 @@ concrete steps. Keep it open when you do maintenance.
 > Prefer Colab? Open the two notebooks and Run all, with the top switch set to
 > `drive` or `download`. Same result; the buttons just do it server-side.
 
+## The weekly refresh runs by itself
+
+**Actions → "Weekly refresh"** runs every Monday at 06:00 UTC and can be started by
+hand with *Run workflow*. It collects (File 1), summarises only the new companies
+(File 2), checks the result against the data contract, folds it into the facts table
+and commits. Nothing waits for a person.
+
+- **If File 2 fails** — a rejected key, an empty balance, a retired model — the run
+  says so in a warning and **still publishes the collected data and the facts**. The
+  dashboard shows the freshest file of either kind, with blank AI columns until the
+  key is fixed. Fix: a new key in **Settings → Secrets and variables → Actions →
+  `ANTHROPIC_API_KEY`** (replace the value), then *Run workflow* again.
+- **If the contract fails** — the dataset shrank or grew implausibly, lost a required
+  field, or the AI step skipped companies — nothing is committed and the previous,
+  true dataset stays the newest. The log lists every violation.
+
 ## The third button — measure Form D coverage (a spike, not a refresh)
 
 **Actions → "Measure Form D coverage (spike)" → Run workflow.** Free, needs no key,
